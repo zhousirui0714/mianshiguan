@@ -13,6 +13,10 @@ class Logger:
         return str(uuid.uuid4())
     
     @staticmethod
+    def generate_request_id() -> str:
+        return str(uuid.uuid4())
+    
+    @staticmethod
     def log_entry(
         request_id: str,
         endpoint: str,

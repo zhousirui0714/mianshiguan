@@ -1,18 +1,23 @@
 import json
 import time
+import os
+from dotenv import load_dotenv
 import httpx
 from typing import Optional, List, Dict, Any
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
-# LLM API配置
-LLM_API_URL = "https://api.example.com/chat/completions"
-LLM_API_KEY = "your-api-key"
+# 加载环境变量
+load_dotenv()
+
+# DeepSeek API配置
+LLM_API_URL = os.getenv("DEEPSEEK_API_URL", "https://api.deepseek.com/v1/chat/completions")
+LLM_API_KEY = os.getenv("DEEPSEEK_API_KEY", "your-api-key")
 
 # Timeout配置 - 选择依据：
 # 1. 大模型生成3条追问通常需要5-15秒
 # 2. 设置20秒超时，预留网络延迟和排队时间
 # 3. 考虑到用户体验，超过20秒用户可能会刷新页面
-LLM_TIMEOUT = 20  # 秒
+LLM_TIMEOUT = int(os.getenv("LLM_TIMEOUT", "20"))  # 秒
 
 # 降级问答库 - 当LLM服务不可用时使用
 FALLBACK_QUESTIONS = {
@@ -121,11 +126,11 @@ class LLMClient:
         """
         
         payload = {
-            "model": "gpt-4",
+            "model": "deepseek-chat",
             "messages": [
                 {
                     "role": "system",
-                    "content": "你是一位资深的技术面试官，擅长深挖项目细节和技术盲区。"
+                    "content": "你是一位资深的互联网大厂技术面试官，擅长深挖项目细节和技术盲区。"
                 },
                 {
                     "role": "user",
@@ -144,7 +149,19 @@ class LLMClient:
                     json=payload
                 )
                 response.raise_for_status()
-                return response.json()
+                response_data = response.json()
+                
+                # 解析 DeepSeek API 返回格式
+                # DeepSeek 返回格式: {"choices": [{"message": {"content": "..."}}]}
+                if "choices" in response_data and len(response_data["choices"]) > 0:
+                    message_content = response_data["choices"][0]["message"]["content"]
+                    # 尝试解析为JSON
+                    try:
+                        return json.loads(message_content.strip())
+                    except json.JSONDecodeError:
+                        # 如果不是JSON格式，返回原始内容
+                        return {"questions": [], "raw_content": message_content}
+                return response_data
         except httpx.TimeoutException:
             raise Exception(f"LLM API请求超时（{self.timeout}秒）")
         except httpx.HTTPStatusError as e:
