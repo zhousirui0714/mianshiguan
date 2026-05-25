@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人极简面试官</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section-title {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .card {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .card h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .card p {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .tag {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+        
+        .interview-container {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .message.user {
+            background: #e3f2fd;
+            margin-left: 20px;
+        }
+        
+        .message.ai {
+            background: #f3e5f5;
+            margin-right: 20px;
+        }
+        
+        .message .sender {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .message .content {
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .message .logic {
+            font-size: 0.9em;
+            color: #888;
+            margin-top: 8px;
+            font-style: italic;
+        }
+        
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .input-area textarea {
+            flex: 1;
+        }
+        
+        .status {
+            text-align: center;
+            padding: 10px;
+            background: #fff3cd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #856404;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card p {
+            opacity: 0.9;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+        
+        .loading::after {
+            content: '';
+            animation: dots 1.5s infinite;
+        }
+        
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>个人极简面试官</h1>
+            <p>AI驱动的面试准备工具 - 让面试准备从"盲猜"变成"精准训练"</p>
+        </div>
+        
+        <div class="main-content">
+            <!-- 统计信息 -->
+            <div class="stats">
+                <div class="stat-card">
+                    <h3 id="questionCount">0</h3>
+                    <p>已回答问题</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="sessionTime">0:00</h3>
+                    <p>面试时长</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="successRate">0%</h3>
+                    <p>回答质量</p>
+                </div>
+            </div>
+            
+            <!-- 简历信息 -->
+            <div class="section">
+                <h2 class="section-title">我的简历信息</h2>
+                
+                <div class="form-group">
+                    <label>姓名</label>
+                    <input type="text" id="name" placeholder="请输入姓名" value="张三">
+                </div>
+                
+                <div class="form-group">
+                    <label>目标岗位</label>
+                    <input type="text" id="position" placeholder="如：Java后端开发工程师" value="Java后端开发工程师">
+                </div>
+                
+                <div class="form-group">
+                    <label>技术栈（用逗号分隔）</label>
+                    <input type="text" id="techStack" placeholder="如：Java, Spring Boot, MySQL" value="Java, Spring Boot, MySQL, Redis">
+                </div>
+                
+                <div class="form-group">
+                    <label>项目经历</label>
+                    <textarea id="projectDesc" rows="4" placeholder="请描述你的项目经历...">负责电商订单系统开发，使用Spring Boot + MySQL + Redis技术栈，实现了高可用的分布式订单系统，订单处理性能提升30%。</textarea>
+                </div>
+                
+                <button class="btn" onclick="startInterview()">开始面试</button>
+            </div>
+            
+            <!-- 面试对话 -->
+            <div class="section" id="interviewSection" style="display: none;">
+                <h2 class="section-title">面试进行中</h2>
+                
+                <div class="status">
+                    <strong>💡 提示：</strong> 根据AI面试官的问题，结合你的真实项目经历来回答，AI会根据你的回答继续追问。
+                </div>
+                
+                <div class="interview-container" id="chatContainer">
+                    <!-- 聊天消息将在这里显示 -->
+                </div>
+                
+                <div class="input-area">
+                    <textarea id="answerInput" rows="3" placeholder="请输入你的回答..."></textarea>
+                    <button class="btn" onclick="submitAnswer()">发送</button>
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn" onclick="endInterview()" style="background: #dc3545;">结束面试</button>
+                </div>
+            </div>
+            
+            <!-- 历史记录 -->
+            <div class="section" id="historySection">
+                <h2 class="section-title">面试技巧提示</h2>
+                
+                <div class="card">
+                    <h3>💼 项目描述技巧</h3>
+                    <p>使用STAR法则（情境、任务、行动、结果）来描述项目经历，突出个人贡献和技术难点。</p>
+                </div>
+                
+                <div class="card">
+                    <h3>🎯 量化成果</h3>
+                    <p>用具体数字展示成果，如"性能提升30%"、"处理10万+并发"等，让面试官更直观地了解你的能力。</p>
+                </div>
+                
+                <div class="card">
+                    <h3>🔍 技术深度</h3>
+                    <p>准备时思考每个技术选择的原因、遇到的挑战和解决方案，面试官往往会追问技术细节。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 全局变量
+        let questionCount = 0;
+        let startTime = null;
+        let timerInterval = null;
+        let conversationHistory = [];
+        
+        // 开始面试
+        function startInterview() {
+            const name = document.getElementById('name').value;
+            const position = document.getElementById('position').value;
+            const techStack = document.getElementById('techStack').value;
+            const projectDesc = document.getElementById('projectDesc').value;
+            
+            if (!name || !position || !projectDesc) {
+                alert('请填写完整的简历信息');
+                return;
+            }
+            
+            // 显示面试区域
+            document.getElementById('interviewSection').style.display = 'block';
+            
+            // 初始化对话历史
+            conversationHistory = [{
+                role: 'user',
+                content: `我要面试${position}岗位。姓名：${name}。技术栈：${techStack}。项目经历：${projectDesc}`
+            }];
+            
+            // 清空聊天区域
+            const chatContainer = document.getElementById('chatContainer');
+            chatContainer.innerHTML = '';
+            
+            // 添加开场白
+            addMessage('ai', `你好${name}！我是AI面试官。很高兴和你进行面试练习。\n\n我已经了解了你的背景：\n- 应聘岗位：${position}\n- 技术栈：${techStack}\n\n请介绍一下你最近做的项目，我会根据你的回答进行追问。`);
+            
+            // 开始计时
+            startTime = Date.now();
+            startTimer();
+            
+            // 滚动到底部
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        // 添加消息
+        function addMessage(sender, content, logic = '') {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const senderName = sender === 'ai' ? 'AI面试官' : '你';
+            
+            let messageHTML = `
+                <div class="sender">${senderName}</div>
+                <div class="content">${content.replace(/\n/g, '<br>')}</div>
+            `;
+            
+            if (logic) {
+                messageHTML += `<div class="logic">追问逻辑：${logic}</div>`;
+            }
+            
+            messageDiv.innerHTML = messageHTML;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        // 提交回答
+        async function submitAnswer() {
+            const answerInput = document.getElementById('answerInput');
+            const answer = answerInput.value.trim();
+            
+            if (!answer) {
+                alert('请输入你的回答');
+                return;
+            }
+            
+            // 添加用户回答
+            addMessage('user', answer);
+            conversationHistory.push({ role: 'user', content: answer });
+            
+            // 清空输入框
+            answerInput.value = '';
+            
+            // 添加加载状态
+            const chatContainer = document.getElementById('chatContainer');
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'message ai';
+            loadingDiv.id = 'loadingMessage';
+            loadingDiv.innerHTML = '<div class="sender">AI面试官</div><div class="content"><span class="loading">AI正在思考</span></div>';
+            chatContainer.appendChild(loadingDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            // 调用API生成下一个问题
+            try {
+                const questions = await generateMockQuestion(answer);
+                
+                // 移除加载状态
+                const loadingMessage = document.getElementById('loadingMessage');
+                if (loadingMessage) loadingMessage.remove();
+                
+                // 添加AI问题
+                addMessage('ai', questions.question, questions.logic);
+                conversationHistory.push({ role: 'assistant', content: questions.question });
+                
+                // 更新统计
+                questionCount++;
+                updateStats();
+            } catch (error) {
+                console.error('生成问题失败:', error);
+                
+                // 移除加载状态
+                const loadingMessage = document.getElementById('loadingMessage');
+                if (loadingMessage) loadingMessage.remove();
+                
+                // 显示错误消息
+                addMessage('ai', '抱歉，生成问题时出现了错误。请稍后再试。', '');
+            }
+        }
+        
+        // 生成模拟问题（实际项目中应该调用后端API）
+        async function generateMockQuestion(lastAnswer) {
+            const projectDesc = document.getElementById('projectDesc').value;
+            const techStack = document.getElementById('techStack').value;
+            
+            try {
+                // 调用后端API
+                const response = await fetch('/api/interview/question', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        conversation: conversationHistory,
+                        projectDesc: projectDesc,
+                        techStack: techStack
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    return data.question;
+                }
+            } catch (error) {
+                console.error('API调用失败:', error);
+            }
+            
+            // 如果API调用失败，使用本地生成逻辑
+            // 根据回答内容生成相关问题
+            if (projectDesc.includes('性能') || lastAnswer.includes('性能')) {
+                return {
+                    question: '你提到性能提升了30%，这个指标具体是怎么衡量的？是吞吐量（TPS/QPS）、平均响应时间还是P99延迟？能详细说说你是如何测量的吗？',
+                    logic: '追问模糊的量化指标，要求明确性能测量的具体维度和控制变量'
+                };
+            } else if (projectDesc.includes('MySQL') || lastAnswer.includes('数据库')) {
+                return {
+                    question: '你们是如何设计数据库结构的？有没有做索引优化或分库分表？遇到过哪些性能瓶颈？',
+                    logic: '考察数据库设计和优化能力'
+                };
+            } else if (projectDesc.includes('Redis') || lastAnswer.includes('缓存')) {
+                return {
+                    question: 'Redis缓存与MySQL数据如何保证一致性？你们用了什么缓存策略？有没有遇到过缓存穿透或雪崩问题？',
+                    logic: '考察缓存策略和一致性问题处理'
+                };
+            } else if (lastAnswer.includes('高并发') || lastAnswer.includes('分布式')) {
+                return {
+                    question: '在分布式环境下，如何保证数据一致性？有没有用到分布式事务？如何处理并发冲突？',
+                    logic: '考察分布式系统设计能力'
+                };
+            } else {
+                return {
+                    question: `你提到"${lastAnswer.substring(0, 30)}..."，能详细说说这个过程中你具体做了什么吗？遇到了哪些挑战？`,
+                    logic: '追问具体实现细节，考察动手能力'
+                };
+            }
+        }
+        
+        // 更新统计
+        function updateStats() {
+            document.getElementById('questionCount').textContent = questionCount;
+            
+            // 更新回答质量（简化版，随机生成）
+            const successRate = Math.min(100, Math.round(60 + Math.random() * 30));
+            document.getElementById('successRate').textContent = successRate + '%';
+        }
+        
+        // 开始计时器
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                if (!startTime) return;
+                
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                document.getElementById('sessionTime').textContent = 
+                    `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+        
+        // 结束面试
+        function endInterview() {
+            if (confirm('确定要结束面试吗？')) {
+                // 停止计时器
+                if (timerInterval) clearInterval(timerInterval);
+                
+                // 添加结束消息
+                addMessage('ai', `面试结束！\n\n本次面试你共回答了${questionCount}个问题。\n\n建议：\n1. 针对每个项目，准备好量化的成果指标\n2. 深入理解技术选型的原因和权衡\n3. 练习使用STAR法则描述项目经历\n\n祝你面试顺利！🎉`);
+                
+                // 隐藏面试区域
+                setTimeout(() => {
+                    document.getElementById('interviewSection').style.display = 'none';
+                    
+                    // 重置统计
+                    questionCount = 0;
+                    startTime = null;
+                    document.getElementById('questionCount').textContent = '0';
+                    document.getElementById('sessionTime').textContent = '0:00';
+                    document.getElementById('successRate').textContent = '0%';
+                }, 3000);
+            }
+        }
+        
+        // 监听回车键
+        document.addEventListener('DOMContentLoaded', () => {
+            const answerInput = document.getElementById('answerInput');
+            answerInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    submitAnswer();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
