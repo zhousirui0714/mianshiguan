@@ -437,7 +437,7 @@
             const loadingDiv = document.createElement('div');
             loadingDiv.className = 'message ai';
             loadingDiv.id = 'loadingMessage';
-            loadingDiv.innerHTML = '<div class="sender">AI面试官</div><div class="content"><span class="loading">AI正在思考</span></div>';
+            loadingDiv.innerHTML = '<div class="sender">AI面试官</div><div class="content"><span class="loading">正在调用DeepSeek AI生成追问...</span></div>';
             chatContainer.appendChild(loadingDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
             
@@ -464,66 +464,36 @@
                 if (loadingMessage) loadingMessage.remove();
                 
                 // 显示错误消息
-                addMessage('ai', '抱歉，生成问题时出现了错误。请稍后再试。', '');
+                addMessage('ai', '抱歉，调用DeepSeek AI时出现了错误。请检查网络连接或API配置后重试。', '错误提示');
             }
         }
         
-        // 生成模拟问题（实际项目中应该调用后端API）
+        // 生成下一个问题（调用真实API）
         async function generateMockQuestion(lastAnswer) {
             const projectDesc = document.getElementById('projectDesc').value;
             const techStack = document.getElementById('techStack').value;
             
-            try {
-                // 调用后端API
-                const response = await fetch('/api/interview/question', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        conversation: conversationHistory,
-                        projectDesc: projectDesc,
-                        techStack: techStack
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    return data.question;
-                }
-            } catch (error) {
-                console.error('API调用失败:', error);
+            // 调用后端API
+            const response = await fetch('/api/interview/question', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    conversation: conversationHistory,
+                    projectDesc: projectDesc,
+                    techStack: techStack
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success && data.question) {
+                return data.question;
             }
             
-            // 如果API调用失败，使用本地生成逻辑
-            // 根据回答内容生成相关问题
-            if (projectDesc.includes('性能') || lastAnswer.includes('性能')) {
-                return {
-                    question: '你提到性能提升了30%，这个指标具体是怎么衡量的？是吞吐量（TPS/QPS）、平均响应时间还是P99延迟？能详细说说你是如何测量的吗？',
-                    logic: '追问模糊的量化指标，要求明确性能测量的具体维度和控制变量'
-                };
-            } else if (projectDesc.includes('MySQL') || lastAnswer.includes('数据库')) {
-                return {
-                    question: '你们是如何设计数据库结构的？有没有做索引优化或分库分表？遇到过哪些性能瓶颈？',
-                    logic: '考察数据库设计和优化能力'
-                };
-            } else if (projectDesc.includes('Redis') || lastAnswer.includes('缓存')) {
-                return {
-                    question: 'Redis缓存与MySQL数据如何保证一致性？你们用了什么缓存策略？有没有遇到过缓存穿透或雪崩问题？',
-                    logic: '考察缓存策略和一致性问题处理'
-                };
-            } else if (lastAnswer.includes('高并发') || lastAnswer.includes('分布式')) {
-                return {
-                    question: '在分布式环境下，如何保证数据一致性？有没有用到分布式事务？如何处理并发冲突？',
-                    logic: '考察分布式系统设计能力'
-                };
-            } else {
-                return {
-                    question: `你提到"${lastAnswer.substring(0, 30)}..."，能详细说说这个过程中你具体做了什么吗？遇到了哪些挑战？`,
-                    logic: '追问具体实现细节，考察动手能力'
-                };
-            }
+            // API调用失败时抛出错误，而不是使用本地模拟逻辑
+            throw new Error(data.error || 'API调用失败');
         }
         
         // 更新统计
