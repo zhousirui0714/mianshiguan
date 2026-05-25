@@ -11,155 +11,307 @@
             box-sizing: border-box;
         }
         
+        :root {
+            --charcoal: #2d3748;
+            --slate: #4a5568;
+            --muted: #718096;
+            --silver: #e2e8f0;
+            --snow: #f7fafc;
+            --cream: #fffaf5;
+            --sand: #f5f5f0;
+            --warm-gray: #8a8a8a;
+            --soft-black: #1a1a1a;
+            --accent-gold: #c9a227;
+            --accent-teal: #319795;
+            --accent-navy: #2c3e50;
+            --shadow-soft: 0 2px 8px rgba(45, 55, 72, 0.06);
+            --shadow-card: 0 4px 16px rgba(45, 55, 72, 0.08);
+            --shadow-hover: 0 8px 24px rgba(45, 55, 72, 0.12);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(180deg, var(--cream) 0%, var(--sand) 100%);
+            color: var(--soft-black);
             min-height: 100vh;
-            padding: 20px;
+            line-height: 1.65;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 860px;
             margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
+            padding: 48px 24px;
         }
         
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
             text-align: center;
+            margin-bottom: 48px;
+        }
+        
+        .header .logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(145deg, var(--accent-navy) 0%, var(--charcoal) 100%);
+            border-radius: var(--radius-xl);
+            margin-bottom: 24px;
+            box-shadow: 0 8px 24px rgba(44, 62, 80, 0.25);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .header .logo:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(44, 62, 80, 0.3);
+        }
+        
+        .header .logo svg {
+            width: 34px;
+            height: 34px;
+            fill: white;
+            opacity: 0.95;
         }
         
         .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: var(--soft-black);
+            margin-bottom: 12px;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, var(--charcoal) 0%, var(--accent-navy) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         
         .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
+            font-size: 1.125rem;
+            color: var(--slate);
+            max-width: 420px;
+            margin: 0 auto;
+            font-weight: 400;
         }
         
         .main-content {
-            padding: 40px;
+            display: grid;
+            gap: 28px;
         }
         
-        .section {
-            margin-bottom: 40px;
+        .card {
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-soft);
+            border: 1px solid rgba(45, 55, 72, 0.06);
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
-        .section-title {
-            font-size: 1.8em;
-            color: #333;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 3px solid #667eea;
+        .card:hover {
+            box-shadow: var(--shadow-card);
+            transform: translateY(-1px);
+        }
+        
+        .card-header {
+            padding: 22px 26px;
+            border-bottom: 1px solid var(--silver);
+            background: linear-gradient(180deg, rgba(247, 250, 252, 1) 0%, white 100%);
+        }
+        
+        .card-header h2 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--charcoal);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: -0.01em;
+        }
+        
+        .card-header h2::before {
+            content: '';
+            width: 4px;
+            height: 18px;
+            background: linear-gradient(180deg, var(--accent-gold) 0%, var(--accent-teal) 100%);
+            border-radius: 2px;
+        }
+        
+        .card-body {
+            padding: 26px;
         }
         
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 22px;
+        }
+        
+        .form-group:last-child {
+            margin-bottom: 0;
         }
         
         .form-group label {
             display: block;
-            margin-bottom: 8px;
-            color: #555;
+            font-size: 0.875rem;
             font-weight: 600;
+            color: var(--slate);
+            margin-bottom: 8px;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
         }
         
         .form-group input,
         .form-group textarea {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 1em;
-            transition: border-color 0.3s;
+            padding: 14px 18px;
+            border: 1.5px solid var(--silver);
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-family: inherit;
+            background: var(--snow);
+            color: var(--charcoal);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         .form-group input:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--accent-teal);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(49, 151, 149, 0.1);
         }
         
-        .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
-            font-size: 1em;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-        
-        .btn:active {
-            transform: translateY(0);
-        }
-        
-        .card {
-            background: #f9f9f9;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .card h3 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-        
-        .card p {
-            color: #666;
+        .form-group textarea {
+            min-height: 110px;
+            resize: vertical;
             line-height: 1.6;
         }
         
-        .tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 10px;
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 28px;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            font-family: inherit;
+            gap: 10px;
+            letter-spacing: -0.01em;
         }
         
-        .tag {
-            background: #667eea;
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-navy) 0%, var(--charcoal) 100%);
             color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.9em;
+            box-shadow: 0 4px 14px rgba(44, 62, 80, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(44, 62, 80, 0.4);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(-1px);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(229, 62, 62, 0.25);
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(229, 62, 62, 0.35);
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+        
+        .stat-card {
+            background: white;
+            color: var(--charcoal);
+            padding: 24px;
+            border-radius: var(--radius-lg);
+            text-align: center;
+            box-shadow: var(--shadow-soft);
+            border: 1px solid rgba(45, 55, 72, 0.06);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .stat-card:hover {
+            box-shadow: var(--shadow-card);
+            transform: translateY(-2px);
+        }
+        
+        .stat-card .number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-teal) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .stat-card .label {
+            font-size: 0.875rem;
+            color: var(--muted);
+            font-weight: 500;
         }
         
         .interview-container {
-            background: #f5f5f5;
-            padding: 20px;
-            border-radius: 10px;
-            max-height: 400px;
+            background: var(--snow);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            max-height: 480px;
             overflow-y: auto;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
+            border: 1px solid var(--silver);
+        }
+        
+        .interview-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .interview-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .interview-container::-webkit-scrollbar-thumb {
+            background: var(--silver);
+            border-radius: 3px;
+        }
+        
+        .interview-container::-webkit-scrollbar-thumb:hover {
+            background: var(--muted);
         }
         
         .message {
-            margin-bottom: 15px;
-            padding: 15px;
-            border-radius: 10px;
-            animation: fadeIn 0.3s ease;
+            margin-bottom: 24px;
+            animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
-        @keyframes fadeIn {
+        @keyframes slideIn {
             from {
                 opacity: 0;
-                transform: translateY(10px);
+                transform: translateY(12px);
             }
             to {
                 opacity: 1;
@@ -167,197 +319,416 @@
             }
         }
         
-        .message.user {
-            background: #e3f2fd;
-            margin-left: 20px;
+        .message:last-child {
+            margin-bottom: 0;
         }
         
-        .message.ai {
-            background: #f3e5f5;
-            margin-right: 20px;
+        .message-user,
+        .message-ai {
+            display: flex;
+            gap: 14px;
         }
         
-        .message .sender {
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 5px;
+        .message-user {
+            flex-direction: row-reverse;
         }
         
-        .message .content {
-            color: #333;
-            line-height: 1.6;
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            box-shadow: 0 2px 8px rgba(45, 55, 72, 0.1);
         }
         
-        .message .logic {
-            font-size: 0.9em;
-            color: #888;
-            margin-top: 8px;
+        .avatar-user {
+            background: linear-gradient(135deg, var(--accent-teal) 0%, #2c7a7b 100%);
+            color: white;
+        }
+        
+        .avatar-ai {
+            background: linear-gradient(135deg, var(--accent-navy) 0%, var(--charcoal) 100%);
+            color: white;
+        }
+        
+        .bubble {
+            max-width: 72%;
+            padding: 16px 20px;
+            border-radius: var(--radius-lg);
+            position: relative;
+        }
+        
+        .message-user .bubble {
+            background: linear-gradient(135deg, var(--accent-navy) 0%, var(--charcoal) 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 4px 12px rgba(44, 62, 80, 0.2);
+        }
+        
+        .message-ai .bubble {
+            background: white;
+            color: var(--charcoal);
+            border: 1px solid var(--silver);
+            border-bottom-left-radius: 4px;
+            box-shadow: var(--shadow-soft);
+        }
+        
+        .bubble .sender {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            opacity: 0.85;
+        }
+        
+        .message-user .bubble .sender {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .message-ai .bubble .sender {
+            color: var(--slate);
+        }
+        
+        .bubble .content {
+            font-size: 0.9375rem;
+            line-height: 1.75;
+            white-space: pre-wrap;
+        }
+        
+        .bubble .logic {
+            font-size: 0.75rem;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            opacity: 0.65;
             font-style: italic;
         }
         
         .input-area {
             display: flex;
-            gap: 10px;
+            gap: 14px;
         }
         
         .input-area textarea {
             flex: 1;
+            min-height: 88px;
+            padding: 14px 18px;
+            border: 1.5px solid var(--silver);
+            border-radius: var(--radius-md);
+            font-size: 0.9375rem;
+            font-family: inherit;
+            background: white;
+            resize: none;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            line-height: 1.6;
+        }
+        
+        .input-area textarea:focus {
+            outline: none;
+            border-color: var(--accent-teal);
+            box-shadow: 0 0 0 4px rgba(49, 151, 149, 0.1);
         }
         
         .status {
-            text-align: center;
-            padding: 10px;
-            background: #fff3cd;
-            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(255, 250, 245, 1) 0%, rgba(247, 250, 252, 1) 100%);
+            border: 1px solid rgba(201, 162, 39, 0.2);
+            border-radius: var(--radius-md);
+            padding: 14px 18px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .status svg {
+            width: 18px;
+            height: 18px;
+            fill: var(--accent-gold);
+            flex-shrink: 0;
+        }
+        
+        .status-text {
+            font-size: 0.875rem;
+            color: var(--slate);
+            font-weight: 500;
+        }
+        
+        .tips-section {
+            background: linear-gradient(135deg, rgba(49, 151, 149, 0.03) 0%, rgba(44, 62, 80, 0.02) 100%);
+            border: 1px solid rgba(49, 151, 149, 0.1);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+        }
+        
+        .tips-section h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--charcoal);
             margin-bottom: 20px;
-            color: #856404;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: -0.01em;
         }
         
-        .stats {
+        .tips-section h3 svg {
+            width: 18px;
+            height: 18px;
+            fill: var(--accent-teal);
+        }
+        
+        .tips-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 20px;
-            margin-bottom: 30px;
         }
         
-        .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+        .tip-card {
+            background: white;
             padding: 20px;
-            border-radius: 10px;
-            text-align: center;
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--accent-teal);
+            box-shadow: var(--shadow-soft);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
-        .stat-card h3 {
-            font-size: 2em;
-            margin-bottom: 5px;
+        .tip-card:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow-card);
         }
         
-        .stat-card p {
-            opacity: 0.9;
+        .tip-card h4 {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: var(--charcoal);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .tip-card h4::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--accent-gold);
+            border-radius: 50%;
+        }
+        
+        .tip-card p {
+            font-size: 0.875rem;
+            color: var(--slate);
+            line-height: 1.65;
         }
         
         .loading {
-            text-align: center;
-            padding: 20px;
-            color: #667eea;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--muted);
         }
         
         .loading::after {
             content: '';
-            animation: dots 1.5s infinite;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--silver);
+            border-top-color: var(--accent-teal);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
         }
         
-        @keyframes dots {
-            0%, 20% { content: '.'; }
-            40% { content: '..'; }
-            60%, 100% { content: '...'; }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        @media (max-width: 640px) {
+            .container {
+                padding: 32px 16px;
+            }
+            
+            .header h1 {
+                font-size: 1.75rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            .header .logo {
+                width: 64px;
+                height: 64px;
+            }
+            
+            .stats {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+            }
+            
+            .stat-card {
+                padding: 18px 10px;
+            }
+            
+            .stat-card .number {
+                font-size: 1.5rem;
+            }
+            
+            .bubble {
+                max-width: 85%;
+                padding: 12px 16px;
+            }
+            
+            .input-area {
+                flex-direction: column;
+            }
+            
+            .input-area .btn {
+                width: 100%;
+            }
+            
+            .tips-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
+            <div class="logo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+            </div>
             <h1>个人极简面试官</h1>
-            <p>AI驱动的面试准备工具 - 让面试准备从"盲猜"变成"精准训练"</p>
+            <p>AI驱动的面试准备工具</p>
         </div>
         
         <div class="main-content">
-            <!-- 统计信息 -->
+            <!-- 统计卡片 -->
             <div class="stats">
                 <div class="stat-card">
-                    <h3 id="questionCount">0</h3>
-                    <p>已回答问题</p>
+                    <div class="number" id="questionCount">0</div>
+                    <div class="label">已回答问题</div>
                 </div>
                 <div class="stat-card">
-                    <h3 id="sessionTime">0:00</h3>
-                    <p>面试时长</p>
+                    <div class="number" id="sessionTime">0:00</div>
+                    <div class="label">面试时长</div>
                 </div>
                 <div class="stat-card">
-                    <h3 id="successRate">0%</h3>
-                    <p>回答质量</p>
+                    <div class="number" id="successRate">0%</div>
+                    <div class="label">回答质量</div>
                 </div>
             </div>
             
-            <!-- 简历信息 -->
-            <div class="section">
-                <h2 class="section-title">我的简历信息</h2>
-                
-                <div class="form-group">
-                    <label>姓名</label>
-                    <input type="text" id="name" placeholder="请输入姓名" value="张三">
+            <!-- 简历信息卡片 -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>简历信息</h2>
                 </div>
-                
-                <div class="form-group">
-                    <label>目标岗位</label>
-                    <input type="text" id="position" placeholder="如：Java后端开发工程师" value="Java后端开发工程师">
-                </div>
-                
-                <div class="form-group">
-                    <label>技术栈（用逗号分隔）</label>
-                    <input type="text" id="techStack" placeholder="如：Java, Spring Boot, MySQL" value="Java, Spring Boot, MySQL, Redis">
-                </div>
-                
-                <div class="form-group">
-                    <label>项目经历</label>
-                    <textarea id="projectDesc" rows="4" placeholder="请描述你的项目经历...">负责电商订单系统开发，使用Spring Boot + MySQL + Redis技术栈，实现了高可用的分布式订单系统，订单处理性能提升30%。</textarea>
-                </div>
-                
-                <button class="btn" onclick="startInterview()">开始面试</button>
-            </div>
-            
-            <!-- 面试对话 -->
-            <div class="section" id="interviewSection" style="display: none;">
-                <h2 class="section-title">面试进行中</h2>
-                
-                <div class="status">
-                    <strong>💡 提示：</strong> 根据AI面试官的问题，结合你的真实项目经历来回答，AI会根据你的回答继续追问。
-                </div>
-                
-                <div class="interview-container" id="chatContainer">
-                    <!-- 聊天消息将在这里显示 -->
-                </div>
-                
-                <div class="input-area">
-                    <textarea id="answerInput" rows="3" placeholder="请输入你的回答..."></textarea>
-                    <button class="btn" onclick="submitAnswer()">发送</button>
-                </div>
-                
-                <div style="text-align: center; margin-top: 20px;">
-                    <button class="btn" onclick="endInterview()" style="background: #dc3545;">结束面试</button>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label>姓名</label>
+                        <input type="text" id="name" placeholder="请输入姓名" value="张三">
+                    </div>
+                    <div class="form-group">
+                        <label>目标岗位</label>
+                        <input type="text" id="position" placeholder="如：Java后端开发工程师" value="Java后端开发工程师">
+                    </div>
+                    <div class="form-group">
+                        <label>技术栈（用逗号分隔）</label>
+                        <input type="text" id="techStack" placeholder="如：Java, Spring Boot, MySQL" value="Java, Spring Boot, MySQL, Redis">
+                    </div>
+                    <div class="form-group">
+                        <label>项目经历</label>
+                        <textarea id="projectDesc" placeholder="请描述你的项目经历...">负责电商订单系统开发，使用Spring Boot + MySQL + Redis技术栈，实现了高可用的分布式订单系统，订单处理性能提升30%。</textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="startInterview()">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 19V5M8 12l4-4 4 4"/>
+                        </svg>
+                        开始面试
+                    </button>
                 </div>
             </div>
             
-            <!-- 历史记录 -->
-            <div class="section" id="historySection">
-                <h2 class="section-title">面试技巧提示</h2>
-                
-                <div class="card">
-                    <h3>💼 项目描述技巧</h3>
-                    <p>使用STAR法则（情境、任务、行动、结果）来描述项目经历，突出个人贡献和技术难点。</p>
+            <!-- 面试对话卡片 -->
+            <div class="card hidden" id="interviewCard">
+                <div class="card-header">
+                    <h2>面试进行中</h2>
                 </div>
-                
-                <div class="card">
-                    <h3>🎯 量化成果</h3>
-                    <p>用具体数字展示成果，如"性能提升30%"、"处理10万+并发"等，让面试官更直观地了解你的能力。</p>
+                <div class="card-body">
+                    <div class="status">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 16v-4M12 8h.01"></path>
+                        </svg>
+                        <span class="status-text">根据AI面试官的问题，结合你的真实项目经历来回答</span>
+                    </div>
+                    
+                    <div class="interview-container" id="chatContainer">
+                        <!-- 聊天消息 -->
+                    </div>
+                    
+                    <div class="input-area">
+                        <textarea id="answerInput" placeholder="请输入你的回答..."></textarea>
+                        <button class="btn btn-primary" onclick="submitAnswer()">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            发送
+                        </button>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="btn btn-danger" onclick="endInterview()">结束面试</button>
+                    </div>
                 </div>
-                
-                <div class="card">
-                    <h3>🔍 技术深度</h3>
-                    <p>准备时思考每个技术选择的原因、遇到的挑战和解决方案，面试官往往会追问技术细节。</p>
+            </div>
+            
+            <!-- 面试技巧卡片 -->
+            <div class="tips-section">
+                <h3>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                    </svg>
+                    面试技巧提示
+                </h3>
+                <div class="tips-grid">
+                    <div class="tip-card">
+                        <h4>STAR法则</h4>
+                        <p>使用情境、任务、行动、结果来描述项目经历，突出个人贡献和技术难点。</p>
+                    </div>
+                    <div class="tip-card">
+                        <h4>量化成果</h4>
+                        <p>用具体数字展示成果，如"性能提升30%"、"处理10万+并发"等。</p>
+                    </div>
+                    <div class="tip-card">
+                        <h4>技术深度</h4>
+                        <p>思考每个技术选择的原因、遇到的挑战和解决方案，面试官会追问细节。</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     
     <script>
-        // 全局变量
         let questionCount = 0;
         let startTime = null;
         let timerInterval = null;
         let conversationHistory = [];
         
-        // 开始面试
         function startInterview() {
             const name = document.getElementById('name').value;
             const position = document.getElementById('position').value;
@@ -369,53 +740,50 @@
                 return;
             }
             
-            // 显示面试区域
-            document.getElementById('interviewSection').style.display = 'block';
+            document.getElementById('interviewCard').classList.remove('hidden');
             
-            // 初始化对话历史
             conversationHistory = [{
                 role: 'user',
                 content: `我要面试${position}岗位。姓名：${name}。技术栈：${techStack}。项目经历：${projectDesc}`
             }];
             
-            // 清空聊天区域
             const chatContainer = document.getElementById('chatContainer');
             chatContainer.innerHTML = '';
             
-            // 添加开场白
             addMessage('ai', `你好${name}！我是AI面试官。很高兴和你进行面试练习。\n\n我已经了解了你的背景：\n- 应聘岗位：${position}\n- 技术栈：${techStack}\n\n请介绍一下你最近做的项目，我会根据你的回答进行追问。`);
             
-            // 开始计时
             startTime = Date.now();
             startTimer();
             
-            // 滚动到底部
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
         
-        // 添加消息
         function addMessage(sender, content, logic = '') {
             const chatContainer = document.getElementById('chatContainer');
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}`;
+            messageDiv.className = `message message-${sender}`;
             
             const senderName = sender === 'ai' ? 'AI面试官' : '你';
+            const avatarClass = sender === 'ai' ? 'avatar-ai' : 'avatar-user';
+            const initial = sender === 'ai' ? 'AI' : 'Me';
             
-            let messageHTML = `
-                <div class="sender">${senderName}</div>
-                <div class="content">${content.replace(/\n/g, '<br>')}</div>
+            let bubbleHTML = `
+                <div class="avatar ${avatarClass}">${initial}</div>
+                <div class="bubble">
+                    <div class="sender">${senderName}</div>
+                    <div class="content">${content.replace(/\n/g, '<br>')}</div>
             `;
             
             if (logic) {
-                messageHTML += `<div class="logic">追问逻辑：${logic}</div>`;
+                bubbleHTML += `<div class="logic">追问逻辑：${logic}</div>`;
             }
             
-            messageDiv.innerHTML = messageHTML;
+            bubbleHTML += '</div>';
+            messageDiv.innerHTML = bubbleHTML;
             chatContainer.appendChild(messageDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
         
-        // 提交回答
         async function submitAnswer() {
             const answerInput = document.getElementById('answerInput');
             const answer = answerInput.value.trim();
@@ -425,55 +793,49 @@
                 return;
             }
             
-            // 添加用户回答
             addMessage('user', answer);
             conversationHistory.push({ role: 'user', content: answer });
-            
-            // 清空输入框
             answerInput.value = '';
             
-            // 添加加载状态
             const chatContainer = document.getElementById('chatContainer');
             const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'message ai';
+            loadingDiv.className = 'message message-ai';
             loadingDiv.id = 'loadingMessage';
-            loadingDiv.innerHTML = '<div class="sender">AI面试官</div><div class="content"><span class="loading">正在调用DeepSeek AI生成追问...</span></div>';
+            loadingDiv.innerHTML = `
+                <div class="avatar avatar-ai">AI</div>
+                <div class="bubble">
+                    <div class="sender">AI面试官</div>
+                    <div class="content"><span class="loading">正在调用DeepSeek AI生成追问</span></div>
+                </div>
+            `;
             chatContainer.appendChild(loadingDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
             
-            // 调用API生成下一个问题
             try {
-                const questions = await generateMockQuestion(answer);
+                const questions = await generateQuestion(answer);
                 
-                // 移除加载状态
                 const loadingMessage = document.getElementById('loadingMessage');
                 if (loadingMessage) loadingMessage.remove();
                 
-                // 添加AI问题
                 addMessage('ai', questions.question, questions.logic);
                 conversationHistory.push({ role: 'assistant', content: questions.question });
                 
-                // 更新统计
                 questionCount++;
                 updateStats();
             } catch (error) {
                 console.error('生成问题失败:', error);
                 
-                // 移除加载状态
                 const loadingMessage = document.getElementById('loadingMessage');
                 if (loadingMessage) loadingMessage.remove();
                 
-                // 显示错误消息
-                addMessage('ai', '抱歉，调用DeepSeek AI时出现了错误。请检查网络连接或API配置后重试。', '错误提示');
+                addMessage('ai', '抱歉，调用DeepSeek AI时出现了错误。请检查网络连接后重试。', '错误提示');
             }
         }
         
-        // 生成下一个问题（调用真实API）
-        async function generateMockQuestion(lastAnswer) {
+        async function generateQuestion(lastAnswer) {
             const projectDesc = document.getElementById('projectDesc').value;
             const techStack = document.getElementById('techStack').value;
             
-            // 调用后端API
             const response = await fetch('/api/interview/question', {
                 method: 'POST',
                 headers: {
@@ -492,20 +854,16 @@
                 return data.question;
             }
             
-            // API调用失败时抛出错误，而不是使用本地模拟逻辑
             throw new Error(data.error || 'API调用失败');
         }
         
-        // 更新统计
         function updateStats() {
             document.getElementById('questionCount').textContent = questionCount;
             
-            // 更新回答质量（简化版，随机生成）
             const successRate = Math.min(100, Math.round(60 + Math.random() * 30));
             document.getElementById('successRate').textContent = successRate + '%';
         }
         
-        // 开始计时器
         function startTimer() {
             if (timerInterval) clearInterval(timerInterval);
             
@@ -520,20 +878,15 @@
             }, 1000);
         }
         
-        // 结束面试
         function endInterview() {
             if (confirm('确定要结束面试吗？')) {
-                // 停止计时器
                 if (timerInterval) clearInterval(timerInterval);
                 
-                // 添加结束消息
                 addMessage('ai', `面试结束！\n\n本次面试你共回答了${questionCount}个问题。\n\n建议：\n1. 针对每个项目，准备好量化的成果指标\n2. 深入理解技术选型的原因和权衡\n3. 练习使用STAR法则描述项目经历\n\n祝你面试顺利！🎉`);
                 
-                // 隐藏面试区域
                 setTimeout(() => {
-                    document.getElementById('interviewSection').style.display = 'none';
+                    document.getElementById('interviewCard').classList.add('hidden');
                     
-                    // 重置统计
                     questionCount = 0;
                     startTime = null;
                     document.getElementById('questionCount').textContent = '0';
@@ -543,7 +896,6 @@
             }
         }
         
-        // 监听回车键
         document.addEventListener('DOMContentLoaded', () => {
             const answerInput = document.getElementById('answerInput');
             answerInput.addEventListener('keypress', (e) => {
