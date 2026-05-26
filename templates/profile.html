@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人中心 - 面试翻车救援队</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #FF6B6B;
+            --secondary: #4ECDC4;
+            --accent: #FFE66D;
+            --bg-dark: #2D3436;
+            --bg-card: #3A3F44;
+            --text-primary: #FFFFFF;
+            --text-secondary: #B2BEC3;
+            --border: #4A4F55;
+        }
+        
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .nav-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+        
+        .logo {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+        
+        .profile-card {
+            background: var(--bg-card);
+            border-radius: 25px;
+            padding: 50px 40px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            margin: 0 auto 20px;
+        }
+        
+        .username {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 30px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .card-icon {
+            font-size: 1.5rem;
+        }
+        
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .progress-bar {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            height: 12px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s;
+        }
+        
+        .user-badges {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .user-badge {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+            min-width: 100px;
+        }
+        
+        .user-badge-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        
+        .user-badge-name {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, #FF4757 100%);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-secondary);
+            margin-top: 10px;
+        }
+        
+        .btn:hover { transform: translateY(-2px); }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: var(--text-secondary);
+        }
+        
+        @media (max-width: 640px) {
+            .stats { gap: 20px; }
+            .profile-card { padding: 30px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="nav-bar">
+            <div class="logo">
+                <span>🚑</span>
+                <span>翻车救援队</span>
+            </div>
+            <div class="nav-links">
+                <a href="/">首页</a>
+                <a href="/checkin">开始复盘</a>
+                <a href="/badges">徽章馆</a>
+            </div>
+        </nav>
+        
+        <div class="profile-card">
+            <div class="avatar">👤</div>
+            <div class="username">面试达人</div>
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-number">5</div>
+                    <div class="stat-label">复盘次数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">8</div>
+                    <div class="stat-label">获得徽章</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">12</div>
+                    <div class="stat-label">行动完成</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <span class="card-icon">📊</span>
+                <span class="card-title">成就进度</span>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span>徽章收集</span>
+                    <span>8/12</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 67%"></div>
+                </div>
+            </div>
+            <div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span>复盘完成</span>
+                    <span>5次</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 50%"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <span class="card-icon">🏆</span>
+                <span class="card-title">我的徽章</span>
+            </div>
+            <div class="user-badges">
+                <div class="user-badge">
+                    <div class="user-badge-icon">🎯</div>
+                    <div class="user-badge-name">初出茅庐</div>
+                </div>
+                <div class="user-badge">
+                    <div class="user-badge-icon">🙈</div>
+                    <div class="user-badge-name">说错话大师</div>
+                </div>
+                <div class="user-badge">
+                    <div class="user-badge-icon">⚡</div>
+                    <div class="user-badge-name">卡壳终结者</div>
+                </div>
+                <div class="user-badge">
+                    <div class="user-badge-icon">🤝</div>
+                    <div class="user-badge-name">诚实勇敢</div>
+                </div>
+                <div class="user-badge">
+                    <div class="user-badge-icon">💪</div>
+                    <div class="user-badge-name">抗压能手</div>
+                </div>
+                <div class="user-badge">
+                    <div class="user-badge-icon">📚</div>
+                    <div class="user-badge-name">复盘达人</div>
+                </div>
+            </div>
+        </div>
+        
+        <button class="btn btn-primary" onclick="window.location.href='/checkin'">
+            🚀 开始新复盘
+        </button>
+        
+        <button class="btn btn-secondary" onclick="window.location.href='/badges'">
+            🎮 查看徽章馆
+        </button>
+        
+        <footer class="footer">
+            <p>© 2026 面试翻车救援队</p>
+        </footer>
+    </div>
+</body>
+</html>

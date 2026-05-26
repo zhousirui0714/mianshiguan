@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>救援话术库 - 面试翻车救援队</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #FF6B6B;
+            --secondary: #4ECDC4;
+            --accent: #FFE66D;
+            --bg-dark: #2D3436;
+            --bg-card: #3A3F44;
+            --text-primary: #FFFFFF;
+            --text-secondary: #B2BEC3;
+            --border: #4A4F55;
+        }
+        
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .nav-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+        
+        .logo {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+        
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .page-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .page-header p {
+            color: var(--text-secondary);
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+        
+        .tab {
+            padding: 12px 25px;
+            border-radius: 25px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+            white-space: nowrap;
+        }
+        
+        .tab:hover {
+            background: rgba(255,255,255,0.15);
+        }
+        
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .scripts-container {
+            display: none;
+        }
+        
+        .scripts-container.active {
+            display: block;
+        }
+        
+        .script-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .script-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+        
+        .script-content {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        
+        .script-tips {
+            background: rgba(78,205,196,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 3px solid var(--secondary);
+            color: var(--text-secondary);
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: var(--text-secondary);
+        }
+        
+        @media (max-width: 640px) {
+            .page-header h1 { font-size: 1.8rem; }
+            .tabs { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="nav-bar">
+            <div class="logo">
+                <span>🚑</span>
+                <span>翻车救援队</span>
+            </div>
+            <div class="nav-links">
+                <a href="/">首页</a>
+                <a href="/checkin">开始复盘</a>
+                <a href="/badges">徽章馆</a>
+            </div>
+        </nav>
+        
+        <div class="page-header">
+            <h1>💬 救援话术库</h1>
+            <p>针对各种面试翻车场景，提供现成的应对话术</p>
+        </div>
+        
+        <div class="tabs">
+            {% for crash_type in crash_types %}
+            <button class="tab" data-tab="{{ crash_type.value }}" onclick="switchTab('{{ crash_type.value }}')">
+                {{ crash_type.label }}
+            </button>
+            {% endfor %}
+        </div>
+        
+        {% for key, data in grouped_scripts.items() %}
+        <div class="scripts-container" id="tab-{{ key }}">
+            {% for script in data.scripts %}
+            <div class="script-card">
+                <div class="script-title">{{ script.title }}</div>
+                <div class="script-content">{{ script.script }}</div>
+                <div class="script-tips">💡 {{ script.tips }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+        
+        <footer class="footer">
+            <p>© 2026 面试翻车救援队</p>
+        </footer>
+    </div>
+    
+    <script>
+        function switchTab(tabName) {
+            // 切换标签
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+            
+            // 切换内容
+            document.querySelectorAll('.scripts-container').forEach(container => {
+                container.classList.remove('active');
+            });
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+        
+        // 默认显示第一个标签
+        document.querySelector('.tab')?.click();
+    </script>
+</body>
+</html>
