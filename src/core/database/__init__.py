@@ -55,6 +55,12 @@ class DatabaseManager:
         try:
             conn.executescript(CREATE_TABLES_SQL)
             conn.commit()
+            # 迁移：添加 report_data 列（兼容旧数据库）
+            try:
+                conn.execute("ALTER TABLE conversations ADD COLUMN report_data TEXT DEFAULT '{}'")
+                conn.commit()
+            except sqlite3.OperationalError:
+                pass  # 列已存在
         finally:
             conn.close()
 
@@ -328,6 +334,20 @@ class DatabaseManager:
         finally:
             conn.close()
 
+    def update_conversation_report(self, conversation_id: str, report_data: dict) -> dict:
+        """保存面试报告数据到 conversations 表"""
+        conn = self._get_conn()
+        try:
+            now = datetime.now().isoformat()
+            conn.execute(
+                "UPDATE conversations SET report_data = ?, updated_at = ? WHERE id = ?",
+                (json.dumps(report_data, ensure_ascii=False), now, conversation_id)
+            )
+            conn.commit()
+            return {"success": True}
+        finally:
+            conn.close()
+
     def get_user_conversations(self, user_id: str) -> List[dict]:
         conn = self._get_conn()
         try:
@@ -416,6 +436,128 @@ class DatabaseManager:
                 if isinstance(r.get("dimension_scores"), str):
                     r["dimension_scores"] = json.loads(r["dimension_scores"])
             return rows
+        finally:
+            conn.close()
+
+    def get_conversation_result(self, conversation_id: str) -> Optional[dict]:
+        """获取面试结果数据（含答案聚合 + 报告 + 排名）"""
+        conn = self._get_conn()
+        try:
+            # 1. 获取会话基本信息
+            conv = conn.execute(
+                "SELECT * FROM conversations WHERE id = ?", (conversation_id,)
+            ).fetchone()
+            if not conv:
+                return None
+
+            # 2. 获取该会话的所有答题记录
+            answers = conn.execute(
+                "SELECT * FROM answers WHERE conversation_id = ? ORDER BY round",
+                (conversation_id,)
+            ).fetchall()
+
+            # 3. 解析 report_data
+            report_data = {}
+            raw_report = conv.get("report_data", "{}")
+            if isinstance(raw_report, str) and raw_report.strip():
+                try:
+                    report_data = json.loads(raw_report)
+                except json.JSONDecodeError:
+                    report_data = {}
+
+            # 4. 计算各项指标
+            total_rounds = len(answers)
+            total_duration = sum(a.get("duration", 0) or 0 for a in answers)
+            total_duration_min = round(total_duration / 60, 1)
+
+            # 总分：优先用 report_data 中的 overall_score，否则从 answers 计算
+            overall_score = report_data.get("overall_score")
+            if overall_score is None:
+                scores = [a["score"] for a in answers if a.get("score") is not None]
+                overall_score = round(sum(scores) / len(scores), 1) if scores else 0
+
+            # 维度分：聚合所有 answer 的 dimension_scores，取平均值
+            dim_agg = {}
+            dim_count = {}
+            for a in answers:
+                raw = a.get("dimension_scores", "{}")
+                dims = {}
+                if isinstance(raw, str) and raw.strip():
+                    try:
+                        dims = json.loads(raw)
+                    except json.JSONDecodeError:
+                        dims = {}
+                elif isinstance(raw, dict):
+                    dims = raw
+                for k, v in dims.items():
+                    if isinstance(v, (int, float)):
+                        dim_agg.setdefault(k, 0)
+                        dim_agg[k] += v
+                        dim_count.setdefault(k, 0)
+                        dim_count[k] += 1
+
+            dimensions = []
+            for name in sorted(dim_agg.keys()):
+                avg = round(dim_agg[name] / dim_count[name], 1) if dim_count.get(name) else 0
+                dimensions.append({"name": name, "score": avg, "max_score": 100})
+
+            # 5. 百分比排名
+            scenario_id = conv.get("scenario_id", "")
+            all_avgs = conn.execute(
+                "SELECT avg_score FROM progress WHERE scenario_id = ? AND avg_score IS NOT NULL",
+                (scenario_id,)
+            ).fetchall()
+            percentile = 50.0
+            if all_avgs:
+                all_scores = sorted([r["avg_score"] for r in all_avgs])
+                below = sum(1 for s in all_scores if s < overall_score)
+                percentile = round(below / len(all_scores) * 100, 1) if all_scores else 50.0
+
+            # 6. 新解锁徽章（本次会话期间解锁的徽章）
+            new_badges = report_data.get("new_badges", [])
+            if not new_badges:
+                # fallback: 从数据库查询
+                user_id = conv.get("user_id", "")
+                conv_created = conv.get("created_at", "")
+                if user_id and conv_created:
+                    badge_rows = conn.execute(
+                        """SELECT b.id, b.name, b.description, b.icon, b.rarity
+                           FROM user_badges ub JOIN badges b ON ub.badge_id = b.id
+                           WHERE ub.user_id = ? AND ub.unlocked_at >= ?
+                           ORDER BY ub.unlocked_at DESC""",
+                        (user_id, conv_created)
+                    ).fetchall()
+                    new_badges = badge_rows
+
+            # 7. 组装返回
+            result = {
+                "conversation_id": conversation_id,
+                "scenario_id": scenario_id,
+                "scenario_name": conv.get("scenario_name", ""),
+                "status": conv.get("status", ""),
+                "created_at": conv.get("created_at", ""),
+                "round_count": total_rounds or conv.get("round_count", 0),
+                "total_duration": total_duration,
+                "total_duration_min": total_duration_min,
+                "overall_score": overall_score,
+                "percentile": percentile,
+                "dimensions": dimensions,
+                "strengths": report_data.get("strengths", []),
+                "improvements": report_data.get("improvements", []),
+                "overall_comment": report_data.get("overall_comment", ""),
+                "new_badges": new_badges,
+                "answers": [
+                    {
+                        "round": a["round"],
+                        "question": a.get("question_text", ""),
+                        "answer": a.get("answer_text", ""),
+                        "score": a.get("score"),
+                        "feedback": a.get("feedback", ""),
+                    }
+                    for a in answers
+                ],
+            }
+            return result
         finally:
             conn.close()
 

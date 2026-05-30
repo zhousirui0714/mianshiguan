@@ -263,6 +263,17 @@ def examiner_finish():
                 deps.db.update_conversation_status(conversation_id, 'finished')
                 report.new_badges = pipeline_result.context.new_badges
 
+                # 持久化报告数据
+                deps.db.update_conversation_report(conversation_id, {
+                    'overall_score': report.overall_score if report else 0,
+                    'strengths': report.strengths if report else [],
+                    'improvements': report.improvements if report else [],
+                    'dimensions': report.dimension_scores if report else [],
+                    'overall_comment': report.overall_comment if report else "面试完成",
+                    'passed': report.passed if report else False,
+                    'new_badges': pipeline_result.context.new_badges,
+                })
+
                 return jsonify({
                     'success': True,
                     'report': {
@@ -337,8 +348,23 @@ def examiner_finish():
 
         new_badges = deps.db.check_and_unlock_badges(user_id, scenario_id, overall)
 
+        # 持久化报告数据
+        deps.db.update_conversation_report(conversation_id, {**report, 'new_badges': new_badges})
+
         return jsonify({'success': True, 'report': {**report, 'new_badges': new_badges}})
 
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@examiner_bp.route('/result/<conversation_id>')
+def get_conversation_result(conversation_id):
+    """获取面试结果数据"""
+    try:
+        result = deps.db.get_conversation_result(conversation_id)
+        if not result:
+            return jsonify({'success': False, 'error': '对话不存在'}), 404
+        return jsonify({'success': True, 'data': result})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 

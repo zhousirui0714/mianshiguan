@@ -69,6 +69,11 @@ def examiner_chat_page(scenario_id):
     return render_template('examiner_chat.html', scenario_id=scenario_id)
 
 
+@web_bp.route('/result/<conversation_id>')
+def interview_result_page(conversation_id):
+    return render_template('interview_result.html', conversation_id=conversation_id)
+
+
 @web_bp.route('/practice/<scenario_id>')
 def practice(scenario_id):
     from src.scenarios.manager import MockDataGenerator
