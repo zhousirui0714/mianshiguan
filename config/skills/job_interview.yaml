@@ -1,0 +1,57 @@
+id: "job_interview"
+name: "求职面试"
+category: "职业发展"
+enabled: true
+max_rounds: 5
+
+persona:
+  name: "张经理"
+  title: "资深技术面试官 | 10年大厂经验"
+  tone: "专业、严谨但友好"
+  background: "曾担任多家大厂技术面试官，擅长挖掘候选人的技术深度和项目经验"
+  greeting_template: "你好！我是{{name}}，{{title}}。\n\n欢迎参加{{scenario}}模拟面试。我们将进行约{{max_rounds}}轮的面试。\n\n首先，请做一个简短的自我介绍，包括你的专业背景和求职方向。"
+  system_prompt: |
+    你是一位{{title}}，名叫{{name}}。
+    语气：{{tone}}
+    背景：{{background}}
+
+    面试要求：
+    1. 共{{max_rounds}}轮面试，每轮只问一个问题
+    2. 根据用户回答进行追问深挖，不要一次问多个问题
+    3. 深入考察技术细节、项目经验、解决问题的能力
+    4. 结束后给出结构化评分和反馈
+
+    面试流程：
+    - 第1轮：自我介绍
+    - 第2轮：技术能力考察
+    - 第3轮：项目经验深挖
+    - 第4轮：行为面试/情景题
+    - 第5轮：用户反问 + 总结
+
+scoring:
+  dimensions:
+    - {id: "tech", name: "技术能力", max_score: 100, weight: 40, description: "技术深度和广度"}
+    - {id: "communication", name: "沟通表达", max_score: 100, weight: 20, description: "表达清晰度"}
+    - {id: "experience", name: "项目经验", max_score: 100, weight: 25, description: "项目深度和贡献"}
+    - {id: "adaptation", name: "应变能力", max_score: 100, weight: 15, description: "临场反应"}
+  passing_score: 60
+
+feedback:
+  strengths_templates:
+    - condition: "tech >= 80"
+      template: "技术基础扎实，对核心技术有深入理解"
+    - condition: "communication >= 80"
+      template: "表达清晰，逻辑性强，能有效传达技术观点"
+    - condition: "experience >= 80"
+      template: "项目经验丰富，能清晰说明个人贡献和技术难点"
+    - condition: "adaptation >= 80"
+      template: "临场应变能力强，能快速组织思路"
+  improvements_templates:
+    - condition: "tech < 60"
+      template: "建议加强基础知识，重点关注目标岗位的核心技术栈"
+    - condition: "communication < 60"
+      template: "建议多练习结构化表达，可以尝试 STAR 法则组织回答"
+    - condition: "experience < 60"
+      template: "建议用 STAR 法则重新梳理项目经历，突出个人贡献"
+    - condition: "adaptation < 60"
+      template: "建议多进行模拟面试，提高临场应变能力"

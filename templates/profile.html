@@ -3,39 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>个人中心 - 面试翻车救援队</title>
+    <title>个人中心 - 面试成长伴侣</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         :root {
-            --primary: #FF6B6B;
-            --secondary: #4ECDC4;
-            --accent: #FFE66D;
-            --bg-dark: #2D3436;
-            --bg-card: #3A3F44;
-            --text-primary: #FFFFFF;
-            --text-secondary: #B2BEC3;
-            --border: #4A4F55;
+            --primary: #6366F1;
+            --secondary: #10B981;
+            --accent: #F59E0B;
+            --bg-dark: #0F172A;
+            --bg-card: #1E293B;
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --border: #334155;
         }
         
         body {
             font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            background: linear-gradient(135deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%);
+            background: var(--bg-dark);
             min-height: 100vh;
             color: var(--text-primary);
-            padding: 40px 20px;
-        }
-        
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
         }
         
         .nav-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 40px;
+            padding: 20px 40px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
         }
         
         .logo {
@@ -55,49 +51,74 @@
         .nav-links a {
             color: var(--text-secondary);
             text-decoration: none;
+            transition: color 0.3s;
         }
         
-        .profile-card {
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--primary);
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+        
+        .profile-header {
             background: var(--bg-card);
-            border-radius: 25px;
-            padding: 50px 40px;
-            text-align: center;
+            border-radius: 16px;
+            padding: 40px;
+            border: 1px solid var(--border);
             margin-bottom: 30px;
+            display: flex;
+            gap: 40px;
+            align-items: center;
+        }
+        
+        .avatar-section {
+            flex-shrink: 0;
         }
         
         .avatar {
             width: 120px;
             height: 120px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 3rem;
-            margin: 0 auto 20px;
+            color: white;
+            font-weight: bold;
         }
         
-        .username {
-            font-size: 1.5rem;
-            font-weight: bold;
+        .profile-info {
+            flex: 1;
+        }
+        
+        .profile-info h1 {
+            font-size: 1.8rem;
             margin-bottom: 10px;
         }
         
-        .stats {
+        .profile-info .role {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+        
+        .stats-row {
             display: flex;
-            justify-content: center;
             gap: 40px;
-            margin-top: 30px;
         }
         
         .stat-item {
             text-align: center;
         }
         
-        .stat-number {
-            font-size: 2rem;
+        .stat-value {
+            font-size: 1.5rem;
             font-weight: bold;
-            color: var(--accent);
+            color: var(--primary);
         }
         
         .stat-label {
@@ -105,206 +126,342 @@
             font-size: 0.9rem;
         }
         
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
         .card {
             background: var(--bg-card);
-            border-radius: 20px;
+            border-radius: 12px;
             padding: 30px;
-            margin-bottom: 20px;
-        }
-        
-        .card-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .card-icon {
-            font-size: 1.5rem;
+            border: 1px solid var(--border);
         }
         
         .card-title {
             font-size: 1.2rem;
-            font-weight: bold;
-        }
-        
-        .progress-bar {
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            height: 12px;
-            overflow: hidden;
-            margin-bottom: 15px;
-        }
-        
-        .progress-fill {
-            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
-            height: 100%;
-            border-radius: 10px;
-            transition: width 0.5s;
-        }
-        
-        .user-badges {
+            margin-bottom: 20px;
             display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
         }
         
-        .user-badge {
-            background: rgba(255,255,255,0.1);
-            padding: 15px;
-            border-radius: 15px;
-            text-align: center;
-            min-width: 100px;
+        .info-list {
+            list-style: none;
         }
         
-        .user-badge-icon {
-            font-size: 2rem;
+        .info-item {
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            color: var(--text-secondary);
+        }
+        
+        .info-value {
+            font-weight: 600;
+        }
+        
+        .ability-list {
+            list-style: none;
+        }
+        
+        .ability-item {
+            margin-bottom: 20px;
+        }
+        
+        .ability-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .ability-header {
+            display: flex;
+            justify-content: space-between;
             margin-bottom: 8px;
         }
         
-        .user-badge-name {
+        .ability-name {
+            font-weight: 600;
+        }
+        
+        .ability-score {
+            color: var(--primary);
+        }
+        
+        .ability-bar {
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .ability-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .settings-list {
+            list-style: none;
+        }
+        
+        .settings-item {
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+        
+        .settings-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .settings-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        
+        .settings-text h4 {
+            font-size: 1rem;
+            margin-bottom: 3px;
+        }
+        
+        .settings-text p {
             font-size: 0.85rem;
             color: var(--text-secondary);
         }
         
-        .btn {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.3s;
+        .settings-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
         }
         
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, #FF4757 100%);
+        .settings-link:hover {
+            color: var(--primary);
+        }
+        
+        .btn-logout {
+            width: 100%;
+            padding: 14px;
+            background: transparent;
+            border: 1px solid #EF4444;
+            color: #EF4444;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+        
+        .btn-logout:hover {
+            background: #EF4444;
             color: white;
         }
         
-        .btn-secondary {
-            background: rgba(255,255,255,0.1);
-            color: var(--text-secondary);
-            margin-top: 10px;
-        }
-        
-        .btn:hover { transform: translateY(-2px); }
-        
-        .footer {
-            text-align: center;
-            margin-top: 40px;
-            color: var(--text-secondary);
-        }
-        
-        @media (max-width: 640px) {
-            .stats { gap: 20px; }
-            .profile-card { padding: 30px 20px; }
+        @media (max-width: 768px) {
+            .container { padding: 20px; }
+            .profile-header { flex-direction: column; text-align: center; }
+            .stats-row { justify-content: center; }
+            .content-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
+    <nav class="nav-bar">
+        <div class="logo">
+            <span>📚</span>
+            <span>面试成长伴侣</span>
+        </div>
+        <div class="nav-links">
+            <a href="/dashboard">仪表盘</a>
+            <a href="/interviews">面试</a>
+            <a href="/plan">学习计划</a>
+            <a href="/questions">问题库</a>
+            <a href="/profile" class="active">个人中心</a>
+        </div>
+    </nav>
+    
     <div class="container">
-        <nav class="nav-bar">
-            <div class="logo">
-                <span>🚑</span>
-                <span>翻车救援队</span>
+        <div class="profile-header">
+            <div class="avatar-section">
+                <div class="avatar">{{ user.name.0|upper if user.name else 'U' }}</div>
             </div>
-            <div class="nav-links">
-                <a href="/">首页</a>
-                <a href="/checkin">开始复盘</a>
-                <a href="/badges">徽章馆</a>
-            </div>
-        </nav>
-        
-        <div class="profile-card">
-            <div class="avatar">👤</div>
-            <div class="username">面试达人</div>
-            <div class="stats">
-                <div class="stat-item">
-                    <div class="stat-number">5</div>
-                    <div class="stat-label">复盘次数</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">8</div>
-                    <div class="stat-label">获得徽章</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">12</div>
-                    <div class="stat-label">行动完成</div>
+            <div class="profile-info">
+                <h1>{{ user.name if user.name else '游客用户' }}</h1>
+                <p class="role">{{ user.current_position if user.current_position else '未设置目标岗位' }}</p>
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <div class="stat-value">{{ user.interview_count if user.interview_count else 0 }}</div>
+                        <div class="stat-label">面试次数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ user.practice_count if user.practice_count else 0 }}</div>
+                        <div class="stat-label">练习次数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ user.streak_days if user.streak_days else 0 }}</div>
+                        <div class="stat-label">连续天数</div>
+                    </div>
                 </div>
             </div>
         </div>
         
-        <div class="card">
-            <div class="card-header">
-                <span class="card-icon">📊</span>
-                <span class="card-title">成就进度</span>
+        <div class="content-grid">
+            <div class="card">
+                <h3 class="card-title">
+                    <span>👤</span> 基本信息
+                </h3>
+                <ul class="info-list">
+                    <li class="info-item">
+                        <span class="info-label">邮箱</span>
+                        <span class="info-value">{{ user.email if user.email else '未设置' }}</span>
+                    </li>
+                    <li class="info-item">
+                        <span class="info-label">目标岗位</span>
+                        <span class="info-value">{{ user.current_position if user.current_position else '未设置' }}</span>
+                    </li>
+                    <li class="info-item">
+                        <span class="info-label">工作年限</span>
+                        <span class="info-value">{{ user.experience_years if user.experience_years else 0 }} 年</span>
+                    </li>
+                    <li class="info-item">
+                        <span class="info-label">注册时间</span>
+                        <span class="info-value">{{ user.created_at[:10] if user.created_at else '今天' }}</span>
+                    </li>
+                </ul>
             </div>
-            <div style="margin-bottom: 15px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                    <span>徽章收集</span>
-                    <span>8/12</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 67%"></div>
-                </div>
+            
+            <div class="card">
+                <h3 class="card-title">
+                    <span>📊</span> 能力评估
+                </h3>
+                <ul class="ability-list">
+                    <li class="ability-item">
+                        <div class="ability-header">
+                            <span class="ability-name">技术能力</span>
+                            <span class="ability-score">{{ user.skills.technical if user.skills and user.skills.technical else 0 }}%</span>
+                        </div>
+                        <div class="ability-bar">
+                            <div class="ability-fill" style="width: {{ user.skills.technical if user.skills and user.skills.technical else 0 }}%"></div>
+                        </div>
+                    </li>
+                    <li class="ability-item">
+                        <div class="ability-header">
+                            <span class="ability-name">沟通表达</span>
+                            <span class="ability-score">{{ user.skills.communication if user.skills and user.skills.communication else 0 }}%</span>
+                        </div>
+                        <div class="ability-bar">
+                            <div class="ability-fill" style="width: {{ user.skills.communication if user.skills and user.skills.communication else 0 }}%"></div>
+                        </div>
+                    </li>
+                    <li class="ability-item">
+                        <div class="ability-header">
+                            <span class="ability-name">项目经验</span>
+                            <span class="ability-score">{{ user.skills.projects if user.skills and user.skills.projects else 0 }}%</span>
+                        </div>
+                        <div class="ability-bar">
+                            <div class="ability-fill" style="width: {{ user.skills.projects if user.skills and user.skills.projects else 0 }}%"></div>
+                        </div>
+                    </li>
+                    <li class="ability-item">
+                        <div class="ability-header">
+                            <span class="ability-name">应变能力</span>
+                            <span class="ability-score">{{ user.skills.adaptation if user.skills and user.skills.adaptation else 0 }}%</span>
+                        </div>
+                        <div class="ability-bar">
+                            <div class="ability-fill" style="width: {{ user.skills.adaptation if user.skills and user.skills.adaptation else 0 }}%"></div>
+                        </div>
+                    </li>
+                </ul>
             </div>
-            <div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                    <span>复盘完成</span>
-                    <span>5次</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 50%"></div>
+            
+            <div class="card">
+                <h3 class="card-title">
+                    <span>⚙️</span> 设置
+                </h3>
+                <ul class="settings-list">
+                    <li class="settings-item">
+                        <div class="settings-info">
+                            <div class="settings-icon">🔔</div>
+                            <div class="settings-text">
+                                <h4>通知设置</h4>
+                                <p>管理面试提醒</p>
+                            </div>
+                        </div>
+                        <a href="#" class="settings-link">设置 →</a>
+                    </li>
+                    <li class="settings-item">
+                        <div class="settings-info">
+                            <div class="settings-icon">🔐</div>
+                            <div class="settings-text">
+                                <h4>账号安全</h4>
+                                <p>修改密码、绑定手机</p>
+                            </div>
+                        </div>
+                        <a href="#" class="settings-link">设置 →</a>
+                    </li>
+                    <li class="settings-item">
+                        <div class="settings-info">
+                            <div class="settings-icon">💾</div>
+                            <div class="settings-text">
+                                <h4>数据导出</h4>
+                                <p>导出面试记录</p>
+                            </div>
+                        </div>
+                        <a href="#" class="settings-link">导出 →</a>
+                    </li>
+                </ul>
+                <button class="btn-logout" onclick="handleLogout()">退出登录</button>
+            </div>
+            
+            <div class="card">
+                <h3 class="card-title">
+                    <span>🏆</span> 成就徽章
+                </h3>
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 4rem; margin-bottom: 15px;">🎖️</div>
+                    <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                        已获得 {{ user.badge_count if user.badge_count else 0 }} 个徽章
+                    </p>
+                    <a href="/badges" class="btn" style="background: var(--primary); color: white; padding: 12px 28px; border-radius: 8px; text-decoration: none; display: inline-block;">
+                        查看全部徽章
+                    </a>
                 </div>
             </div>
         </div>
-        
-        <div class="card">
-            <div class="card-header">
-                <span class="card-icon">🏆</span>
-                <span class="card-title">我的徽章</span>
-            </div>
-            <div class="user-badges">
-                <div class="user-badge">
-                    <div class="user-badge-icon">🎯</div>
-                    <div class="user-badge-name">初出茅庐</div>
-                </div>
-                <div class="user-badge">
-                    <div class="user-badge-icon">🙈</div>
-                    <div class="user-badge-name">说错话大师</div>
-                </div>
-                <div class="user-badge">
-                    <div class="user-badge-icon">⚡</div>
-                    <div class="user-badge-name">卡壳终结者</div>
-                </div>
-                <div class="user-badge">
-                    <div class="user-badge-icon">🤝</div>
-                    <div class="user-badge-name">诚实勇敢</div>
-                </div>
-                <div class="user-badge">
-                    <div class="user-badge-icon">💪</div>
-                    <div class="user-badge-name">抗压能手</div>
-                </div>
-                <div class="user-badge">
-                    <div class="user-badge-icon">📚</div>
-                    <div class="user-badge-name">复盘达人</div>
-                </div>
-            </div>
-        </div>
-        
-        <button class="btn btn-primary" onclick="window.location.href='/checkin'">
-            🚀 开始新复盘
-        </button>
-        
-        <button class="btn btn-secondary" onclick="window.location.href='/badges'">
-            🎮 查看徽章馆
-        </button>
-        
-        <footer class="footer">
-            <p>© 2026 面试翻车救援队</p>
-        </footer>
     </div>
+    
+    <script>
+        function handleLogout() {
+            if (confirm('确定要退出登录吗？')) {
+                window.location.href = '/';
+            }
+        }
+    </script>
 </body>
 </html>

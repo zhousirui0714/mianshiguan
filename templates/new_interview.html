@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新增面试 - 面试成长伴侣</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #6366F1;
+            --secondary: #10B981;
+            --bg-dark: #0F172A;
+            --bg-card: #1E293B;
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --border: #334155;
+        }
+        
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg-dark);
+            min-height: 100vh;
+            color: var(--text-primary);
+        }
+        
+        .header {
+            background: var(--bg-card);
+            padding: 20px 40px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .back-btn {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 1.1rem;
+            transition: color 0.3s;
+        }
+        
+        .back-btn:hover { color: var(--primary); }
+        
+        .header h1 {
+            font-size: 1.5rem;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+        
+        .form-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 40px;
+            border: 1px solid var(--border);
+        }
+        
+        .form-title {
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .form-label .required {
+            color: #EF4444;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+        
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 20px;
+        }
+        
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+            text-decoration: none;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5558E3;
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+        
+        .btn-secondary:hover {
+            border-color: var(--primary);
+        }
+        
+        @media (max-width: 768px) {
+            .container { padding: 20px; }
+            .form-card { padding: 25px; }
+            .form-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/interviews" class="back-btn">← 返回</a>
+        <h1>新增面试</h1>
+    </div>
+    
+    <div class="container">
+        <div class="form-card">
+            <div class="form-title">
+                <span>📝</span>
+                填写面试信息
+            </div>
+            
+            <form onsubmit="handleSubmit(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">公司名称 <span class="required">*</span></label>
+                        <input type="text" class="form-input" id="company" placeholder="例如：字节跳动" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">岗位名称 <span class="required">*</span></label>
+                        <input type="text" class="form-input" id="position" placeholder="例如：前端工程师" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">岗位描述（JD）</label>
+                    <textarea class="form-input form-textarea" id="jd_text" placeholder="粘贴岗位描述原文（可选），AI将据此生成更精准的预测问题"></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">面试日期</label>
+                        <input type="date" class="form-input" id="interview_date">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">面试轮次</label>
+                        <select class="form-select" id="round">
+                            <option value="初试">初试</option>
+                            <option value="复试">复试</option>
+                            <option value="终试">终试</option>
+                            <option value="HR面">HR面</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">面试形式</label>
+                        <select class="form-select" id="format">
+                            <option value="视频">视频面试</option>
+                            <option value="电话">电话面试</option>
+                            <option value="现场">现场面试</option>
+                            <option value="在线笔试">在线笔试</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">面试状态</label>
+                        <select class="form-select" id="status">
+                            <option value="准备中">准备中</option>
+                            <option value="已面试">已面试</option>
+                            <option value="已复盘">已复盘</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">备注</label>
+                    <textarea class="form-input form-textarea" id="notes" placeholder="添加任何备注信息..."></textarea>
+                </div>
+                
+                <div class="btn-group">
+                    <a href="/interviews" class="btn btn-secondary">取消</a>
+                    <button type="submit" class="btn btn-primary">保存并继续</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        function handleSubmit(event) {
+            event.preventDefault();
+            
+            const formData = {
+                company: document.getElementById('company').value,
+                position: document.getElementById('position').value,
+                jd_text: document.getElementById('jd_text').value,
+                interview_date: document.getElementById('interview_date').value,
+                round: document.getElementById('round').value,
+                format: document.getElementById('format').value,
+                status: document.getElementById('status').value,
+                notes: document.getElementById('notes').value
+            };
+            
+            // 模拟保存
+            alert('面试记录创建成功！');
+            window.location.href = '/interviews';
+        }
+    </script>
+</body>
+</html>

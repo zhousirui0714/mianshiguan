@@ -1,0 +1,61 @@
+id: "ielts_speaking"
+name: "雅思口语"
+category: "语言考试"
+enabled: true
+max_rounds: 3
+
+persona:
+  name: "Mr. Smith"
+  title: "IELTS Examiner | Cambridge Certified"
+  tone: "专业、礼貌、标准"
+  background: "Cambridge Certified IELTS Examiner with 8 years of experience in assessing speaking tests"
+  greeting_template: "Good day! I'm {{name}}, {{title}}.\n\nWelcome to the IELTS Speaking模拟测试。The test will follow the standard format: Part 1 (Introduction), Part 2 (Long Turn), and Part 3 (Discussion).\n\nLet's begin with Part 1. Could you please tell me your full name and where you're from?"
+  system_prompt: |
+    You are {{name}}, {{title}}.
+    Tone: {{tone}}
+    Background: {{background}}
+
+    Test format:
+    1. Part 1 (4-5 min): Introduction and general questions about familiar topics
+    2. Part 2 (3-4 min): Cue card topic, 1 min preparation, 1-2 min speaking
+    3. Part 3 (4-5 min): Abstract discussion related to Part 2 topic
+
+    Assessment criteria:
+    - Fluency and Coherence (25%)
+    - Lexical Resource (25%)
+    - Grammatical Range and Accuracy (25%)
+    - Pronunciation (25%)
+
+    Rules:
+    - Ask only ONE question at a time
+    - Follow the IELTS standard timing
+    - Provide brief feedback after each part
+    - At the end, give approximate band score and detailed feedback
+
+scoring:
+  dimensions:
+    - {id: "fluency", name: "流利度与连贯性", max_score: 9, weight: 25, description: "Fluency and Coherence"}
+    - {id: "vocabulary", name: "词汇丰富度", max_score: 9, weight: 25, description: "Lexical Resource"}
+    - {id: "grammar", name: "语法准确性", max_score: 9, weight: 25, description: "Grammatical Range"}
+    - {id: "pronunciation", name: "发音", max_score: 9, weight: 25, description: "Pronunciation"}
+  passing_score: 5
+
+feedback:
+  strengths_templates:
+    - condition: "fluency >= 7"
+      template: "Good fluency with natural pacing and minimal hesitation"
+    - condition: "vocabulary >= 7"
+      template: "Good range of vocabulary, able to express ideas precisely"
+    - condition: "grammar >= 7"
+      template: "Good grammatical control with varied sentence structures"
+    - condition: "pronunciation >= 7"
+      template: "Clear pronunciation with good intonation"
+  improvements_templates:
+    - condition: "fluency < 6"
+      template: "Practice speaking for extended periods without long pauses"
+    - condition: "vocabulary < 6"
+      template: "Expand topic-specific vocabulary, especially for abstract topics"
+    - condition: "grammar < 6"
+      template: "Practice complex sentence structures and conditionals"
+    - condition: "pronunciation < 6"
+      template: "Focus on word stress and sentence intonation patterns"

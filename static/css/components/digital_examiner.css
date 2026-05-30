@@ -1,0 +1,542 @@
+/* ===== 2D 数字人考官组件样式 ===== */
+
+/* ---- 容器 ---- */
+.examiner-container {
+  --examiner-width: min(360px, 28vw);
+  --examiner-bg: rgba(15, 23, 42, 0.55);
+  --examiner-border: rgba(255, 255, 255, 0.08);
+  --examiner-glow: rgba(96, 165, 250, 0.15);
+  --examiner-text: #F1F5F9;
+  --examiner-text-sec: #94A3B8;
+  --examiner-accent: #60A5FA;
+
+  width: var(--examiner-width);
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* 玻璃态背景 */
+.examiner-glass {
+  background: var(--examiner-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--examiner-border);
+  border-radius: 20px;
+  padding: 24px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+/* 光泽 overlay */
+.examiner-glass::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    ellipse at 30% 20%,
+    rgba(255, 255, 255, 0.03) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+}
+
+/* 表情联动发光边框 */
+.examiner-glass.state-smile {
+  border-color: rgba(16, 185, 129, 0.3);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 24px rgba(16, 185, 129, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.examiner-glass.state-thinking {
+  border-color: rgba(245, 158, 11, 0.3);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 24px rgba(245, 158, 11, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.examiner-glass.state-encouraging {
+  border-color: rgba(96, 165, 250, 0.3);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 24px rgba(96, 165, 250, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.examiner-glass.state-ending {
+  border-color: rgba(139, 92, 246, 0.3);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 24px rgba(139, 92, 246, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* ---- 立绘区域 ---- */
+.examiner-character {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 6;
+  max-height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.examiner-image {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* PNG 立绘 / 占位图 */
+.examiner-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  transition: opacity 0.4s ease;
+  image-rendering: auto;
+}
+
+/* ---- 呼吸动画 ---- */
+.examiner-breathing {
+  animation: examinerBreathe 2.8s ease-in-out infinite;
+}
+.examiner-breathing img,
+.examiner-breathing .examiner-placeholder-body {
+  animation: examinerBreathe 2.8s ease-in-out infinite;
+}
+
+@keyframes examinerBreathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.012); }
+}
+
+/* ---- 眨眼（覆盖层 flash） ---- */
+.examiner-blink-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 35%,
+    rgba(0, 0, 0, 0.85) 45%,
+    rgba(0, 0, 0, 0.85) 55%,
+    transparent 65%
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.08s ease;
+  z-index: 2;
+}
+.examiner-blink-overlay.active {
+  opacity: 1;
+}
+
+/* ---- 说话时嘴部高亮 ---- */
+.examiner-speaking-indicator {
+  position: absolute;
+  bottom: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 3;
+}
+.examiner-speaking-indicator.active {
+  opacity: 1;
+}
+.examiner-speaking-indicator .wave {
+  width: 4px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--examiner-accent);
+  animation: speakWave 0.5s ease-in-out infinite alternate;
+}
+.examiner-speaking-indicator .wave:nth-child(2) {
+  animation-delay: 0.15s;
+  height: 8px;
+}
+.examiner-speaking-indicator .wave:nth-child(3) {
+  animation-delay: 0.3s;
+  height: 14px;
+}
+
+@keyframes speakWave {
+  0% { height: 6px; opacity: 0.4; }
+  100% { height: 18px; opacity: 1; }
+}
+
+/* ---- 表情标签 ---- */
+.examiner-expression-label {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 3;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.examiner-expression-label:hover {
+  opacity: 1;
+}
+
+/* ---- 考官信息 ---- */
+.examiner-info {
+  text-align: center;
+  width: 100%;
+}
+.examiner-info .name {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--examiner-text);
+  letter-spacing: 0.02em;
+}
+.examiner-info .title {
+  font-size: 0.8rem;
+  color: var(--examiner-text-sec);
+  margin-top: 4px;
+}
+.examiner-info .status {
+  margin-top: 10px;
+  padding: 5px 14px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--examiner-text-sec);
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+.examiner-info .status.smile { color: #10B981; border-color: rgba(16, 185, 129, 0.2); background: rgba(16, 185, 129, 0.08); }
+.examiner-info .status.thinking { color: #F59E0B; border-color: rgba(245, 158, 11, 0.2); background: rgba(245, 158, 11, 0.08); }
+.examiner-info .status.encouraging { color: #60A5FA; border-color: rgba(96, 165, 250, 0.2); background: rgba(96, 165, 250, 0.08); }
+.examiner-info .status.ending { color: #8B5CF6; border-color: rgba(139, 92, 246, 0.2); background: rgba(139, 92, 246, 0.08); }
+
+/* ========================================
+   CSS 占位考官（无图片时的后备方案）
+   ======================================== */
+.examiner-placeholder-body {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 8%;
+  position: relative;
+}
+
+/* 头部 */
+.placeholder-head {
+  width: 38%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--ph-skin, #F5D0B0);
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+/* 头发 */
+.placeholder-hair {
+  position: absolute;
+  top: -6%;
+  left: -4%;
+  width: 108%;
+  height: 42%;
+  background: var(--ph-hair, #3D3D3D);
+  border-radius: 50% 50% 0 0;
+  z-index: 3;
+}
+.placeholder-hair::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 10%;
+  width: 80%;
+  height: 8px;
+  background: inherit;
+  border-radius: 0 0 4px 4px;
+}
+
+/* 眼镜 */
+.placeholder-glasses {
+  position: absolute;
+  top: 30%;
+  left: 8%;
+  width: 84%;
+  height: 22%;
+  z-index: 4;
+  pointer-events: none;
+}
+.placeholder-glasses::before,
+.placeholder-glasses::after {
+  content: '';
+  position: absolute;
+  width: 38%;
+  height: 100%;
+  border: 2px solid rgba(0, 0, 0, 0.15);
+  border-radius: 50%;
+}
+.placeholder-glasses::before { left: 0; }
+.placeholder-glasses::after { right: 0; }
+.placeholder-glasses-bridge {
+  position: absolute;
+  top: 45%;
+  left: 42%;
+  width: 16%;
+  height: 2px;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+/* 眼睛 */
+.placeholder-eyes {
+  position: absolute;
+  top: 32%;
+  left: 14%;
+  width: 72%;
+  height: 16%;
+  z-index: 4;
+}
+.placeholder-eye {
+  position: absolute;
+  width: 28%;
+  height: 100%;
+  background: #fff;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+.placeholder-eye.left  { left: 6%; }
+.placeholder-eye.right { right: 6%; }
+
+.placeholder-pupil {
+  position: absolute;
+  top: 20%;
+  left: 30%;
+  width: 40%;
+  height: 55%;
+  background: var(--ph-iris, #3D3D3D);
+  border-radius: 50%;
+  transition: all 0.15s ease;
+}
+.placeholder-pupil::after {
+  content: '';
+  position: absolute;
+  top: 15%;
+  left: 20%;
+  width: 35%;
+  height: 35%;
+  background: #fff;
+  border-radius: 50%;
+}
+
+/* 眨眼（覆盖层） */
+.placeholder-blink {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    transparent 20%,
+    var(--ph-skin, #F5D0B0) 40%,
+    var(--ph-skin, #F5D0B0) 60%,
+    transparent 80%
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.08s ease;
+  z-index: 5;
+  border-radius: 50%;
+}
+.placeholder-blink.active {
+  opacity: 1;
+}
+
+/* 嘴巴 */
+.placeholder-mouth {
+  position: absolute;
+  bottom: 18%;
+  left: 30%;
+  width: 40%;
+  height: 10%;
+  z-index: 4;
+}
+.placeholder-mouth svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.placeholder-mouth-path {
+  fill: none;
+  stroke: #C47A5A;
+  stroke-width: 2;
+  stroke-linecap: round;
+  transition: d 0.25s ease;
+}
+
+/* 颈部 */
+.placeholder-neck {
+  width: 14%;
+  height: 6%;
+  background: var(--ph-skin, #F5D0B0);
+  border-radius: 0 0 6px 6px;
+  position: relative;
+  z-index: 1;
+  margin-top: -1%;
+  flex-shrink: 0;
+}
+
+/* 身体（西装/衬衫） */
+.placeholder-body {
+  width: 70%;
+  flex: 1;
+  min-height: 25%;
+  background: var(--ph-suit, #1A3A6B);
+  border-radius: 8px 8px 0 0;
+  position: relative;
+  z-index: 0;
+  margin-top: -2%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 衬衫领口 */
+.placeholder-collar {
+  width: 28%;
+  height: 20%;
+  background: #F8FAFC;
+  clip-path: polygon(50% 100%, 0 0, 100% 0);
+  margin-top: -1%;
+  position: relative;
+  z-index: 1;
+}
+
+/* 领带 */
+.placeholder-tie {
+  width: 12%;
+  height: 55%;
+  background: var(--ph-tie, #C41E3A);
+  clip-path: polygon(40% 0, 60% 0, 65% 100%, 50% 90%, 35% 100%);
+  margin-top: -2%;
+}
+
+/* ---- CSS 占位用的自定义属性 ---- */
+.examiner-placeholder-body[data-scenario="job_interview"] {
+  --ph-skin: #F5D0B0;
+  --ph-hair: #3D3D3D;
+  --ph-suit: #1A3A6B;
+  --ph-tie: #C41E3A;
+  --ph-iris: #2C2C2C;
+}
+.examiner-placeholder-body[data-scenario="teacher_cert"] {
+  --ph-skin: #FDE8D0;
+  --ph-hair: #8B4513;
+  --ph-suit: #2E7D32;
+  --ph-tie: #FFFFFF;
+  --ph-iris: #4A3520;
+}
+.examiner-placeholder-body[data-scenario="ielts_speaking"] {
+  --ph-skin: #F5D0B0;
+  --ph-hair: #C4A882;
+  --ph-suit: #5C4033;
+  --ph-tie: #C41E3A;
+  --ph-iris: #4A7C59;
+}
+.examiner-placeholder-body[data-scenario="civil_service"] {
+  --ph-skin: #F5E6CC;
+  --ph-hair: #2C2C2C;
+  --ph-suit: #374151;
+  --ph-tie: #DC2626;
+  --ph-iris: #2C2C2C;
+}
+.examiner-placeholder-body[data-scenario="graduate_school"] {
+  --ph-skin: #F0E0C8;
+  --ph-hair: #A0A0A0;
+  --ph-suit: #1B4332;
+  --ph-tie: #0D0D0D;
+  --ph-iris: #2C2C2C;
+}
+.examiner-placeholder-body[data-scenario="mba_interview"] {
+  --ph-skin: #F5D0B0;
+  --ph-hair: #1A1A2E;
+  --ph-suit: #1B1464;
+  --ph-tie: #FFD700;
+  --ph-iris: #1A1A2E;
+}
+
+/* ---- 响应式 ---- */
+@media (max-width: 1024px) {
+  .examiner-container {
+    --examiner-width: min(280px, 30vw);
+  }
+  .examiner-character {
+    max-height: 340px;
+  }
+}
+
+@media (max-width: 768px) {
+  .examiner-container {
+    --examiner-width: 100%;
+  }
+  .examiner-glass {
+    flex-direction: row;
+    padding: 12px 16px;
+    gap: 12px;
+    border-radius: 14px;
+  }
+  .examiner-character {
+    width: 100px;
+    aspect-ratio: 4 / 6;
+    max-height: 140px;
+    flex-shrink: 0;
+  }
+  .examiner-info {
+    flex: 1;
+    text-align: left;
+  }
+  .examiner-info .status {
+    margin-top: 6px;
+  }
+  .examiner-expression-label {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .examiner-glass {
+    padding: 10px 12px;
+  }
+  .examiner-character {
+    width: 72px;
+    max-height: 100px;
+  }
+}

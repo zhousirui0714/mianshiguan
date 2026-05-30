@@ -181,8 +181,8 @@
         <div class="scripts-container" id="tab-{{ key }}">
             {% for script in data.scripts %}
             <div class="script-card">
-                <div class="script-title">{{ script.title }}</div>
-                <div class="script-content">{{ script.script }}</div>
+                <div class="script-title">{{ script.scenario }}</div>
+                <div class="script-content">{{ script.script_content }}</div>
                 <div class="script-tips">💡 {{ script.tips }}</div>
             </div>
             {% endfor %}

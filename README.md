@@ -1,75 +1,78 @@
-# 个人极简面试官
+# 面试成长伴侣 — 多场景 AI 面试模拟平台
 
-一个帮助求职者准备面试的AI工具，基于简历项目生成刁钻追问。
+模拟真实面试场景，与 AI 考官进行多轮对话练习，获得即时评分反馈和成长档案。
 
 ## 功能特性
 
-- 📄 **简历PDF上传解析** - 支持简历上传和项目经历提取
-- 🧠 **RAG知识库构建** - 构建个人简历私有向量知识库
-- 👨‍💼 **大厂面试官角色** - 刁钻、深挖、抠细节的提问风格
-- 🎯 **自动生成刁钻追问** - 针对项目生成3条高难度追问
-- 📊 **轻量化结果展示** - 直接展示解析项目和追问
+- **6 大面试场景** — 求职面试、教资面试、雅思口语、公务员面试、考研复试、MBA 面试
+- **AI 考官对话** — 基于 LLM 的真实考官人设，模拟多轮面试追问
+- **Skill 系统** — 可扩展的场景配置，自定义评分维度和考官人设
+- **题库中心** — 预置 16+ 道分类题目，支持搜索、筛选、CRUD
+- **成长档案** — 练习记录、各维度得分趋势、场景排行榜
+- **成就徽章** — 8 种徽章，支持自动解锁条件判定
+- **韧性保障** — LLM 超时保护 + 自动重试 + 降级方案
 
 ## 技术栈
 
-- Python 3.10+
-- FastAPI (后端框架)
-- Pydantic (数据验证)
-- httpx (HTTP客户端)
-- tenacity (重试机制)
-
-## 快速开始
-
-### 安装依赖
-
-```bash
-pip install -r requirements.txt
-```
-
-### 运行测试
-
-```bash
-python main.py --iterations 3
-```
-
-### 运行Evals评估
-
-```bash
-python evals.py
-```
+| 层级 | 技术 |
+|------|------|
+| 后端框架 | Flask 3.x |
+| 数据库 | SQLite (WAL 模式) |
+| AI 模型 | DeepSeek Chat API |
+| 配置系统 | YAML (Skill / Tool 定义) |
+| 前端 | Jinja2 模板 + 原生 CSS/JS |
 
 ## 项目结构
 
 ```
 mianshiguan/
-├── src/                    # 源代码目录
-│   ├── models/             # 数据模型定义
-│   ├── services/           # 业务服务层
-│   └── utils/              # 工具类
-├── prd.md                  # 产品需求文档
-├── database-design.md      # 数据库设计文档
-├── evals.py                # Evals评估脚本
-├── main.py                 # 测试入口
-└── requirements.txt        # 依赖配置
+├── app.py                    # 应用入口
+├── src/
+│   ├── web/                  # Web 层（Flask Blueprints）
+│   │   ├── __init__.py       # 应用工厂
+│   │   ├── dependencies.py   # 依赖注入
+│   │   └── blueprints/       # 路由模块
+│   │       ├── web.py           # 页面路由
+│   │       ├── api_examiner.py  # AI考官 + 场景 API
+│   │       ├── api_questions.py # 题库 API
+│   │       ├── api_badges.py    # 徽章 API
+│   │       ├── api_progress.py  # 成长档案 API
+│   │       └── api_skills.py    # Skill + Tool API
+│   ├── core/                 # 核心模块
+│   │   ├── database/         # SQLite 数据库
+│   │   ├── skill/            # Skill 系统引擎
+│   │   ├── tool/             # Tool Calling 系统
+│   │   └── workflow/         # 面试流水线
+│   ├── services/             # 业务服务
+│   │   └── llm_client.py     # LLM API 客户端
+│   ├── skills/               # 场景 Skill 实现
+│   ├── tools/                # Tool 注册
+│   └── scenarios/            # 场景元数据
+├── config/
+│   ├── skills/               # Skill YAML 配置（6个场景）
+│   └── scenario_config.yaml
+├── templates/                # Jinja2 前端模板（26个）
+└── data/                     # SQLite 数据库文件
 ```
 
-## 核心功能
+## 快速开始
 
-### 1. 简历解析
-- 支持PDF文件上传
-- 自动提取项目经历模块
-- 结构化解析简历内容
+```bash
+pip install -r requirements.txt
+cp .env.example .env   # 填入 DEEPSEEK_API_KEY
+python app.py          # http://127.0.0.1:5000
+```
 
-### 2. 追问生成
-- 基于RAG检索项目信息
-- 模拟大厂面试官风格
-- 生成3条刁钻技术追问
+## API 概览
 
-### 3. 系统韧性
-- LLM API超时保护（20秒）
-- 自动重试机制（2次）
-- 降级方案（预设问题库）
-
-## 许可证
-
-MIT License
+| 端点 | 说明 |
+|------|------|
+| `GET /api/scenarios` | 获取所有场景 |
+| `POST /api/examiner/start` | 开始 AI 面试对话 |
+| `POST /api/examiner/chat` | 发送消息给 AI 考官 |
+| `POST /api/examiner/finish` | 结束面试并获取报告 |
+| `GET/POST /api/questions` | 题库管理 |
+| `GET /api/badges` | 徽章系统 |
+| `GET /api/user/<id>/progress` | 用户成长档案 |
+| `GET /api/skills` | 已注册的 Skill 列表 |
+| `GET /api/health` | 健康检查 |

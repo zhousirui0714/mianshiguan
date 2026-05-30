@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ scenario.name }}模拟 - 面试成长伴侣</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary-color: {{ scenario.primary_color }};
+            --secondary-color: {{ scenario.secondary_color }};
+            --light-color: {{ scenario.light_color }};
+            --bg-dark: #0F172A;
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --border: #334155;
+        }
+        
+        body {
+            font-family: {{ scenario.font_family }};
+            background: {{ scenario.background }};
+            min-height: 100vh;
+            color: var(--text-primary);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .back-btn {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 1.1rem;
+            transition: color 0.3s;
+        }
+        
+        .back-btn:hover { color: var(--primary-color); }
+        
+        .header-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .timer {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .stage-progress {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 20px 40px;
+            background: rgba(15, 23, 42, 0.5);
+        }
+        
+        .stage-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .stage-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+        
+        .stage-dot.completed {
+            background: var(--primary-color);
+            box-shadow: 0 0 10px var(--primary-color);
+        }
+        
+        .stage-dot.current {
+            background: var(--primary-color);
+            transform: scale(1.5);
+            box-shadow: 0 0 15px var(--primary-color);
+        }
+        
+        .stage-dot.pending {
+            background: var(--border);
+        }
+        
+        .stage-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .stage-item.completed .stage-label { color: var(--primary-color); }
+        .stage-item.current .stage-label { color: var(--text-primary); font-weight: 600; }
+        
+        .stage-line {
+            width: 40px;
+            height: 2px;
+            background: var(--border);
+        }
+        
+        .stage-item.completed + .stage-line {
+            background: var(--primary-color);
+        }
+        
+        .main-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+        
+        .examiner-card {
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+            transition: border-color 0.3s;
+        }
+        
+        .examiner-card:hover {
+            border-color: var(--primary-color);
+        }
+        
+        .examiner-header {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .examiner-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), rgba(255,255,255,0.2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            flex-shrink: 0;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+        }
+        
+        .examiner-info {
+            flex: 1;
+        }
+        
+        .examiner-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--primary-color);
+        }
+        
+        .examiner-title {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+        }
+        
+        .question-text {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .question-hint {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            padding-left: 20px;
+        }
+        
+        .video-section {
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+        }
+        
+        .video-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .video-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .recording-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #EF4444;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .video-container {
+            background: #000;
+            border-radius: 12px;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .video-placeholder {
+            text-align: center;
+            color: var(--text-secondary);
+        }
+        
+        .video-placeholder .avatar {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+        
+        .video-overlay {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 8px 16px;
+            background: rgba(0,0,0,0.7);
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        
+        .tips-panel {
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 15px;
+            border-left: 4px solid #F59E0B;
+        }
+        
+        .tips-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .tips-title {
+            font-weight: 600;
+            color: #F59E0B;
+        }
+        
+        .tips-toggle {
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+        
+        .tips-content {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        
+        .answer-section {
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid var(--border);
+        }
+        
+        .answer-label {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+        
+        .answer-textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            resize: vertical;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        
+        .answer-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+        
+        .btn-secondary:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        @media (max-width: 768px) {
+            .header { padding: 15px 20px; }
+            .main-content { padding: 20px; }
+            .examiner-header { flex-direction: column; text-align: center; }
+            .stage-progress { flex-wrap: wrap; gap: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <a href="/" class="back-btn">← 返回</a>
+            <span class="header-title">{{ scenario.name }}模拟</span>
+        </div>
+        <div class="timer">⏱️ {{ remaining_time }}</div>
+    </div>
+    
+    <div class="stage-progress">
+        {% for (stage, index) in stages_with_index %}
+        <div class="stage-item {% if index < current_stage %}completed{% elif index == current_stage %}current{% endif %}">
+            <div class="stage-dot {% if index < current_stage %}completed{% elif index == current_stage %}current{% else %}pending{% endif %}"></div>
+            <span class="stage-label">{{ stage }}</span>
+        </div>
+        {% if index < stages|length - 1 %}
+        <div class="stage-line"></div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    
+    <div class="main-content">
+        <div class="examiner-card">
+            <div class="examiner-header">
+                <div class="examiner-avatar">{{ scenario.avatar }}</div>
+                <div class="examiner-info">
+                    <div class="examiner-name">{{ examiner_name }}</div>
+                    <div class="examiner-title">{{ examiner_title }}</div>
+                </div>
+            </div>
+            
+            <div class="question-text">
+                "{{ current_question }}"
+            </div>
+            
+            {% if question_hint %}
+            <div class="question-hint">💡 {{ question_hint }}</div>
+            {% endif %}
+        </div>
+        
+        {% if show_video %}
+        <div class="video-section">
+            <div class="video-header">
+                <div class="video-status">
+                    <div class="recording-dot"></div>
+                    <span>🎥 试讲录制中</span>
+                </div>
+                <span class="video-overlay">⏱️ 已用时 {{ elapsed_time }}</span>
+            </div>
+            
+            <div class="video-container">
+                <div class="video-placeholder">
+                    <div class="avatar">📹</div>
+                    <p>摄像头画面</p>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 5px;">点击开始录制</p>
+                </div>
+            </div>
+            
+            <div class="tips-panel">
+                <div class="tips-header">
+                    <span class="tips-title">💡 答题提示</span>
+                    <span class="tips-toggle" onclick="toggleTips()">▼</span>
+                </div>
+                <div class="tips-content">
+                    {{ scenario_tips }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="answer-section">
+            <div class="answer-label">✏️ 你的回答</div>
+            <textarea class="answer-textarea" placeholder="请输入你的回答..."></textarea>
+            
+            <div class="action-buttons">
+                <button class="btn btn-secondary" onclick="endPractice()">结束练习</button>
+                {% if has_next %}
+                <button class="btn btn-primary" onclick="nextQuestion()">下一环节 →</button>
+                {% else %}
+                <button class="btn btn-primary" onclick="submitPractice()">提交练习</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function toggleTips() {
+            const content = document.querySelector('.tips-content');
+            const toggle = document.querySelector('.tips-toggle');
+            content.classList.toggle('hidden');
+            toggle.textContent = content.classList.contains('hidden') ? '▲' : '▼';
+        }
+        
+        function nextQuestion() {
+            window.location.href = `/practice/{{ scenario_id }}?stage={{ current_stage + 1 }}`;
+        }
+        
+        function submitPractice() {
+            window.location.href = `/report/{{ scenario_id }}`;
+        }
+        
+        function endPractice() {
+            if (confirm('确定要结束练习吗？')) {
+                window.location.href = `/report/{{ scenario_id }}`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI考官模拟面试</title>
+    <script src="/static/js/live2d-examiner.js"></script>
+    <style>
+        :root {
+            --primary: #60A5FA;
+            --primary-hover: #3B82F6;
+            --bg-primary: #F8FAFC;
+            --bg-secondary: #FFFFFF;
+            --bg-card: #FFFFFF;
+            --text-primary: #1E293B;
+            --text-secondary: #64748B;
+            --text-tertiary: #94A3B8;
+            --border: rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.04);
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, SF Pro Display, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .app-layout {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+            gap: 0;
+        }
+
+        .examiner-panel {
+            width: 340px;
+            min-width: 340px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 16px;
+            overflow-y: auto;
+        }
+
+        .examiner-panel .examiner-info-panel {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .examiner-panel .examiner-name-panel {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .examiner-panel .examiner-title-panel {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .examiner-panel .examiner-status {
+            margin-top: 12px;
+            padding: 6px 16px;
+            background: rgba(96, 165, 250, 0.08);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .examiner-panel .examiner-status.thinking {
+            background: rgba(245, 158, 11, 0.1);
+            color: #F59E0B;
+        }
+
+        .examiner-panel .examiner-status.approving {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10B981;
+        }
+
+        .examiner-panel .examiner-status.listening {
+            background: rgba(96, 165, 250, 0.1);
+            color: #60A5FA;
+        }
+
+        .examiner-canvas-wrapper {
+            width: 280px;
+            height: 350px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .examiner-canvas-wrapper canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 900px;
+            width: 100%;
+            height: 100vh;
+        }
+
+        @media (max-width: 900px) {
+            .examiner-panel {
+                width: 240px;
+                min-width: 240px;
+                padding: 16px 12px;
+            }
+            .examiner-canvas-wrapper {
+                width: 200px;
+                height: 250px;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .app-layout {
+                flex-direction: column;
+            }
+            .examiner-panel {
+                width: 100%;
+                min-width: unset;
+                flex-direction: row;
+                padding: 12px 16px;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                gap: 16px;
+            }
+            .examiner-canvas-wrapper {
+                width: 80px;
+                height: 100px;
+                flex-shrink: 0;
+            }
+            .examiner-panel .examiner-info-panel {
+                margin-bottom: 0;
+                text-align: left;
+            }
+        }
+        
+        /* 顶部栏 */
+        .chat-header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .examiner-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary), #3B82F6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        
+        .examiner-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .examiner-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .examiner-title {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .round-info {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            background: rgba(96, 165, 250, 0.08);
+            padding: 6px 12px;
+            border-radius: 8px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            box-shadow: 0 0 12px rgba(96, 165, 250, 0.3);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(96, 165, 250, 0.08);
+        }
+        
+        /* 消息区域 */
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .message {
+            display: flex;
+            gap: 12px;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message.assistant {
+            flex-direction: row;
+        }
+        
+        .message.user {
+            flex-direction: row-reverse;
+        }
+        
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .message.assistant .message-avatar {
+            background: linear-gradient(135deg, var(--primary), #3B82F6);
+        }
+        
+        .message.user .message-avatar {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+        }
+        
+        .message-content {
+            max-width: 70%;
+            padding: 14px 18px;
+            border-radius: 14px;
+            line-height: 1.6;
+        }
+        
+        .message.assistant .message-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 0 14px 14px 14px;
+            color: var(--text-primary);
+        }
+        
+        .message.user .message-content {
+            background: var(--primary);
+            color: white;
+            border-radius: 14px 0 14px 14px;
+        }
+        
+        .message-content p {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+        
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 14px 18px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 0 14px 14px 14px;
+            width: fit-content;
+        }
+        
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-tertiary);
+            animation: typingBounce 1.4s infinite ease-in-out;
+        }
+        
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typingBounce {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+        
+        /* 打字机效果 */
+        .typewriter {
+            overflow: hidden;
+            border-right: 2px solid var(--primary);
+            animation: typingCursor 0.7s step-end infinite;
+        }
+        
+        @keyframes typingCursor {
+            from, to { border-color: transparent; }
+            50% { border-color: var(--primary); }
+        }
+        
+        /* 输入区域 */
+        .input-container {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            padding: 16px 24px;
+        }
+        
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+        
+        textarea {
+            flex: 1;
+            min-height: 60px;
+            max-height: 200px;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            resize: none;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.08);
+        }
+        
+        textarea::placeholder {
+            color: var(--text-tertiary);
+        }
+        
+        .send-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        
+        .send-btn:hover:not(:disabled) {
+            background: var(--primary-hover);
+            box-shadow: 0 0 12px rgba(96, 165, 250, 0.3);
+        }
+        
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* 报告弹窗 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            animation: fadeIn 0.2s ease-out;
+        }
+        
+        .modal-content {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            background: var(--bg-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+        
+        .modal-body {
+            padding: 24px;
+        }
+        
+        .score-display {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        
+        .score-value {
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+        
+        .score-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .report-section {
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .section-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .list-item {
+            padding: 10px 14px;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        
+        .dimensions-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        .dimension-item {
+            background: var(--bg-primary);
+            border-radius: 10px;
+            padding: 14px;
+        }
+        
+        .dimension-name {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        
+        .dimension-bar-container {
+            height: 6px;
+            background: rgba(96, 165, 250, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+        
+        .dimension-bar {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 3px;
+            transition: width 0.5s ease-out;
+        }
+        
+        .dimension-score {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .overall-comment {
+            background: rgba(96, 165, 250, 0.08);
+            border-radius: 10px;
+            padding: 16px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        
+        .modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 600px) {
+            .chat-header {
+                padding: 12px 16px;
+            }
+            
+            .messages-container {
+                padding: 16px;
+            }
+            
+            .message-content {
+                max-width: 85%;
+            }
+            
+            .input-container {
+                padding: 12px 16px;
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- 左侧考官面板 -->
+        <div class="examiner-panel">
+            <div class="examiner-canvas-wrapper" id="examinerCanvasContainer"></div>
+            <div class="examiner-info-panel">
+                <div class="examiner-name-panel" id="examinerName">张经理</div>
+                <div class="examiner-title-panel" id="examinerTitle">资深技术面试官</div>
+            </div>
+            <div class="examiner-status" id="examinerStatus">等待面试开始...</div>
+        </div>
+
+        <div class="chat-container">
+            <!-- 顶部栏 -->
+            <div class="chat-header">
+                <div class="header-left">
+                    <div class="examiner-avatar" id="examinerAvatar">👔</div>
+                    <div class="examiner-info">
+                        <div class="examiner-name" id="examinerHeaderName">张经理</div>
+                        <div class="examiner-title" id="examinerHeaderTitle">资深技术面试官</div>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <span class="round-info" id="roundInfo">第 1/5 轮</span>
+                    <button class="btn btn-secondary" id="finishBtn">结束面试</button>
+                </div>
+            </div>
+
+            <!-- 消息区域 -->
+            <div class="messages-container" id="messagesContainer">
+                <!-- 消息动态添加 -->
+            </div>
+
+            <!-- 输入区域 -->
+            <div class="input-container">
+                <div class="input-wrapper">
+                    <textarea
+                        id="messageInput"
+                        placeholder="输入你的回答..."
+                        onkeydown="handleKeydown(event)"
+                    ></textarea>
+                    <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled>
+                        ➤
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 报告弹窗 -->
+    <div class="modal-overlay" id="reportModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">🎯 面试评估报告</div>
+                <button class="modal-close" onclick="closeReportModal()">×</button>
+            </div>
+            <div class="modal-body" id="reportContent">
+                <!-- 报告内容动态生成 -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeReportModal()">关闭</button>
+                <button class="btn btn-primary" onclick="restartInterview()">再来一次</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 全局状态
+        let conversationId = null;
+        let scenarioId = '{{ scenario_id }}';
+        let currentRound = 1;
+        let maxRounds = 5;
+        let isTyping = false;
+        
+        // DOM元素
+        const messagesContainer = document.getElementById('messagesContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const roundInfo = document.getElementById('roundInfo');
+        const examinerName = document.getElementById('examinerName');
+        const examinerTitle = document.getElementById('examinerTitle');
+        const examinerHeaderName = document.getElementById('examinerHeaderName');
+        const examinerHeaderTitle = document.getElementById('examinerHeaderTitle');
+        const examinerAvatar = document.getElementById('examinerAvatar');
+        const examinerStatus = document.getElementById('examinerStatus');
+        const finishBtn = document.getElementById('finishBtn');
+        const reportModal = document.getElementById('reportModal');
+        const reportContent = document.getElementById('reportContent');
+        const examinerCanvasContainer = document.getElementById('examinerCanvasContainer');
+
+        // DigitalExaminer 实例
+        let digitalExaminer = null;
+        
+        // 场景配置
+        const scenarioIcons = {
+            'job_interview': '👔',
+            'teacher_cert': '👩‍🏫',
+            'ielts_speaking': '👨‍🏫',
+            'civil_service': '👨‍⚖️',
+            'graduate_school': '🎓',
+            'mba_interview': '💼'
+        };
+        
+        // 初始化 DigitalExaminer
+        function initDigitalExaminer() {
+            try {
+                digitalExaminer = new DigitalExaminer({
+                    container: examinerCanvasContainer,
+                    scenarioId: scenarioId,
+                    width: 280,
+                    height: 350
+                });
+            } catch (e) {
+                console.warn('DigitalExaminer init failed:', e);
+            }
+        }
+
+        // 设置考官表情和状态
+        function setExaminerExpression(expression, statusText) {
+            if (digitalExaminer) {
+                digitalExaminer.setExpression(expression);
+            }
+            if (examinerStatus && statusText) {
+                examinerStatus.textContent = statusText;
+                examinerStatus.className = 'examiner-status ' + expression;
+            }
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            messageInput.addEventListener('input', () => {
+                sendBtn.disabled = !messageInput.value.trim();
+            });
+            initDigitalExaminer();
+            startInterview();
+        });
+        
+        // 开始面试
+        async function startInterview() {
+            try {
+                const response = await fetch('/api/examiner/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        scenario_id: scenarioId,
+                        user_id: 'anonymous',
+                        user_background: ''
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    conversationId = result.conversation_id;
+                    examinerName.textContent = result.examiner_name;
+                    examinerTitle.textContent = result.examiner_title;
+                    examinerHeaderName.textContent = result.examiner_name;
+                    examinerHeaderTitle.textContent = result.examiner_title;
+                    examinerAvatar.textContent = scenarioIcons[scenarioId] || '👔';
+                    maxRounds = result.max_rounds;
+
+                    // 切换到问候表情
+                    setTimeout(() => {
+                        setExaminerExpression('greeting', '向你问好');
+                        setTimeout(() => {
+                            setExaminerExpression('listening', '等待你的回答');
+                        }, 2000);
+                    }, 500);
+
+                    // 添加欢迎消息
+                    addMessage('assistant', result.welcome_message);
+                }
+            } catch (error) {
+                console.error('启动面试失败:', error);
+                addMessage('assistant', '抱歉，服务暂时不可用，请稍后重试。');
+            }
+        }
+        
+        // 发送消息
+        async function sendMessage() {
+            const content = messageInput.value.trim();
+            if (!content || isTyping) return;
+
+            // 添加用户消息
+            addMessage('user', content);
+            messageInput.value = '';
+            sendBtn.disabled = true;
+
+            // 考官：聆听状态 → 思考状态
+            setExaminerExpression('listening', '正在倾听...');
+
+            // 显示正在输入
+            isTyping = true;
+            const typingElement = createTypingIndicator();
+            messagesContainer.appendChild(typingElement);
+            scrollToBottom();
+            
+            try {
+                const response = await fetch('/api/examiner/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        conversation_id: conversationId,
+                        scenario_id: scenarioId,
+                        user_message: content,
+                        user_id: 'anonymous'
+                    })
+                });
+                
+                const result = await response.json();
+
+                // 移除正在输入
+                messagesContainer.removeChild(typingElement);
+                isTyping = false;
+
+                // 考官：切换到思考表情
+                setExaminerExpression('thinking', '正在评估你的回答...');
+
+                if (result.success) {
+                    conversationId = result.conversation_id;
+                    currentRound = result.round_count;
+                    roundInfo.textContent = `第 ${currentRound}/${maxRounds} 轮`;
+
+                    // 延迟一小段时间，模拟思考
+                    await new Promise(r => setTimeout(r, 600));
+
+                    // 打字机效果显示回复
+                    await typewriterMessage('assistant', result.response);
+
+                    // 根据回复内容切换考官表情
+                    const responseText = result.response || '';
+                    const approvingWords = ['不错', '很好', '优秀', '正确', 'excellent', 'great', 'good', 'impressive'];
+                    const disapprovingWords = ['不足', '需要改进', '建议', 'improve', 'suggestion', 'consider', 'could be better'];
+                    const isApproving = approvingWords.some(w => responseText.toLowerCase().includes(w.toLowerCase()));
+                    const isDisapproving = disapprovingWords.some(w => responseText.toLowerCase().includes(w.toLowerCase()));
+
+                    if (isApproving && !isDisapproving) {
+                        setExaminerExpression('approving', '表示赞许');
+                    } else if (isDisapproving && !isApproving) {
+                        setExaminerExpression('disapproving', '正在记录');
+                    } else {
+                        setExaminerExpression('approving', '继续回答');
+                    }
+
+                    // 检查是否结束
+                    if (result.is_finished) {
+                        setTimeout(() => {
+                            setExaminerExpression('greeting', '面试结束，生成报告中...');
+                            finishInterview();
+                        }, 1500);
+                    } else {
+                        // 几秒后恢复聆听状态
+                        setTimeout(() => {
+                            setExaminerExpression('listening', '等待你的回答');
+                        }, 3000);
+                    }
+                } else {
+                    addMessage('assistant', '抱歉，我暂时无法回答，请稍后重试。');
+                    setExaminerExpression('idle', '等待你的回答');
+                }
+            } catch (error) {
+                console.error('发送消息失败:', error);
+                messagesContainer.removeChild(typingElement);
+                isTyping = false;
+                addMessage('assistant', '网络错误，请检查网络连接后重试。');
+            }
+        }
+        
+        // 打字机效果
+        async function typewriterMessage(role, content) {
+            const messageElement = createMessageElement(role, '');
+            messagesContainer.appendChild(messageElement);
+            
+            const contentElement = messageElement.querySelector('.message-content p');
+            let index = 0;
+            
+            return new Promise((resolve) => {
+                const interval = setInterval(() => {
+                    if (index < content.length) {
+                        contentElement.textContent += content[index];
+                        index++;
+                        scrollToBottom();
+                    } else {
+                        clearInterval(interval);
+                        resolve();
+                    }
+                }, 20); // 打字速度
+            });
+        }
+        
+        // 添加消息
+        function addMessage(role, content) {
+            const messageElement = createMessageElement(role, content);
+            messagesContainer.appendChild(messageElement);
+            scrollToBottom();
+        }
+        
+        // 创建消息元素
+        function createMessageElement(role, content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+            
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'message-avatar';
+            avatarDiv.textContent = role === 'assistant' ? (scenarioIcons[scenarioId] || '👔') : '👤';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            
+            const pElement = document.createElement('p');
+            pElement.textContent = content;
+            contentDiv.appendChild(pElement);
+            
+            messageDiv.appendChild(avatarDiv);
+            messageDiv.appendChild(contentDiv);
+            
+            return messageDiv;
+        }
+        
+        // 创建正在输入指示器
+        function createTypingIndicator() {
+            const div = document.createElement('div');
+            div.className = 'message assistant';
+            
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'message-avatar';
+            avatarDiv.textContent = scenarioIcons[scenarioId] || '👔';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'typing-indicator';
+            
+            for (let i = 0; i < 3; i++) {
+                const dot = document.createElement('span');
+                dot.className = 'typing-dot';
+                contentDiv.appendChild(dot);
+            }
+            
+            div.appendChild(avatarDiv);
+            div.appendChild(contentDiv);
+            
+            return div;
+        }
+        
+        // 滚动到底部
+        function scrollToBottom() {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        // 结束面试
+        async function finishInterview() {
+            try {
+                const response = await fetch('/api/examiner/finish', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ conversation_id: conversationId })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showReport(result.report);
+                }
+            } catch (error) {
+                console.error('生成报告失败:', error);
+            }
+        }
+        
+        // 手动结束面试
+        finishBtn.addEventListener('click', () => {
+            if (confirm('确定要结束本次面试吗？')) {
+                finishInterview();
+            }
+        });
+        
+        // 显示报告
+        function showReport(report) {
+            let html = `
+                <div class="score-display">
+                    <div class="score-value">${report.overall_score || 'N/A'}</div>
+                    <div class="score-label">综合得分</div>
+                </div>
+            `;
+            
+            // 优势分析
+            if (report.strengths && report.strengths.length > 0) {
+                html += `
+                    <div class="report-section">
+                        <div class="section-title">
+                            <span>💪</span>
+                            <span>优势分析</span>
+                        </div>
+                        <ul class="section-list">
+                            ${report.strengths.map(item => `<li class="list-item">${item}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            // 改进建议
+            if (report.improvements && report.improvements.length > 0) {
+                html += `
+                    <div class="report-section">
+                        <div class="section-title">
+                            <span>📝</span>
+                            <span>改进建议</span>
+                        </div>
+                        <ul class="section-list">
+                            ${report.improvements.map(item => `<li class="list-item">${item}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            // 各维度评分
+            if (report.dimensions && report.dimensions.length > 0) {
+                html += `
+                    <div class="report-section">
+                        <div class="section-title">
+                            <span>📊</span>
+                            <span>各维度评分</span>
+                        </div>
+                        <div class="dimensions-grid">
+                            ${report.dimensions.map(dim => `
+                                <div class="dimension-item">
+                                    <div class="dimension-name">${dim.name}</div>
+                                    <div class="dimension-bar-container">
+                                        <div class="dimension-bar" style="width: ${(dim.score / dim.max_score) * 100}%"></div>
+                                    </div>
+                                    <div class="dimension-score">${dim.score}/${dim.max_score}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // 总体评价
+            if (report.overall_comment) {
+                html += `
+                    <div class="report-section">
+                        <div class="section-title">
+                            <span>📋</span>
+                            <span>总体评价</span>
+                        </div>
+                        <div class="overall-comment">${report.overall_comment}</div>
+                    </div>
+                `;
+            }
+            
+            reportContent.innerHTML = html;
+            reportModal.style.display = 'flex';
+        }
+        
+        // 关闭报告弹窗
+        function closeReportModal() {
+            reportModal.style.display = 'none';
+        }
+        
+        // 重新开始
+        function restartInterview() {
+            closeReportModal();
+            messagesContainer.innerHTML = '';
+
+            // 重置 DigitalExaminer
+            if (digitalExaminer) {
+                digitalExaminer.destroy();
+                digitalExaminer = null;
+            }
+            examinerCanvasContainer.innerHTML = '';
+
+            currentRound = 1;
+            roundInfo.textContent = `第 1/${maxRounds} 轮`;
+            conversationId = null;
+            setExaminerExpression('idle', '等待面试开始...');
+            initDigitalExaminer();
+            startInterview();
+        }
+        
+        // 键盘事件
+        function handleKeydown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+    </script>
+</body>
+</html>

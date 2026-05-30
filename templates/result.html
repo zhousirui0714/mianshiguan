@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>复盘结果 - 面试翻车救援队</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #FF6B6B;
+            --primary-light: #FF8E8E;
+            --secondary: #4ECDC4;
+            --accent: #FFE66D;
+            --bg-dark: #2D3436;
+            --bg-card: #3A3F44;
+            --text-primary: #FFFFFF;
+            --text-secondary: #B2BEC3;
+            --border: #4A4F55;
+            --shadow: 0 4px 20px rgba(0,0,0,0.3);
+            --rarity-common: #B2BEC3;
+            --rarity-rare: #4ECDC4;
+            --rarity-epic: #A855F7;
+            --rarity-legendary: #FFD700;
+        }
+        
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+        }
+        
+        .nav-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover { color: var(--primary); }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 60px 40px;
+        }
+        
+        .result-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .result-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .badge-reveal {
+            background: var(--bg-card);
+            border-radius: 30px;
+            padding: 50px;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: var(--shadow);
+        }
+        
+        .badge-icon-large {
+            font-size: 6rem;
+            margin-bottom: 20px;
+            animation: bounce 1s ease-in-out;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .badge-name-large {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .badge-desc-large {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+        
+        .rarity-badge {
+            display: inline-block;
+            padding: 6px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        
+        .rarity-common { background: var(--rarity-common); color: #000; }
+        .rarity-rare { background: var(--rarity-rare); color: #000; }
+        .rarity-epic { background: var(--rarity-epic); color: #fff; }
+        .rarity-legendary { background: var(--rarity-legendary); color: #000; }
+        
+        .section {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .action-list {
+            list-style: none;
+        }
+        
+        .action-item {
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        
+        .action-number {
+            width: 30px;
+            height: 30px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .script-item {
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .script-scenario {
+            font-weight: bold;
+            color: var(--secondary);
+            margin-bottom: 10px;
+        }
+        
+        .script-content {
+            font-style: italic;
+            padding: 15px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            border-left: 3px solid var(--accent);
+        }
+        
+        .script-tips {
+            margin-top: 10px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 14px 30px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, #FF4757 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255,107,107,0.4);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 2px solid var(--border);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        @media (max-width: 768px) {
+            .container { padding: 40px 20px; }
+            .result-header h1 { font-size: 1.8rem; }
+            .badge-icon-large { font-size: 4rem; }
+            .badge-name-large { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav-bar">
+        <div class="logo">
+            <span>🚑</span>
+            <span>面试翻车救援队</span>
+        </div>
+        <div class="nav-links">
+            <a href="/">首页</a>
+            <a href="/checkin">开始复盘</a>
+            <a href="/badges">徽章馆</a>
+            <a href="/rescue">话术库</a>
+            <a href="/user/profile">个人中心</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="result-header">
+            <h1>🎉 复盘完成！</h1>
+            <p>{{ result.company_name }} - {{ result.position }}</p>
+        </div>
+        
+        <div class="badge-reveal">
+            <div class="badge-icon-large">{{ result.badge.icon }}</div>
+            <div class="badge-name-large">{{ result.badge.name }}</div>
+            <div class="badge-desc-large">{{ result.badge.description }}</div>
+            <span class="rarity-badge rarity-{{ result.badge.rarity }}">
+                {{ result.badge.rarity|capitalize }}
+            </span>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">
+                <span>✅</span>
+                可执行行动清单
+            </div>
+            <ul class="action-list">
+                {% for item in result.action_items %}
+                <li class="action-item">
+                    <span class="action-number">{{ loop.index }}</span>
+                    <span>{{ item }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        
+        {% if result.rescue_scripts %}
+        <div class="section">
+            <div class="section-title">
+                <span>💬</span>
+                救援话术参考
+            </div>
+            {% for script in result.rescue_scripts %}
+            <div class="script-item">
+                <div class="script-scenario">📌 {{ script.scenario }}</div>
+                <div class="script-content">{{ script.script_content }}</div>
+                {% if script.tips %}
+                <div class="script-tips">💡 {{ script.tips }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div class="buttons">
+            <a href="/checkin" class="btn btn-primary">🔄 再来一次</a>
+            <a href="/badges" class="btn btn-secondary">🏆 查看徽章馆</a>
+            <a href="/" class="btn btn-secondary">🏠 返回首页</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,56 @@
+{#- 侧边栏组件 - 面试成长伴侣
+   使用方式:
+     {% set active_page = 'home' %}
+     {% include 'components/sidebar.html' %}
+   可选变量:
+     active_page  - 当前激活的菜单项 id
+     sidebar_extra_nav - 额外的底部导航项
+     show_sidebar_footer - 是否显示用户信息区，默认 true
+     badge_count - 徽章通知数量
+-#}
+<aside class="sidebar" id="app-sidebar">
+    <div class="sidebar-header">
+        <div class="logo">🎯</div>
+        <div class="brand-name">百工模拟考场</div>
+    </div>
+
+    <nav class="nav-menu" id="sidebar-nav">
+        {% for item in sidebar_items %}
+        <a href="{{ item.url }}"
+           class="nav-item{% if active_page == item.id %} active{% endif %}"
+           data-nav-id="{{ item.id }}"
+           onclick="sidebarNavigate('{{ item.url }}'); return false;">
+            <span class="nav-icon">{{ item.icon }}</span>
+            <span class="nav-label">{{ item.label }}</span>
+            {% if badge_count is defined and item.id == 'badges' %}
+            <span class="badge-notification" id="newBadgeCount">{{ badge_count }}</span>
+            {% endif %}
+        </a>
+        {% endfor %}
+
+        {% if sidebar_extra_nav %}
+        <div class="sidebar-divider"></div>
+        {% for item in sidebar_extra_nav %}
+        <a href="{{ item.url }}"
+           class="nav-item{% if active_page == item.id %} active{% endif %}"
+           data-nav-id="{{ item.id }}"
+           onclick="sidebarNavigate('{{ item.url }}'); return false;">
+            <span class="nav-icon">{{ item.icon }}</span>
+            <span class="nav-label">{{ item.label }}</span>
+        </a>
+        {% endfor %}
+        {% endif %}
+    </nav>
+
+    {% if show_sidebar_footer | default(True) %}
+    <div class="sidebar-footer">
+        <div class="user-profile">
+            <div class="user-avatar">👤</div>
+            <div class="user-info">
+                <div class="user-name">用户昵称</div>
+                <div class="user-email">user@example.com</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</aside>

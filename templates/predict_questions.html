@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>问题预测 - {{ interview.company_name }} - 面试成长伴侣</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #6366F1;
+            --secondary: #10B981;
+            --accent: #F59E0B;
+            --bg-dark: #0F172A;
+            --bg-card: #1E293B;
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --border: #334155;
+        }
+        
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg-dark);
+            min-height: 100vh;
+            color: var(--text-primary);
+        }
+        
+        .header {
+            background: var(--bg-card);
+            padding: 20px 40px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .header-meta {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+        
+        .stats-bar {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .stats-info h2 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+        
+        .stats-info p {
+            color: var(--text-secondary);
+        }
+        
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .filter-btn:hover, .filter-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+        
+        .questions-section {
+            margin-bottom: 30px;
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .question-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+        
+        .question-card:hover {
+            border-color: var(--primary);
+        }
+        
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        
+        .question-number {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+        
+        .question-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+        
+        .question-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .badge {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .badge-type {
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--primary);
+        }
+        
+        .badge-highfreq {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--accent);
+        }
+        
+        .badge-difficulty {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--secondary);
+        }
+        
+        .question-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        
+        .action-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .action-btn.primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+        
+        .action-btn.primary:hover {
+            background: #5558E3;
+        }
+        
+        .answer-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+            display: none;
+        }
+        
+        .answer-section.show {
+            display: block;
+        }
+        
+        .answer-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--secondary);
+        }
+        
+        .answer-content {
+            background: rgba(16, 185, 129, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            line-height: 1.7;
+            color: var(--text-secondary);
+        }
+        
+        .tips {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(245, 158, 11, 0.1);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: var(--accent);
+        }
+        
+        .bottom-actions {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .btn {
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5558E3;
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+        
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-secondary);
+        }
+        
+        .empty-state-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .container { padding: 20px; }
+            .stats-bar { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/interviews/{{ interview.id }}" style="color: var(--text-secondary); text-decoration: none; display: inline-block; margin-bottom: 10px;">← 返回面试详情</a>
+        <h1>问题预测</h1>
+        <div class="header-meta">{{ interview.company_name }} - {{ interview.position }}</div>
+    </div>
+    
+    <div class="container">
+        {% if questions %}
+            <div class="stats-bar">
+                <div class="stats-info">
+                    <h2>已生成 {{ questions|length }} 个预测问题</h2>
+                    <p>根据岗位信息AI智能预测可能出现的面试问题</p>
+                </div>
+                <div class="filter-buttons">
+                    <button class="filter-btn active">全部</button>
+                    <button class="filter-btn">技术题 ({{ questions|selectattr('question_type', 'equalto', 'technical')|list|length }})</button>
+                    <button class="filter-btn">行为题 ({{ questions|selectattr('question_type', 'equalto', 'behavioral')|list|length }})</button>
+                    <button class="filter-btn">情景题 ({{ questions|selectattr('question_type', 'equalto', 'situational')|list|length }})</button>
+                </div>
+            </div>
+            
+            {% if questions|selectattr('is_high_frequency')|list|length > 0 %}
+            <div class="questions-section">
+                <div class="section-header">
+                    <span style="font-size: 1.5rem;">🔥</span>
+                    高频问题
+                </div>
+                
+                {% for question in questions %}
+                    {% if question.is_high_frequency %}
+                    <div class="question-card">
+                        <div class="question-header">
+                            <div>
+                                <div class="question-number">问题 {{ loop.index }}</div>
+                                <div class="question-text">{{ question.question_text }}</div>
+                            </div>
+                            <div class="question-badges">
+                                {% if question.is_high_frequency %}
+                                <span class="badge badge-highfreq">🔥 高频</span>
+                                {% endif %}
+                                <span class="badge badge-type">
+                                    {% if question.question_type == 'technical' %}技术题
+                                    {% elif question.question_type == 'behavioral' %}行为题
+                                    {% else %}情景题{% endif %}
+                                </span>
+                                {% if question.difficulty_level %}
+                                <span class="badge badge-difficulty">{{ question.difficulty_level }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="question-actions">
+                            <button class="action-btn" onclick="toggleAnswer(this)">查看参考答案</button>
+                            <button class="action-btn primary">加入练习</button>
+                            <button class="action-btn">收藏</button>
+                        </div>
+                        <div class="answer-section">
+                            <div class="answer-title">参考答案</div>
+                            <div class="answer-content">{{ question.reference_answer or '参考答案暂未生成' }}</div>
+                            {% if question.answer_tips %}
+                            <div class="tips">💡 {{ question.answer_tips }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <div class="questions-section">
+                <div class="section-header">
+                    <span style="font-size: 1.5rem;">📋</span>
+                    其他问题
+                </div>
+                
+                {% for question in questions %}
+                    {% if not question.is_high_frequency %}
+                    <div class="question-card">
+                        <div class="question-header">
+                            <div>
+                                <div class="question-number">问题 {{ loop.index }}</div>
+                                <div class="question-text">{{ question.question_text }}</div>
+                            </div>
+                            <div class="question-badges">
+                                <span class="badge badge-type">
+                                    {% if question.question_type == 'technical' %}技术题
+                                    {% elif question.question_type == 'behavioral' %}行为题
+                                    {% else %}情景题{% endif %}
+                                </span>
+                                {% if question.difficulty_level %}
+                                <span class="badge badge-difficulty">{{ question.difficulty_level }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="question-actions">
+                            <button class="action-btn" onclick="toggleAnswer(this)">查看参考答案</button>
+                            <button class="action-btn primary">加入练习</button>
+                            <button class="action-btn">收藏</button>
+                        </div>
+                        <div class="answer-section">
+                            <div class="answer-title">参考答案</div>
+                            <div class="answer-content">{{ question.reference_answer or '参考答案暂未生成' }}</div>
+                            {% if question.answer_tips %}
+                            <div class="tips">💡 {{ question.answer_tips }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            
+            <div class="bottom-actions">
+                <button class="btn btn-secondary" onclick="regenerateQuestions()">重新生成问题</button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-secondary">导出为PDF</button>
+                    <a href="/interviews/{{ interview.id }}/practice" class="btn btn-primary">开始模拟练习 →</a>
+                </div>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">🎯</div>
+                <h2>还没有预测问题</h2>
+                <p style="margin: 20px 0;">让AI根据你输入的岗位信息，生成针对性的面试预测问题</p>
+                <button class="btn btn-primary" onclick="generateQuestions()">生成预测问题</button>
+            </div>
+        {% endif %}
+    </div>
+    
+    <script>
+        function toggleAnswer(btn) {
+            const card = btn.closest('.question-card');
+            const answerSection = card.querySelector('.answer-section');
+            answerSection.classList.toggle('show');
+            btn.textContent = answerSection.classList.contains('show') ? '收起参考答案' : '查看参考答案';
+        }
+        
+        function generateQuestions() {
+            fetch('/interviews/{{ interview.id }}/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                }
+            });
+        }
+        
+        function regenerateQuestions() {
+            if (confirm('确定要重新生成问题吗？这将替换现有的预测问题。')) {
+                generateQuestions();
+            }
+        }
+    </script>
+</body>
+</html>

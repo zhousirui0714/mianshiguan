@@ -212,7 +212,9 @@
                     <div class="crash-types" id="crashTypes">
                         {% for crash_type in crash_types %}
                         <div class="crash-type-card" data-value="{{ crash_type.value }}" onclick="selectCrashType(this)">
-                            <div class="crash-type-icon">{{ crash_type.value == 'wrong_words' ? '🙈' : crash_type.value == 'stuck' ? '⏸️' : crash_type.value == 'cant_answer' ? '😅' : crash_type.value == 'nervous' ? '😰' : '🤔' }}</div>
+                            <div class="crash-type-icon">
+                                {% if crash_type.value == 'wrong_words' %}🙈{% elif crash_type.value == 'stuck' %}⏸️{% elif crash_type.value == 'cant_answer' %}😅{% elif crash_type.value == 'nervous' %}😰{% else %}🤔{% endif %}
+                            </div>
                             <div class="crash-type-label">{{ crash_type.label }}</div>
                         </div>
                         {% endfor %}

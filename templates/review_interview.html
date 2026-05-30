@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>复盘分析 - {{ interview.company_name }} - 面试成长伴侣</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #6366F1;
+            --secondary: #10B981;
+            --accent: #F59E0B;
+            --bg-dark: #0F172A;
+            --bg-card: #1E293B;
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --border: #334155;
+        }
+        
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg-dark);
+            min-height: 100vh;
+            color: var(--text-primary);
+        }
+        
+        .header {
+            background: var(--bg-card);
+            padding: 20px 40px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .header-meta {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+        
+        .result-banner {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+        
+        .result-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+        
+        .result-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .result-message {
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+        
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border);
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .analysis-grid {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .analysis-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .analysis-label {
+            width: 100px;
+            font-weight: 600;
+        }
+        
+        .analysis-bar-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .analysis-bar {
+            flex: 1;
+            height: 12px;
+            background: var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .analysis-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.5s;
+        }
+        
+        .fill-good { background: var(--secondary); }
+        .fill-medium { background: var(--accent); }
+        .fill-low { background: #EF4444; }
+        
+        .analysis-value {
+            width: 50px;
+            text-align: right;
+            font-weight: 600;
+        }
+        
+        .analysis-warning {
+            color: var(--accent);
+            font-size: 0.9rem;
+        }
+        
+        .suggestions-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .suggestion-item {
+            display: flex;
+            gap: 15px;
+            padding: 20px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--secondary);
+        }
+        
+        .suggestion-number {
+            width: 30px;
+            height: 30px;
+            background: var(--secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .suggestion-content {
+            flex: 1;
+        }
+        
+        .suggestion-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .suggestion-desc {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+        
+        .strengths-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .strength-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 15px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .strength-icon {
+            font-size: 1.3rem;
+        }
+        
+        .weaknesses-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .weakness-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 15px;
+            background: rgba(245, 158, 11, 0.1);
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .weakness-icon {
+            font-size: 1.3rem;
+        }
+        
+        .actions-bar {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            padding: 30px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        
+        .action-btn {
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background: #5558E3;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+        
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .empty-state-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .container { padding: 20px; }
+            .analysis-item { flex-direction: column; align-items: flex-start; }
+            .analysis-bar { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/interviews/{{ interview.id }}" style="color: var(--text-secondary); text-decoration: none; display: inline-block; margin-bottom: 10px;">← 返回面试详情</a>
+        <h1>复盘分析</h1>
+        <div class="header-meta">{{ interview.company_name }} - {{ interview.position }}</div>
+    </div>
+    
+    <div class="container">
+        {% if review %}
+            <div class="result-banner">
+                <div class="result-icon">
+                    {% if review.overall_score and review.overall_score >= 70 %}🎉{% else %}💪{% endif %}
+                </div>
+                <h2 class="result-title">
+                    {% if review.overall_score and review.overall_score >= 80 %}面试表现优秀！
+                    {% elif review.overall_score and review.overall_score >= 60 %}面试顺利通过！
+                    {% else %}面试已完成，继续加油！{% endif %}
+                </h2>
+                <p class="result-message">每一次面试都是成长的机会，认真复盘，下一次一定会更好！</p>
+            </div>
+            
+            <div class="card">
+                <div class="section-title">
+                    <span>📊</span>
+                    表现分析
+                </div>
+                <div class="analysis-grid">
+                    <div class="analysis-item">
+                        <div class="analysis-label">技术能力</div>
+                        <div class="analysis-bar-container">
+                            <div class="analysis-bar">
+                                <div class="analysis-fill fill-good" style="width: 80%;"></div>
+                            </div>
+                            <div class="analysis-value">80%</div>
+                        </div>
+                    </div>
+                    <div class="analysis-item">
+                        <div class="analysis-label">沟通表达</div>
+                        <div class="analysis-bar-container">
+                            <div class="analysis-bar">
+                                <div class="analysis-fill fill-medium" style="width: 60%;"></div>
+                            </div>
+                            <div class="analysis-value">60%</div>
+                        </div>
+                    </div>
+                    <div class="analysis-item">
+                        <div class="analysis-label">项目经验</div>
+                        <div class="analysis-bar-container">
+                            <div class="analysis-bar">
+                                <div class="analysis-fill fill-good" style="width: 70%;"></div>
+                            </div>
+                            <div class="analysis-value">70%</div>
+                        </div>
+                    </div>
+                    <div class="analysis-item">
+                        <div class="analysis-label">应变能力</div>
+                        <div class="analysis-bar-container">
+                            <div class="analysis-bar">
+                                <div class="analysis-fill fill-low" style="width: 50%;"></div>
+                            </div>
+                            <div class="analysis-value">50%</div>
+                        </div>
+                        <span class="analysis-warning">⚠️ 需加强</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="section-title">
+                    <span>💪</span>
+                    优势项
+                </div>
+                <ul class="strengths-list">
+                    <li class="strength-item">
+                        <span class="strength-icon">✅</span>
+                        <div>技术基础扎实，能清晰讲解项目架构和技术选型</div>
+                    </li>
+                    <li class="strength-item">
+                        <span class="strength-icon">✅</span>
+                        <div>有实际项目经验，能举出具体案例说明问题</div>
+                    </li>
+                    <li class="strength-item">
+                        <span class="strength-icon">✅</span>
+                        <div>学习能力强，主动掌握新技术</div>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <div class="section-title">
+                    <span>📈</span>
+                    待改进项
+                </div>
+                <ul class="weaknesses-list">
+                    <li class="weakness-item">
+                        <span class="weakness-icon">⚠️</span>
+                        <div>回答行为类问题时，STAR法则使用不够熟练</div>
+                    </li>
+                    <li class="weakness-item">
+                        <span class="weakness-icon">⚠️</span>
+                        <div>遇到不会的问题时，容易紧张，需要学习拆解问题的方法</div>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <div class="section-title">
+                    <span>💡</span>
+                    改进建议
+                </div>
+                <ul class="suggestions-list">
+                    <li class="suggestion-item">
+                        <span class="suggestion-number">1</span>
+                        <div class="suggestion-content">
+                            <div class="suggestion-title">加强情景题练习</div>
+                            <div class="suggestion-desc">准备更多STAR法则案例，每天练习2-3道行为类问题</div>
+                        </div>
+                    </li>
+                    <li class="suggestion-item">
+                        <span class="suggestion-number">2</span>
+                        <div class="suggestion-content">
+                            <div class="suggestion-title">学习问题拆解技巧</div>
+                            <div class="suggestion-desc">遇到不会的问题时，学会分步骤拆解，逐步分析</div>
+                        </div>
+                    </li>
+                    <li class="suggestion-item">
+                        <span class="suggestion-number">3</span>
+                        <div class="suggestion-content">
+                            <div class="suggestion-title">完成压力测试模拟</div>
+                            <div class="suggestion-desc">建议完成3次压力测试模拟，提升应变能力</div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        {% else %}
+            <div class="card">
+                <div class="section-title">
+                    <span>📝</span>
+                    开始复盘
+                </div>
+                <div class="empty-state">
+                    <div class="empty-state-icon">📝</div>
+                    <h2>开始你的面试复盘</h2>
+                    <p style="color: var(--text-secondary); margin: 20px 0;">记录面试表现，获取AI分析和建议</p>
+                    <button class="action-btn btn-primary" onclick="showReviewForm()">开始复盘</button>
+                </div>
+            </div>
+        {% endif %}
+        
+        <div class="actions-bar">
+            <a href="/plan" class="action-btn btn-primary">📅 更新学习计划</a>
+            <a href="/interviews/{{ interview.id }}/practice" class="action-btn btn-secondary">💪 继续练习相关问题</a>
+            <a href="/interviews/new" class="action-btn btn-secondary">📋 记录下一场面试</a>
+        </div>
+    </div>
+    
+    <script>
+        function showReviewForm() {
+            alert('复盘表单功能开发中...');
+        }
+    </script>
+</body>
+</html>

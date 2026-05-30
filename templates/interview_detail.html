@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ interview.company_name }} - {{ interview.position }} - 面试成长伴侣</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #6366F1;
+            --secondary: #10B981;
+            --accent: #F59E0B;
+            --bg-dark: #0F172A;
+            --bg-card: #1E293B;
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --border: #334155;
+        }
+        
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg-dark);
+            min-height: 100vh;
+            color: var(--text-primary);
+        }
+        
+        .header {
+            background: var(--bg-card);
+            padding: 20px 40px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .back-btn {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 1.1rem;
+            transition: color 0.3s;
+        }
+        
+        .back-btn:hover { color: var(--primary); }
+        
+        .header h1 {
+            font-size: 1.5rem;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+        
+        .info-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .info-item {
+            padding: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+        }
+        
+        .info-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .progress-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .workflow-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .workflow-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+        
+        .step-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-weight: bold;
+        }
+        
+        .workflow-step.active .step-circle {
+            background: var(--primary);
+        }
+        
+        .workflow-step.completed .step-circle {
+            background: var(--secondary);
+        }
+        
+        .step-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .workflow-step.active .step-label {
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 4px;
+            width: 33%;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .tab:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .action-btn {
+            display: inline-block;
+            padding: 12px 28px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .action-btn:hover {
+            background: #5558E3;
+            transform: translateY(-2px);
+        }
+        
+        .action-btn.secondary {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+        }
+        
+        .action-btn.secondary:hover {
+            border-color: var(--primary);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+        
+        @media (max-width: 768px) {
+            .container { padding: 20px; }
+            .workflow-steps { flex-direction: column; gap: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <a href="/interviews" class="back-btn">← 返回</a>
+            <h1>{{ interview.company_name }} - {{ interview.position }}</h1>
+        </div>
+        <a href="/interviews/{{ interview.id }}/edit" class="action-btn secondary" style="padding: 8px 20px;">编辑</a>
+    </div>
+    
+    <div class="container">
+        <div class="info-card">
+            <div class="section-title">
+                <span>📋</span>
+                面试信息
+            </div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">公司</div>
+                    <div class="info-value">{{ interview.company_name }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">岗位</div>
+                    <div class="info-value">{{ interview.position }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">面试轮次</div>
+                    <div class="info-value">{% if interview.interview_round %}第{{ interview.interview_round }}轮{% else %}初试{% endif %}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">面试时间</div>
+                    <div class="info-value">{% if interview.interview_date %}{{ interview.interview_date }}{% else %}待定{% endif %}</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="progress-section">
+            <div class="section-title">
+                <span>📊</span>
+                准备进度
+            </div>
+            <div class="workflow-steps">
+                <div class="workflow-step {% if interview.status == 'upcoming' %}active{% endif %}">
+                    <div class="step-circle">✓</div>
+                    <div class="step-label">准备中</div>
+                </div>
+                <div class="workflow-step">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">已面试</div>
+                </div>
+                <div class="workflow-step">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">已复盘</div>
+                </div>
+                <div class="workflow-step">
+                    <div class="step-circle">4</div>
+                    <div class="step-label">Offer</div>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 25%;"></div>
+            </div>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('predict')">问题预测</button>
+            <button class="tab" onclick="showTab('practice')">模拟练习</button>
+            <button class="tab" onclick="showTab('review')">复盘分析</button>
+        </div>
+        
+        <div id="tab-predict" class="tab-content active">
+            <div class="info-card">
+                <div class="section-title">
+                    <span>🎯</span>
+                    AI问题预测
+                </div>
+                
+                {% if questions %}
+                    <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                        已生成 <strong>{{ questions|length }}</strong> 个预测问题
+                    </p>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
+                        <button class="tab active" style="padding: 8px 16px; font-size: 0.9rem;">全部</button>
+                        <button class="tab" style="padding: 8px 16px; font-size: 0.9rem;">技术题</button>
+                        <button class="tab" style="padding: 8px 16px; font-size: 0.9rem;">行为题</button>
+                        <button class="tab" style="padding: 8px 16px; font-size: 0.9rem;">情景题</button>
+                    </div>
+                    <a href="/interviews/{{ interview.id }}/predict" class="action-btn">查看全部问题</a>
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🎯</div>
+                        <h3>还没有预测问题</h3>
+                        <p>让AI根据岗位信息预测面试问题</p>
+                        <a href="/interviews/{{ interview.id }}/predict" class="action-btn">生成预测问题</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div id="tab-practice" class="tab-content">
+            <div class="info-card">
+                <div class="section-title">
+                    <span>💬</span>
+                    模拟练习
+                </div>
+                
+                <div class="empty-state">
+                    <div class="empty-state-icon">💬</div>
+                    <h3>开始模拟面试</h3>
+                    <p>与AI面试官进行真实对话练习</p>
+                    <a href="/interviews/{{ interview.id }}/practice" class="action-btn">开始练习</a>
+                </div>
+            </div>
+        </div>
+        
+        <div id="tab-review" class="tab-content">
+            <div class="info-card">
+                <div class="section-title">
+                    <span>📊</span>
+                    复盘分析
+                </div>
+                
+                <div class="empty-state">
+                    <div class="empty-state-icon">📊</div>
+                    <h3>面试复盘</h3>
+                    <p>记录面试表现，分析改进点</p>
+                    <a href="/interviews/{{ interview.id }}/review" class="action-btn">开始复盘</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function showTab(tabName) {
+            // 隐藏所有tab内容
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 取消所有tab的active状态
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 显示选中的tab内容
+            document.getElementById('tab-' + tabName).classList.add('active');
+            
+            // 设置对应的tab为active
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

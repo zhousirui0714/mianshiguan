@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>练习报告 - {{ scenario.name }} - 面试成长伴侣</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: {{ scenario.primary_color }};
+            --bg-dark: #0F172A;
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --border: #334155;
+        }
+        body {
+            font-family: {{ scenario.font_family }};
+            background: {{ scenario.background }};
+            min-height: 100vh;
+            color: var(--text-primary);
+            padding-bottom: 50px;
+        }
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 40px;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+        }
+        .header-left { display: flex; align-items: center; gap: 20px; }
+        .back-btn { color: var(--text-secondary); text-decoration: none; font-size: 1.1rem; }
+        .back-btn:hover { color: var(--primary); }
+        .header-title { font-size: 1.3rem; font-weight: 600; }
+
+        .container { max-width: 1000px; margin: 0 auto; padding: 40px; }
+
+        .score-card {
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 20px; padding: 40px; text-align: center;
+            margin-bottom: 30px; border: 1px solid var(--border);
+        }
+        .score-badge {
+            width: 120px; height: 120px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), rgba(255,255,255,0.2));
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .score-value { font-size: 3rem; font-weight: bold; color: white; }
+        .score-label { font-size: 1.2rem; margin-bottom: 5px; }
+        .score-pass { color: #10B981; font-size: 1rem; margin-top: 8px; }
+        .score-fail { color: #EF4444; font-size: 1rem; margin-top: 8px; }
+
+        .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
+        .chart-card {
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 20px; padding: 30px; border: 1px solid var(--border);
+        }
+        .chart-card.full-width { grid-column: 1 / -1; }
+        .chart-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .chart-wrapper { position: relative; height: 260px; }
+
+        .dimensions-list { list-style: none; }
+        .dimension-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 0; border-bottom: 1px solid var(--border);
+        }
+        .dimension-item:last-child { border-bottom: none; }
+        .dimension-name { font-size: 0.95rem; }
+        .dimension-bar-container {
+            flex: 1; margin: 0 20px; height: 8px;
+            background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;
+        }
+        .dimension-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), rgba(255,255,255,0.3));
+            border-radius: 4px; transition: width 0.8s ease;
+        }
+        .dimension-score { font-weight: 600; color: var(--primary); min-width: 40px; text-align: right; }
+
+        .suggestions-card, .strengths-card {
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 20px; padding: 30px; border: 1px solid var(--border);
+            margin-bottom: 30px;
+        }
+        .strengths-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 20px; color: #10B981; }
+        .suggestions-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 20px; color: #F59E0B; }
+        .strengths-list { display: flex; flex-wrap: wrap; gap: 10px; }
+        .strength-badge {
+            padding: 10px 20px; background: rgba(16, 185, 129, 0.2);
+            border-radius: 20px; color: #10B981; font-size: 0.9rem;
+        }
+        .suggestions-list { list-style: none; }
+        .suggestion-item {
+            display: flex; gap: 15px; padding: 15px 0; border-bottom: 1px solid var(--border);
+        }
+        .suggestion-item:last-child { border-bottom: none; }
+        .suggestion-number {
+            width: 28px; height: 28px; border-radius: 50%;
+            background: var(--primary); display: flex; align-items: center;
+            justify-content: center; font-size: 0.85rem; font-weight: 600; flex-shrink: 0;
+        }
+        .suggestion-text { font-size: 0.95rem; line-height: 1.6; }
+        .overall-comment {
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 20px; padding: 30px; border: 1px solid var(--border);
+            margin-bottom: 30px; line-height: 1.8; font-size: 0.95rem;
+        }
+
+        .action-buttons { display: flex; justify-content: center; gap: 20px; }
+        .btn {
+            padding: 14px 35px; border-radius: 12px; font-size: 1rem; font-weight: 600;
+            cursor: pointer; border: none; transition: all 0.3s; text-decoration: none; display: inline-block;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
+        .btn-secondary {
+            background: transparent; border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+        .btn-secondary:hover { border-color: var(--primary); color: var(--primary); }
+
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-secondary); font-size: 0.9rem; }
+
+        @media (max-width: 768px) {
+            .header { padding: 15px 20px; }
+            .container { padding: 20px; }
+            .charts-row { grid-template-columns: 1fr; }
+            .score-card { padding: 30px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <a href="/" class="back-btn">← 返回首页</a>
+            <span class="header-title">{{ scenario.name }} - 练习报告</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="score-card">
+            <div class="score-badge">
+                <div class="score-value">{{ report.overall_score }}{% if scenario_id == 'ielts_speaking' %}.0{% endif %}</div>
+            </div>
+            <div class="score-label">综合得分</div>
+            {% if report.passed is defined %}
+            <div class="{{ 'score-pass' if report.passed else 'score-fail' }}">
+                {{ '恭喜通过！' if report.passed else '继续加油！' }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="charts-row">
+            <div class="chart-card">
+                <div class="chart-title">📊 能力雷达图</div>
+                <div class="chart-wrapper"><canvas id="radarChart"></canvas></div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">📈 各维度得分</div>
+                <ul class="dimensions-list" id="dimensionsList">
+                    {% for dim in report.dimensions %}
+                    <li class="dimension-item">
+                        <span class="dimension-name">{{ dim.name }}</span>
+                        <div class="dimension-bar-container">
+                            <div class="dimension-bar" style="width: {{ dim.score * 100 / dim.max }}%"></div>
+                        </div>
+                        <span class="dimension-score">{{ dim.score }}/{{ dim.max }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="charts-row">
+            <div class="chart-card full-width">
+                <div class="chart-title">📈 历史得分趋势</div>
+                <div class="chart-wrapper" id="trendContainer">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        {% if report.overall_comment %}
+        <div class="overall-comment">
+            <strong>📋 总体评价</strong>
+            <p style="margin-top: 12px;">{{ report.overall_comment }}</p>
+        </div>
+        {% endif %}
+
+        <div class="strengths-card">
+            <div class="strengths-title">🌟 你的优势</div>
+            <div class="strengths-list">
+                {% for strength in report.strengths %}
+                <span class="strength-badge">{{ strength }}</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="suggestions-card">
+            <div class="suggestions-title">💡 改进建议</div>
+            <ul class="suggestions-list">
+                {% for improvement in report.improvements %}
+                <li class="suggestion-item">
+                    <span class="suggestion-number">{{ loop.index }}</span>
+                    <span class="suggestion-text">{{ improvement }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        {% if report.dimensions %}
+        <div class="charts-row">
+            <div class="chart-card full-width">
+                <div class="chart-title">📊 与场景平均对比</div>
+                <div class="chart-wrapper"><canvas id="comparisonChart"></canvas></div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="restartPractice()">🔄 再来一次</button>
+            <button class="btn btn-secondary" onclick="goGrowth()">📈 查看成长中心</button>
+            <button class="btn btn-secondary" onclick="goHome()">🏠 返回首页</button>
+        </div>
+    </div>
+
+    <script>
+        const SCENARIO_ID = '{{ scenario_id }}';
+        const USER_ID = 'test_user_llm';
+        const primaryColor = '{{ scenario.primary_color }}';
+        const dimensions = {{ report.dimensions|tojson|safe }};
+
+        // Chart.js 雷达图
+        function initRadarChart() {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            if (!dimensions || dimensions.length === 0) return;
+
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: dimensions.map(d => d.name),
+                    datasets: [{
+                        label: '本次得分',
+                        data: dimensions.map(d => (d.score / d.max) * 100),
+                        backgroundColor: primaryColor + '33',
+                        borderColor: primaryColor,
+                        borderWidth: 2,
+                        pointBackgroundColor: primaryColor,
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            beginAtZero: true, max: 100,
+                            grid: { color: 'rgba(148, 163, 184, 0.15)' },
+                            angleLines: { color: 'rgba(148, 163, 184, 0.15)' },
+                            pointLabels: { color: '#94A3B8', font: { size: 11 } },
+                            ticks: { color: '#94A3B8', backdropColor: 'transparent', stepSize: 20 }
+                        }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#94A3B8', font: { size: 11 } } }
+                    }
+                }
+            });
+        }
+
+        // 趋势图（从 API 获取数据）
+        async function initTrendChart() {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            try {
+                const res = await fetch(`/api/user/${USER_ID}/progress?scenario_id=${SCENARIO_ID}`);
+                const json = await res.json();
+                const data = json.data || [];
+                if (data.length === 0) throw new Error('无数据');
+
+                const scores = (data[0].latest_scores || []);
+                if (scores.length < 2) throw new Error('数据点不足');
+
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: scores.map((_, i) => `第${i + 1}次`),
+                        datasets: [{
+                            label: '得分趋势',
+                            data: scores,
+                            borderColor: primaryColor,
+                            backgroundColor: primaryColor + '22',
+                            fill: true,
+                            tension: 0.3,
+                            pointBackgroundColor: primaryColor,
+                            pointRadius: 5,
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true, max: 100, grid: { color: 'rgba(148, 163, 184, 0.1)' }, ticks: { color: '#94A3B8' } },
+                            x: { grid: { display: false }, ticks: { color: '#94A3B8' } }
+                        },
+                        plugins: { legend: { labels: { color: '#94A3B8' } } }
+                    }
+                });
+            } catch (e) {
+                showEmpty(document.getElementById('trendChart').getContext('2d'), '需完成多次练习才能查看趋势');
+            }
+        }
+
+        // 用户 vs 场景平均 vs 全局平均 对比柱状图
+        async function initComparisonChart() {
+            const ctx = document.getElementById('comparisonChart').getContext('2d');
+            try {
+                const [statsRes, progressRes] = await Promise.all([
+                    fetch(`/api/statistics/${SCENARIO_ID}`),
+                    fetch(`/api/user/${USER_ID}/progress?scenario_id=${SCENARIO_ID}`)
+                ]);
+                const stats = (await statsRes.json()).data || {};
+                const progress = (await progressRes.json()).data || [];
+                const userAvg = progress.length > 0 ? progress[0].avg_score : 0;
+
+                if (!stats.avg_score && !userAvg) throw new Error('无对比数据');
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['你的平均分', '场景平均分'],
+                        datasets: [{
+                            label: '分数',
+                            data: [userAvg, stats.avg_score || 0],
+                            backgroundColor: [primaryColor + 'CC', 'rgba(148, 163, 184, 0.5)'],
+                            borderColor: [primaryColor, '#94A3B8'],
+                            borderWidth: 1,
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true, max: 100, grid: { color: 'rgba(148, 163, 184, 0.1)' }, ticks: { color: '#94A3B8' } },
+                            x: { grid: { display: false }, ticks: { color: '#94A3B8' } }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            } catch (e) {
+                showEmpty(ctx, '暂无对比数据');
+            }
+        }
+
+        function showEmpty(ctx, message) {
+            const parent = ctx.canvas.parentElement;
+            ctx.canvas.style.display = 'none';
+            const el = document.createElement('div');
+            el.className = 'empty-state';
+            el.innerHTML = `<p>${message}</p>`;
+            parent.appendChild(el);
+        }
+
+        function restartPractice() { window.location.href = '/practice/{{ scenario_id }}'; }
+        function goGrowth() { window.location.href = '/growth'; }
+        function goHome() { window.location.href = '/'; }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initRadarChart();
+            initTrendChart();
+            initComparisonChart();
+        });
+    </script>
+</body>
+</html>

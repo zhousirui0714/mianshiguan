@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>成就徽章 - 百工模拟考场</title>
+    <style>
+        :root {
+            --primary: #60A5FA;
+            --primary-hover: #3B82F6;
+            --bg-primary: #F8FAFC;
+            --bg-secondary: #FFFFFF;
+            --text-primary: #1E293B;
+            --text-secondary: #64748B;
+            --text-tertiary: #94A3B8;
+            --border: rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.04);
+            
+            --rarity-common: #94A3B8;
+            --rarity-rare: #3B82F6;
+            --rarity-epic: #8B5CF6;
+            --rarity-legendary: #F59E0B;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, SF Pro Display, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            display: flex;
+        }
+        
+        /* 侧边栏 */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo {
+            font-size: 1.75rem;
+        }
+        
+        .brand-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .nav-menu {
+            flex: 1;
+            padding: 12px;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+            margin-bottom: 4px;
+            position: relative;
+        }
+        
+        .nav-item:hover {
+            background: rgba(96, 165, 250, 0.08);
+            color: var(--primary);
+        }
+        
+        .nav-item.active {
+            background: rgba(96, 165, 250, 0.12);
+            color: var(--primary);
+            font-weight: 500;
+        }
+        
+        .nav-item-icon {
+            font-size: 1.2rem;
+        }
+        
+        .nav-item .badge-notification {
+            position: absolute;
+            right: 12px;
+            background: #EF4444;
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 20px;
+            text-align: center;
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .top-bar {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .page-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .stats-info {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        /* 页面内容 */
+        .page-content {
+            flex: 1;
+            padding: 24px;
+        }
+        
+        /* 筛选区域 */
+        .filter-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+        
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .filter-btn:hover {
+            background: rgba(96, 165, 250, 0.12);
+            color: var(--primary);
+        }
+        
+        .filter-btn.active:hover {
+            background: var(--primary-hover);
+            color: white;
+        }
+        
+        /* 徽章网格 */
+        .badges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 16px;
+        }
+        
+        .badge-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-md);
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .badge-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        }
+        
+        .badge-card.locked {
+            opacity: 0.4;
+            filter: grayscale(100%);
+        }
+        
+        .badge-card.unlocked {
+            border-color: var(--primary);
+        }
+        
+        .badge-card.new::before {
+            content: 'NEW';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #EF4444;
+            color: white;
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        /* 解锁动画 */
+        .badge-card.unlocking {
+            animation: unlockAnimation 0.8s ease-out;
+        }
+        
+        @keyframes unlockAnimation {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.1); }
+            70% { transform: scale(0.95); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .badge-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .badge-card.locked .badge-icon {
+            filter: grayscale(100%);
+        }
+        
+        .badge-card.unlocked:hover .badge-icon {
+            transform: scale(1.1);
+        }
+        
+        .badge-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .badge-rarity {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        
+        .rarity-common {
+            background: rgba(148, 163, 184, 0.12);
+            color: var(--rarity-common);
+        }
+        
+        .rarity-rare {
+            background: rgba(59, 130, 246, 0.12);
+            color: var(--rarity-rare);
+        }
+        
+        .rarity-epic {
+            background: rgba(139, 92, 246, 0.12);
+            color: var(--rarity-epic);
+        }
+        
+        .rarity-legendary {
+            background: rgba(245, 158, 11, 0.12);
+            color: var(--rarity-legendary);
+        }
+        
+        /* 分类标签 */
+        .category-section {
+            margin-bottom: 24px;
+        }
+        
+        .category-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .category-icon {
+            font-size: 1.2rem;
+        }
+        
+        /* 弹窗 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            animation: fadeIn 0.2s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal-content {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            overflow: hidden;
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .modal-header {
+            padding: 24px;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(96, 165, 250, 0.1), rgba(59, 130, 246, 0.1));
+        }
+        
+        .modal-badge-icon {
+            font-size: 5rem;
+            margin-bottom: 12px;
+        }
+        
+        .modal-badge-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .modal-badge-rarity {
+            display: inline-block;
+            margin-top: 8px;
+        }
+        
+        .modal-body {
+            padding: 24px;
+        }
+        
+        .modal-description {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .modal-condition {
+            background: var(--bg-primary);
+            border-radius: 10px;
+            padding: 16px;
+        }
+        
+        .condition-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .condition-text {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .unlock-status {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .unlock-status.unlocked {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10B981;
+        }
+        
+        .unlock-status.locked {
+            background: rgba(239, 68, 68, 0.1);
+            color: #EF4444;
+        }
+        
+        .modal-footer {
+            padding: 0 24px 24px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            box-shadow: 0 0 12px rgba(96, 165, 250, 0.3);
+        }
+        
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-tertiary);
+        }
+        
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+        
+        /* 解锁提示弹窗 */
+        .unlock-notification {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 20px 24px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            animation: slideInRight 0.4s ease-out;
+            z-index: 200;
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .unlock-notification .badge-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0;
+        }
+        
+        .unlock-notification-content {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .unlock-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .unlock-name {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .badges-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 12px;
+            }
+            
+            .badge-icon {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/sidebar.css') }}">
+</head>
+<body>
+    {% include 'components/sidebar.html' %}
+
+    <main class="main-content">
+        <header class="top-bar">
+            <h1 class="page-title">成就徽章</h1>
+            <div class="stats-info">
+                <div class="stat-item">
+                    <span class="stat-value" id="unlockedCount">0</span>
+                    <span class="stat-label">已解锁</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="totalCount">0</span>
+                    <span class="stat-label">总徽章</span>
+                </div>
+            </div>
+        </header>
+        
+        <div class="page-content">
+            <!-- 筛选区域 -->
+            <div class="filter-section">
+                <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">全部</button>
+                <button class="filter-btn" data-filter="unlocked" onclick="setFilter('unlocked')">已解锁</button>
+                <button class="filter-btn" data-filter="locked" onclick="setFilter('locked')">未解锁</button>
+            </div>
+            
+            <!-- 徽章分类展示 -->
+            <div id="badgesContainer">
+                <!-- 徽章动态生成 -->
+            </div>
+        </div>
+    </main>
+    
+    <!-- 徽章详情弹窗 -->
+    <div class="modal-overlay" id="detailModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-badge-icon" id="modalBadgeIcon">🏆</div>
+                <div class="modal-badge-name" id="modalBadgeName">徽章名称</div>
+                <span class="badge-rarity" id="modalBadgeRarity"></span>
+            </div>
+            <div class="modal-body">
+                <div class="modal-description" id="modalBadgeDescription">徽章描述</div>
+                <div class="modal-condition">
+                    <div class="condition-title">
+                        <span>📋</span>
+                        <span>解锁条件</span>
+                    </div>
+                    <div class="condition-text" id="modalBadgeCondition">解锁条件说明</div>
+                </div>
+                <div class="unlock-status" id="modalUnlockStatus">
+                    已解锁
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeDetailModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 解锁提示 -->
+    <div class="unlock-notification" id="unlockNotification" style="display: none;">
+        <div class="badge-icon" id="notificationBadgeIcon">🏆</div>
+        <div class="unlock-notification-content">
+            <div class="unlock-title">🎉 解锁新徽章！</div>
+            <div class="unlock-name" id="notificationBadgeName">徽章名称</div>
+        </div>
+    </div>
+    
+    <script>
+        const USER_ID = 'anonymous';
+        const categories = {
+            'newbie': { name: '新手入门', icon: '🌟' },
+            'persistence': { name: '坚持打卡', icon: '🔥' },
+            'scenario': { name: '场景挑战', icon: '🎯' },
+            'special': { name: '特殊成就', icon: '💎' }
+        };
+        
+        const rarityLabels = {
+            'common': '普通',
+            'rare': '稀有',
+            'epic': '史诗',
+            'legendary': '传说'
+        };
+        
+        let allBadges = [];
+        let userBadges = {};
+        let currentFilter = 'all';
+        
+        // 页面加载
+        document.addEventListener('DOMContentLoaded', () => {
+            loadBadges();
+            loadUserBadges();
+        });
+        
+        // 加载所有徽章
+        async function loadBadges() {
+            const response = await fetch('/api/badges');
+            const data = await response.json();
+            
+            if (data.success) {
+                allBadges = data.data;
+                renderBadges();
+                updateStats();
+            }
+        }
+        
+        // 加载用户徽章
+        async function loadUserBadges() {
+            const response = await fetch(`/api/user/${USER_ID}/badges`);
+            const data = await response.json();
+            
+            if (data.success) {
+                userBadges = {};
+                data.data.forEach(badge => {
+                    userBadges[badge.id] = badge;
+                });
+                renderBadges();
+                updateStats();
+                checkNewBadges();
+            }
+        }
+        
+        // 更新统计
+        function updateStats() {
+            const unlockedCount = Object.keys(userBadges).length;
+            const totalCount = allBadges.length;
+            
+            document.getElementById('unlockedCount').textContent = unlockedCount;
+            document.getElementById('totalCount').textContent = totalCount;
+        }
+        
+        // 检查新徽章
+        async function checkNewBadges() {
+            const response = await fetch(`/api/user/${USER_ID}/badges/new-count`);
+            const data = await response.json();
+            
+            if (data.success && data.count > 0) {
+                document.getElementById('newBadgeCount').textContent = data.count;
+                document.getElementById('newBadgeCount').style.display = 'block';
+            }
+        }
+        
+        // 设置筛选
+        function setFilter(filter) {
+            currentFilter = filter;
+            
+            // 更新按钮状态
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
+            
+            renderBadges();
+        }
+        
+        // 渲染徽章
+        function renderBadges() {
+            const container = document.getElementById('badgesContainer');
+            
+            // 按分类分组
+            const groupedBadges = {};
+            allBadges.forEach(badge => {
+                if (!groupedBadges[badge.category]) {
+                    groupedBadges[badge.category] = [];
+                }
+                groupedBadges[badge.category].push(badge);
+            });
+            
+            let html = '';
+            for (const [category, badges] of Object.entries(groupedBadges)) {
+                // 筛选徽章
+                let filteredBadges = badges;
+                if (currentFilter === 'unlocked') {
+                    filteredBadges = badges.filter(b => userBadges[b.id]);
+                } else if (currentFilter === 'locked') {
+                    filteredBadges = badges.filter(b => !userBadges[b.id]);
+                }
+                
+                if (filteredBadges.length === 0) continue;
+                
+                html += `
+                    <div class="category-section">
+                        <div class="category-title">
+                            <span class="category-icon">${categories[category]?.icon || '📌'}</span>
+                            <span>${categories[category]?.name || category}</span>
+                        </div>
+                        <div class="badges-grid">
+                            ${filteredBadges.map(badge => renderBadgeCard(badge)).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html || `
+                <div class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <div>暂无徽章</div>
+                </div>
+            `;
+        }
+        
+        // 渲染单个徽章卡片
+        function renderBadgeCard(badge) {
+            const isUnlocked = userBadges[badge.id];
+            const isNew = isUnlocked?.is_new;
+            
+            return `
+                <div class="badge-card ${isUnlocked ? 'unlocked' : 'locked'} ${isNew ? 'new' : ''}" 
+                     onclick="openDetailModal('${badge.id}')">
+                    <div class="badge-icon">${badge.icon}</div>
+                    <div class="badge-name">${badge.name}</div>
+                    <span class="badge-rarity rarity-${badge.rarity}">${rarityLabels[badge.rarity]}</span>
+                </div>
+            `;
+        }
+        
+        // 打开详情弹窗
+        async function openDetailModal(badgeId) {
+            const badge = allBadges.find(b => b.id === badgeId);
+            if (!badge) return;
+            
+            const isUnlocked = userBadges[badgeId];
+            
+            document.getElementById('modalBadgeIcon').textContent = badge.icon;
+            document.getElementById('modalBadgeName').textContent = badge.name;
+            document.getElementById('modalBadgeRarity').textContent = rarityLabels[badge.rarity];
+            document.getElementById('modalBadgeRarity').className = `badge-rarity rarity-${badge.rarity}`;
+            document.getElementById('modalBadgeDescription').textContent = badge.description;
+            document.getElementById('modalBadgeCondition').textContent = getConditionText(badge.unlock_condition);
+            
+            const statusEl = document.getElementById('modalUnlockStatus');
+            if (isUnlocked) {
+                statusEl.textContent = `✅ 已解锁 · ${formatDate(isUnlocked.unlocked_at)}`;
+                statusEl.className = 'unlock-status unlocked';
+            } else {
+                statusEl.textContent = '🔒 努力解锁中...';
+                statusEl.className = 'unlock-status locked';
+            }
+            
+            // 标记为已查看
+            if (isUnlocked?.is_new) {
+                fetch(`/api/badge/${badgeId}/mark-viewed`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: USER_ID })
+                });
+                isUnlocked.is_new = false;
+                document.querySelector(`.badge-card.new`)?.classList.remove('new');
+                checkNewBadges();
+            }
+            
+            document.getElementById('detailModal').style.display = 'flex';
+        }
+        
+        // 关闭详情弹窗
+        function closeDetailModal() {
+            document.getElementById('detailModal').style.display = 'none';
+        }
+        
+        // 获取条件文本
+        function getConditionText(condition) {
+            const type = condition.type;
+            
+            switch(type) {
+                case 'first_practice':
+                    return '完成第一次模拟练习';
+                case 'first_high_score':
+                    return `首次练习得分达到 ${condition.threshold} 分以上`;
+                case 'total_practices':
+                    return `累计完成 ${condition.count} 次练习`;
+                case 'streak':
+                    return `连续 ${condition.days} 天登录练习`;
+                case 'scenario_high_score':
+                    return `${getScenarioName(condition.scenario)}场景得分达到 ${condition.threshold} 分以上`;
+                case 'scenario_practices':
+                    return `${getScenarioName(condition.scenario)}场景完成 ${condition.count} 次练习`;
+                case 'speed_score':
+                    return `${condition.duration}秒内完成答题且得分≥${condition.threshold}分`;
+                case 'all_scenarios':
+                    return '所有场景各完成1次练习';
+                case 'view_explanations':
+                    return `查看 ${condition.count} 道题目解析`;
+                case 'improvement':
+                    return `同一场景练习${condition.scenario_count}次后得分提升${condition.improvement}分`;
+                default:
+                    return '完成特定成就';
+            }
+        }
+        
+        // 获取场景名称
+        function getScenarioName(scenarioId) {
+            const scenarios = {
+                'job_interview': '求职面试',
+                'teacher_cert': '教资面试',
+                'ielts_speaking': '雅思口语',
+                'civil_service': '公务员面试',
+                'graduate_school': '考研复试',
+                'mba_interview': 'MBA面试'
+            };
+            return scenarios[scenarioId] || scenarioId;
+        }
+        
+        // 格式化日期
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return `${date.getMonth() + 1}月${date.getDate()}日`;
+        }
+        
+        // 显示解锁提示
+        function showUnlockNotification(badge) {
+            document.getElementById('notificationBadgeIcon').textContent = badge.icon;
+            document.getElementById('notificationBadgeName').textContent = badge.name;
+            document.getElementById('unlockNotification').style.display = 'flex';
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                document.getElementById('unlockNotification').style.display = 'none';
+            }, 3000);
+        }
+        
+        // 点击弹窗外部关闭
+        document.getElementById('detailModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('detailModal')) {
+                closeDetailModal();
+            }
+        });
+        
+        // 暴露给外部调用（用于测试解锁）
+        window.testUnlockBadge = async function(badgeId) {
+            const badge = allBadges.find(b => b.id === badgeId);
+            if (!badge || userBadges[badgeId]) return;
+            
+            const result = await fetch('/api/badge/check-unlock', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_id: USER_ID,
+                    scenario: 'job_interview',
+                    score: 90
+                })
+            });
+            
+            const data = await result.json();
+            if (data.success && data.new_badges.length > 0) {
+                data.new_badges.forEach(b => {
+                    showUnlockNotification(b);
+                });
+                await loadUserBadges();
+            }
+        };
+    </script>
+    <script src="{{ url_for('static', filename='js/components/sidebar.js') }}"></script>
+</body>
+</html>

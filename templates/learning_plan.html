@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学习计划 - 百工模拟考场</title>
+    <style>
+        :root {
+            --primary: #60A5FA;
+            --primary-hover: #3B82F6;
+            --bg-primary: #F8FAFC;
+            --bg-secondary: #FFFFFF;
+            --text-primary: #1E293B;
+            --text-secondary: #64748B;
+            --border: rgba(0, 0, 0, 0.06);
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, SF Pro Display, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            display: flex;
+        }
+        
+        .sidebar {
+            width: 260px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo { font-size: 1.75rem; }
+        .brand-name { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); }
+        
+        .nav-menu { flex: 1; padding: 12px; }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+            margin-bottom: 4px;
+        }
+        
+        .nav-item:hover { background: rgba(96, 165, 250, 0.08); color: var(--primary); }
+        .nav-item.active { background: rgba(96, 165, 250, 0.12); color: var(--primary); font-weight: 500; }
+        .nav-item-icon { font-size: 1.2rem; }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            min-height: 100vh;
+        }
+        
+        .top-bar {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .page-title { font-size: 1.25rem; font-weight: 600; color: var(--text-primary); }
+        
+        .page-content { padding: 24px; }
+        
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+        
+        .plan-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04);
+        }
+        
+        .plan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+        
+        .plan-title { font-size: 1rem; font-weight: 600; color: var(--text-primary); }
+        .plan-date { font-size: 0.85rem; color: var(--text-secondary); }
+        
+        .progress-bar {
+            height: 8px;
+            background: rgba(96, 165, 250, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .progress-text { font-size: 0.85rem; color: var(--text-secondary); }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        
+        @media (max-width: 768px) {
+            .sidebar { width: 100%; position: relative; height: auto; }
+            .main-content { margin-left: 0; }
+        }
+    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/sidebar.css') }}">
+</head>
+<body>
+    {% include 'components/sidebar.html' %}
+
+    <main class="main-content">
+        <header class="top-bar">
+            <h1 class="page-title">学习计划</h1>
+            <button class="btn btn-primary">创建计划</button>
+        </header>
+        
+        <div class="page-content">
+            <section>
+                <h2 class="section-title">📋 今日计划</h2>
+                <div class="plan-card">
+                    <div class="plan-header">
+                        <div>
+                            <div class="plan-title">求职面试专项训练</div>
+                            <div class="plan-date">今天 · 剩余 3 项任务</div>
+                        </div>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill" style="width: 60%"></div></div>
+                    <div class="progress-text">已完成 3/5 项任务</div>
+                </div>
+            </section>
+            
+            <section>
+                <h2 class="section-title">📅 本周计划</h2>
+                <div class="plan-card">
+                    <div class="plan-header">
+                        <div>
+                            <div class="plan-title">教资面试备考</div>
+                            <div class="plan-date">本周 · 目标完成 10 道题目</div>
+                        </div>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill" style="width: 40%"></div></div>
+                    <div class="progress-text">已完成 4/10 道题目</div>
+                </div>
+                <div class="plan-card">
+                    <div class="plan-header">
+                        <div>
+                            <div class="plan-title">雅思口语练习</div>
+                            <div class="plan-date">本周 · 目标练习 5 次</div>
+                        </div>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill" style="width: 80%"></div></div>
+                    <div class="progress-text">已完成 4/5 次练习</div>
+                </div>
+            </section>
+        </div>
+    </main>
+    
+    <script src="{{ url_for('static', filename='js/components/sidebar.js') }}"></script>
+</body>
+</html>
