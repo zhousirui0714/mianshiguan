@@ -39,6 +39,11 @@ examiner_{场景缩写}_{表情}.png
 | graduate_school   | graduate  |
 | mba_interview     | mba       |
 
+| 性别     | 文件名后缀 |
+|---------|-----------|
+| 男性    | male      |
+| 女性    | female    |
+
 | 表情         | 文件名后缀     |
 |-------------|--------------|
 | neutral     | neutral      |
@@ -46,6 +51,19 @@ examiner_{场景缩写}_{表情}.png
 | thinking    | thinking     |
 | encouraging | encouraging  |
 | ending      | ending       |
+
+## 完整文件名示例
+
+```
+examiner_job_male_neutral.png     # 求职面试 - 男性 - 中性
+examiner_job_male_smile.png       # 求职面试 - 男性 - 微笑
+examiner_job_male_thinking.png    # 求职面试 - 男性 - 思考
+examiner_job_male_encouraging.png # 求职面试 - 男性 - 鼓励
+examiner_job_male_ending.png      # 求职面试 - 男性 - 结束
+examiner_job_female_neutral.png   # 求职面试 - 女性 - 中性（可选）
+examiner_teaching_female_neutral.png  # 教资面试 - 女性 - 中性
+examiner_ielts_male_neutral.png       # 雅思口语 - 男性 - 中性
+```
 
 ## 图片规格
 

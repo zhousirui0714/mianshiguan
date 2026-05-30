@@ -200,7 +200,7 @@
                 <div class="badge-name">{{ badge.name }}</div>
                 <div class="badge-desc">{{ badge.description }}</div>
                 <div class="rarity-tag {{ badge.rarity }}">
-                    {{ badge.rarity == 'legendary' ? '传说' : badge.rarity == 'epic' ? '史诗' : badge.rarity == 'rare' ? '稀有' : '普通' }}
+                    {% if badge.rarity == 'legendary' %}传说{% elif badge.rarity == 'epic' %}史诗{% elif badge.rarity == 'rare' %}稀有{% else %}普通{% endif %}
                 </div>
             </div>
             {% endfor %}

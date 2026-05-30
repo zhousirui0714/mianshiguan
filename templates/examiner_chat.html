@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI考官模拟面试</title>
-    <script src="/static/js/live2d-examiner.js"></script>
+    <link rel="stylesheet" href="/static/css/components/digital_examiner.css">
+    <script src="/static/js/components/digital_examiner.js"></script>
     <style>
         :root {
             --primary: #60A5FA;
@@ -35,75 +36,6 @@
             gap: 0;
         }
 
-        .examiner-panel {
-            width: 340px;
-            min-width: 340px;
-            background: var(--bg-secondary);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 24px 16px;
-            overflow-y: auto;
-        }
-
-        .examiner-panel .examiner-info-panel {
-            text-align: center;
-            margin-bottom: 16px;
-        }
-
-        .examiner-panel .examiner-name-panel {
-            font-size: 1.15rem;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .examiner-panel .examiner-title-panel {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            margin-top: 4px;
-        }
-
-        .examiner-panel .examiner-status {
-            margin-top: 12px;
-            padding: 6px 16px;
-            background: rgba(96, 165, 250, 0.08);
-            border-radius: 20px;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            transition: all 0.3s ease;
-        }
-
-        .examiner-panel .examiner-status.thinking {
-            background: rgba(245, 158, 11, 0.1);
-            color: #F59E0B;
-        }
-
-        .examiner-panel .examiner-status.approving {
-            background: rgba(16, 185, 129, 0.1);
-            color: #10B981;
-        }
-
-        .examiner-panel .examiner-status.listening {
-            background: rgba(96, 165, 250, 0.1);
-            color: #60A5FA;
-        }
-
-        .examiner-canvas-wrapper {
-            width: 280px;
-            height: 350px;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-            border: 1px solid var(--border);
-            flex-shrink: 0;
-        }
-
-        .examiner-canvas-wrapper canvas {
-            width: 100% !important;
-            height: 100% !important;
-        }
-
         .chat-container {
             flex: 1;
             display: flex;
@@ -111,42 +43,6 @@
             max-width: 900px;
             width: 100%;
             height: 100vh;
-        }
-
-        @media (max-width: 900px) {
-            .examiner-panel {
-                width: 240px;
-                min-width: 240px;
-                padding: 16px 12px;
-            }
-            .examiner-canvas-wrapper {
-                width: 200px;
-                height: 250px;
-            }
-        }
-
-        @media (max-width: 700px) {
-            .app-layout {
-                flex-direction: column;
-            }
-            .examiner-panel {
-                width: 100%;
-                min-width: unset;
-                flex-direction: row;
-                padding: 12px 16px;
-                border-right: none;
-                border-bottom: 1px solid var(--border);
-                gap: 16px;
-            }
-            .examiner-canvas-wrapper {
-                width: 80px;
-                height: 100px;
-                flex-shrink: 0;
-            }
-            .examiner-panel .examiner-info-panel {
-                margin-bottom: 0;
-                text-align: left;
-            }
         }
         
         /* 顶部栏 */
@@ -611,15 +507,8 @@
 </head>
 <body>
     <div class="app-layout">
-        <!-- 左侧考官面板 -->
-        <div class="examiner-panel">
-            <div class="examiner-canvas-wrapper" id="examinerCanvasContainer"></div>
-            <div class="examiner-info-panel">
-                <div class="examiner-name-panel" id="examinerName">张经理</div>
-                <div class="examiner-title-panel" id="examinerTitle">资深技术面试官</div>
-            </div>
-            <div class="examiner-status" id="examinerStatus">等待面试开始...</div>
-        </div>
+        <!-- 左侧数字人考官（玻璃态卡片） -->
+        <div id="examiner-container" class="examiner-container"></div>
 
         <div class="chat-container">
             <!-- 顶部栏 -->
@@ -688,20 +577,13 @@
         const messageInput = document.getElementById('messageInput');
         const sendBtn = document.getElementById('sendBtn');
         const roundInfo = document.getElementById('roundInfo');
-        const examinerName = document.getElementById('examinerName');
-        const examinerTitle = document.getElementById('examinerTitle');
         const examinerHeaderName = document.getElementById('examinerHeaderName');
         const examinerHeaderTitle = document.getElementById('examinerHeaderTitle');
         const examinerAvatar = document.getElementById('examinerAvatar');
-        const examinerStatus = document.getElementById('examinerStatus');
         const finishBtn = document.getElementById('finishBtn');
         const reportModal = document.getElementById('reportModal');
         const reportContent = document.getElementById('reportContent');
-        const examinerCanvasContainer = document.getElementById('examinerCanvasContainer');
 
-        // DigitalExaminer 实例
-        let digitalExaminer = null;
-        
         // 场景配置
         const scenarioIcons = {
             'job_interview': '👔',
@@ -711,30 +593,37 @@
             'graduate_school': '🎓',
             'mba_interview': '💼'
         };
-        
-        // 初始化 DigitalExaminer
+
+        // 表情映射（旧命名 → 组件5种表情）
+        const EXPR_MAP = {
+            'idle':          'neutral',
+            'greeting':      'smile',
+            'listening':     'neutral',
+            'thinking':      'thinking',
+            'approving':     'smile',
+            'disapproving':  'neutral',
+        };
+
+        // 初始化 2D 数字人考官
         function initDigitalExaminer() {
             try {
-                digitalExaminer = new DigitalExaminer({
-                    container: examinerCanvasContainer,
-                    scenarioId: scenarioId,
-                    width: 280,
-                    height: 350
+                Examiner.init({
+                    scenario: scenarioId,
+                    containerId: 'examiner-container',
+                    examinerInfo: {
+                        name: '考官',
+                        title: '',
+                    }
                 });
             } catch (e) {
-                console.warn('DigitalExaminer init failed:', e);
+                console.warn('Examiner init failed:', e);
             }
         }
 
-        // 设置考官表情和状态
-        function setExaminerExpression(expression, statusText) {
-            if (digitalExaminer) {
-                digitalExaminer.setExpression(expression);
-            }
-            if (examinerStatus && statusText) {
-                examinerStatus.textContent = statusText;
-                examinerStatus.className = 'examiner-status ' + expression;
-            }
+        // 设置考官表情（适配旧调用）
+        function setExaminerExpression(oldExpr) {
+            var expr = EXPR_MAP[oldExpr] || oldExpr || 'neutral';
+            Examiner.setExpression(expr);
         }
 
         // 初始化
@@ -763,18 +652,26 @@
                 
                 if (result.success) {
                     conversationId = result.conversation_id;
-                    examinerName.textContent = result.examiner_name;
-                    examinerTitle.textContent = result.examiner_title;
                     examinerHeaderName.textContent = result.examiner_name;
                     examinerHeaderTitle.textContent = result.examiner_title;
                     examinerAvatar.textContent = scenarioIcons[scenarioId] || '👔';
                     maxRounds = result.max_rounds;
 
+                    // 更新考官信息
+                    Examiner.init({
+                        scenario: scenarioId,
+                        containerId: 'examiner-container',
+                        examinerInfo: {
+                            name: result.examiner_name,
+                            title: result.examiner_title,
+                        }
+                    });
+
                     // 切换到问候表情
-                    setTimeout(() => {
-                        setExaminerExpression('greeting', '向你问好');
-                        setTimeout(() => {
-                            setExaminerExpression('listening', '等待你的回答');
+                    setTimeout(function () {
+                        Examiner.setExpression('smile');
+                        setTimeout(function () {
+                            Examiner.setExpression('neutral');
                         }, 2000);
                     }, 500);
 
@@ -797,8 +694,8 @@
             messageInput.value = '';
             sendBtn.disabled = true;
 
-            // 考官：聆听状态 → 思考状态
-            setExaminerExpression('listening', '正在倾听...');
+            // 考官：正在倾听
+            Examiner.setExpression('neutral');
 
             // 显示正在输入
             isTyping = true;
@@ -825,7 +722,7 @@
                 isTyping = false;
 
                 // 考官：切换到思考表情
-                setExaminerExpression('thinking', '正在评估你的回答...');
+                Examiner.setExpression('thinking');
 
                 if (result.success) {
                     conversationId = result.conversation_id;
@@ -835,39 +732,42 @@
                     // 延迟一小段时间，模拟思考
                     await new Promise(r => setTimeout(r, 600));
 
+                    // 开始说话动效后再显示回复
+                    Examiner.startSpeaking();
+
                     // 打字机效果显示回复
                     await typewriterMessage('assistant', result.response);
+
+                    // 停止说话动效
+                    Examiner.stopSpeaking();
 
                     // 根据回复内容切换考官表情
                     const responseText = result.response || '';
                     const approvingWords = ['不错', '很好', '优秀', '正确', 'excellent', 'great', 'good', 'impressive'];
                     const disapprovingWords = ['不足', '需要改进', '建议', 'improve', 'suggestion', 'consider', 'could be better'];
                     const isApproving = approvingWords.some(w => responseText.toLowerCase().includes(w.toLowerCase()));
-                    const isDisapproving = disapprovingWords.some(w => responseText.toLowerCase().includes(w.toLowerCase()));
 
-                    if (isApproving && !isDisapproving) {
-                        setExaminerExpression('approving', '表示赞许');
-                    } else if (isDisapproving && !isApproving) {
-                        setExaminerExpression('disapproving', '正在记录');
+                    if (isApproving) {
+                        Examiner.setExpression('smile');
                     } else {
-                        setExaminerExpression('approving', '继续回答');
+                        Examiner.setExpression('neutral');
                     }
 
                     // 检查是否结束
                     if (result.is_finished) {
-                        setTimeout(() => {
-                            setExaminerExpression('greeting', '面试结束，生成报告中...');
+                        setTimeout(function () {
+                            Examiner.setExpression('ending');
                             finishInterview();
                         }, 1500);
                     } else {
-                        // 几秒后恢复聆听状态
-                        setTimeout(() => {
-                            setExaminerExpression('listening', '等待你的回答');
+                        // 几秒后恢复中性
+                        setTimeout(function () {
+                            Examiner.setExpression('neutral');
                         }, 3000);
                     }
                 } else {
                     addMessage('assistant', '抱歉，我暂时无法回答，请稍后重试。');
-                    setExaminerExpression('idle', '等待你的回答');
+                    Examiner.setExpression('neutral');
                 }
             } catch (error) {
                 console.error('发送消息失败:', error);
@@ -1072,17 +972,12 @@
             closeReportModal();
             messagesContainer.innerHTML = '';
 
-            // 重置 DigitalExaminer
-            if (digitalExaminer) {
-                digitalExaminer.destroy();
-                digitalExaminer = null;
-            }
-            examinerCanvasContainer.innerHTML = '';
+            // 销毁并重建考官
+            try { Examiner.destroy(); } catch(e) {}
 
             currentRound = 1;
             roundInfo.textContent = `第 1/${maxRounds} 轮`;
             conversationId = null;
-            setExaminerExpression('idle', '等待面试开始...');
             initDigitalExaminer();
             startInterview();
         }

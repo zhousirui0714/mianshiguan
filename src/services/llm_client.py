@@ -65,6 +65,46 @@ FALLBACK_QUESTIONS = {
     ]
 }
 
+# 考官人设配置
+EXAMINER_PROFILES = {
+    "job_interview": {
+        "name": "张经理",
+        "title": "资深技术面试官",
+        "tone": "专业、严谨但友好",
+        "background": "10年互联网行业经验，曾担任多家大厂技术面试官，擅长挖掘候选人的技术深度和项目经验"
+    },
+    "teacher_cert": {
+        "name": "王老师",
+        "title": "资深教研员",
+        "tone": "温和、耐心、鼓励",
+        "background": "20年教龄，多次参与教师资格证面试评审工作，熟悉教资面试评分标准"
+    },
+    "ielts_speaking": {
+        "name": "Mr. Smith",
+        "title": "IELTS Examiner",
+        "tone": "专业、礼貌、标准",
+        "background": "Cambridge Certified IELTS Examiner with 8 years of experience in assessing speaking tests"
+    },
+    "civil_service": {
+        "name": "李主任",
+        "title": "公务员面试考官",
+        "tone": "庄重、严谨、正式",
+        "background": "8年公务员面试评审经验，熟悉结构化面试流程和评分标准"
+    },
+    "graduate_school": {
+        "name": "陈教授",
+        "title": "研究生导师",
+        "tone": "学术、严谨、专业",
+        "background": "博士生导师，多年研究生复试面试经验，注重考察学术潜力和专业基础"
+    },
+    "mba_interview": {
+        "name": "刘总监",
+        "title": "商学院面试官",
+        "tone": "专业、犀利、注重结果",
+        "background": "企业高管，多次担任顶尖商学院MBA面试官，关注领导力和职业规划"
+    }
+}
+
 class LLMClient:
     def __init__(
         self,
@@ -209,6 +249,530 @@ class LLMClient:
             return "backend"
         else:
             return "default"
+    
+    @retry(
+        stop=stop_after_attempt(2),
+        wait=wait_exponential(multiplier=1, min=1, max=3),
+        retry=retry_if_exception_type((httpx.TimeoutException, httpx.HTTPStatusError))
+    )
+    def examiner_chat(self, scenario_id: str, user_message: str, 
+                     conversation_history: List[Dict[str, str]], 
+                     user_background: str = "") -> str:
+        """
+        AI考官聊天接口
+        
+        Args:
+            scenario_id: 场景ID
+            user_message: 用户消息
+            conversation_history: 对话历史 ([{"role": "...", "content": "..."}, ...])
+            user_background: 用户背景信息
+        
+        Returns:
+            AI考官的回复内容
+        """
+        # 获取考官人设
+        profile = EXAMINER_PROFILES.get(scenario_id, EXAMINER_PROFILES["job_interview"])
+        scenario_name = profile["title"]
+        examiner_name = profile["name"]
+        tone = profile["tone"]
+        
+        # 构建系统提示词
+        system_prompt = f"""
+你是一位{scenario_name}考官，名叫{examiner_name}。
+
+你的任务是：
+1. 进行一场约5轮的模拟面试
+2. 每次只问一个问题，根据用户回答进行追问
+3. 语气{tone}，适当给予鼓励
+4. 结束后给出结构化评估
+
+当前场景：{scenario_name}
+用户背景：{user_background}
+
+请按照真实面试流程进行对话，不要一次问多个问题。
+        """.strip()
+        
+        # 构建消息列表
+        messages = [
+            {"role": "system", "content": system_prompt}
+        ]
+        
+        # 添加对话历史
+        for msg in conversation_history:
+            messages.append({
+                "role": msg["role"],
+                "content": msg["content"]
+            })
+        
+        # 添加用户当前消息
+        messages.append({
+            "role": "user",
+            "content": user_message
+        })
+        
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "model": "deepseek-chat",
+            "messages": messages,
+            "temperature": 0.7,
+            "max_tokens": 1000
+        }
+        
+        try:
+            with httpx.Client(timeout=httpx.Timeout(self.timeout)) as client:
+                response = client.post(
+                    self.api_url,
+                    headers=headers,
+                    json=payload
+                )
+                response.raise_for_status()
+                response_data = response.json()
+                
+                if "choices" in response_data and len(response_data["choices"]) > 0:
+                    return response_data["choices"][0]["message"]["content"].strip()
+                return ""
+        except httpx.TimeoutException:
+            raise Exception(f"LLM API请求超时（{self.timeout}秒）")
+        except httpx.HTTPStatusError as e:
+            raise Exception(f"LLM API返回错误: {e.response.status_code}")
+        except Exception as e:
+            raise Exception(f"LLM API调用失败: {str(e)}")
+    
+    @retry(
+        stop=stop_after_attempt(2),
+        wait=wait_exponential(multiplier=1, min=1, max=3),
+        retry=retry_if_exception_type((httpx.TimeoutException, httpx.HTTPStatusError))
+    )
+    def generate_evaluation_report(self, scenario_id: str, 
+                                  conversation_history: List[Dict[str, str]]) -> Dict[str, Any]:
+        """
+        生成面试评估报告
+        
+        Args:
+            scenario_id: 场景ID
+            conversation_history: 完整对话历史
+        
+        Returns:
+            结构化评估报告字典
+        """
+        profile = EXAMINER_PROFILES.get(scenario_id, EXAMINER_PROFILES["job_interview"])
+        scenario_name = profile["title"]
+        
+        # 构建对话历史文本
+        conversation_text = "\n".join([
+            f"{msg['role']}: {msg['content']}" 
+            for msg in conversation_history
+        ])
+        
+        system_prompt = f"""
+你是一位专业的{scenario_name}面试评估专家。
+
+请根据以下对话历史，生成一份结构化的面试评估报告：
+
+要求：
+1. 综合得分（0-100分）
+2. 优势分析（3-5条）
+3. 改进建议（3-5条）
+4. 各维度评分（沟通表达、专业能力、逻辑思维等）
+5. 总体评价
+
+输出格式为JSON：
+{{
+    "overall_score": 得分,
+    "strengths": ["优势1", "优势2", "优势3"],
+    "improvements": ["建议1", "建议2", "建议3"],
+    "dimensions": [
+        {{"name": "维度名称", "score": 分数, "max_score": 100, "comment": "评价"}}
+    ],
+    "overall_comment": "总体评价"
+}}
+        """.strip()
+        
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "model": "deepseek-chat",
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"对话历史：\n{conversation_text}"}
+            ],
+            "temperature": 0.5,
+            "max_tokens": 1500
+        }
+        
+        try:
+            with httpx.Client(timeout=httpx.Timeout(self.timeout)) as client:
+                response = client.post(
+                    self.api_url,
+                    headers=headers,
+                    json=payload
+                )
+                response.raise_for_status()
+                response_data = response.json()
+                
+                if "choices" in response_data and len(response_data["choices"]) > 0:
+                    message_content = response_data["choices"][0]["message"]["content"].strip()
+                    try:
+                        return json.loads(message_content)
+                    except json.JSONDecodeError:
+                        # 如果不是JSON，返回格式化后的报告
+                        return {
+                            "overall_score": 80,
+                            "strengths": ["回答较为流畅", "思路清晰"],
+                            "improvements": ["建议增加实例", "加强专业知识"],
+                            "dimensions": [],
+                            "overall_comment": message_content,
+                            "raw_content": message_content
+                        }
+                return {}
+        except httpx.TimeoutException:
+            raise Exception(f"LLM API请求超时（{self.timeout}秒）")
+        except httpx.HTTPStatusError as e:
+            raise Exception(f"LLM API返回错误: {e.response.status_code}")
+        except Exception as e:
+            raise Exception(f"LLM API调用失败: {str(e)}")
+
+    # ==================== LLM 评分 ====================
+
+    @retry(
+        stop=stop_after_attempt(2),
+        wait=wait_exponential(multiplier=1, min=1, max=3),
+        retry=retry_if_exception_type((httpx.TimeoutException, httpx.HTTPStatusError))
+    )
+    def score_answer(self, scenario_id: str, question: str, answer: str,
+                     dimensions: List[Dict[str, Any]], persona_name: str = "",
+                     persona_title: str = "") -> Dict[str, Any]:
+        """
+        调用 LLM 对答案进行多维度评分
+
+        Args:
+            scenario_id: 场景 ID（用于获取人设）
+            question: 面试问题
+            answer: 用户回答
+            dimensions: 评分维度列表，每项包含 id, name, max_score, weight, description
+            persona_name: 考官姓名
+            persona_title: 考官头衔
+
+        Returns:
+            {
+                "dimension_scores": {"维度id": 分数},
+                "total_score": 加权总分,
+                "comment": "评语",
+                "passed": 是否通过
+            }
+        """
+        profile = EXAMINER_PROFILES.get(scenario_id, EXAMINER_PROFILES["job_interview"])
+        examiner_name = persona_name or profile["name"]
+        examiner_title = persona_title or profile["title"]
+
+        # 构建评分维度描述
+        dims_desc = "\n".join([
+            f"- {d.get('name', d.get('id', d['id']))}（满分{d.get('max_score', 100)}，权重{d.get('weight', 0)}%）：{d.get('description', '')}"
+            for d in dimensions
+        ])
+
+        system_prompt = f"""你是一位专业的{examiner_title}，名叫{examiner_name}。
+你需要对面试者的回答进行多维度评分。
+
+评分维度：
+{dims_desc}
+
+评分要求：
+1. 每个维度独立评分（0-满分）
+2. 参考评分标准给分，严格评判
+3. 评语要具体、有针对性，指出优缺点
+4. 输出严格 JSON 格式
+
+输出格式：
+{{
+    "dimension_scores": {{"维度id1": 分数1, "维度id2": 分数2, ...}},
+    "comment": "综合评语",
+    "strengths": ["优势点1", "优势点2"],
+    "weaknesses": ["不足点1", "不足点2"]
+}}"""
+
+        user_prompt = f"""面试问题：{question}
+
+面试者回答：{answer}
+
+请根据上述评分维度进行评分。"""
+
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+
+        payload = {
+            "model": "deepseek-chat",
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            "temperature": 0.3,
+            "max_tokens": 1000
+        }
+
+        try:
+            with httpx.Client(timeout=httpx.Timeout(self.timeout)) as client:
+                response = client.post(self.api_url, headers=headers, json=payload)
+                response.raise_for_status()
+                response_data = response.json()
+
+                if "choices" in response_data and len(response_data["choices"]) > 0:
+                    content = response_data["choices"][0]["message"]["content"].strip()
+                    try:
+                        result = json.loads(content)
+                    except json.JSONDecodeError:
+                        # 尝试提取 JSON 块
+                        import re
+                        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+                        if json_match:
+                            result = json.loads(json_match.group())
+                        else:
+                            raise ValueError("LLM 返回不是有效 JSON")
+                    return result
+                return {}
+        except Exception as e:
+            raise Exception(f"LLM 评分调用失败: {str(e)}")
+
+    # ==================== LLM 反馈报告 ====================
+
+    @retry(
+        stop=stop_after_attempt(2),
+        wait=wait_exponential(multiplier=1, min=1, max=3),
+        retry=retry_if_exception_type((httpx.TimeoutException, httpx.HTTPStatusError))
+    )
+    def generate_skill_feedback(self, scenario_id: str, skill_name: str,
+                                 qa_pairs: List[Dict[str, str]],
+                                 dimensions: List[Dict[str, Any]],
+                                 persona_name: str = "",
+                                 persona_title: str = "") -> Dict[str, Any]:
+        """
+        调用 LLM 生成完整的面试反馈报告
+
+        Args:
+            scenario_id: 场景 ID
+            skill_name: 场景名称
+            qa_pairs: 问答对列表 [{"question": "...", "answer": "...", "score": 分数}, ...]
+            dimensions: 评分维度列表
+            persona_name: 考官姓名
+            persona_title: 考官头衔
+
+        Returns:
+            {
+                "overall_score": 总分,
+                "strengths": ["优势1", ...],
+                "improvements": ["建议1", ...],
+                "dimensions": [{"name": "...", "score": ..., "max_score": ..., "comment": "..."}, ...],
+                "overall_comment": "总体评价"
+            }
+        """
+        profile = EXAMINER_PROFILES.get(scenario_id, EXAMINER_PROFILES["job_interview"])
+        examiner_name = persona_name or profile["name"]
+        examiner_title = persona_title or profile["title"]
+
+        # 构建问答历史
+        qa_text = "\n\n".join([
+            f"第{i+1}轮\n问题：{qa['question']}\n回答：{qa['answer']}\n得分：{qa.get('score', '未评分')}"
+            for i, qa in enumerate(qa_pairs)
+        ])
+
+        dims_desc = "\n".join([
+            f"- {d.get('name', d.get('id', d['id']))}（满分{d.get('max_score', 100)}，权重{d.get('weight', 0)}%）：{d.get('description', '')}"
+            for d in dimensions
+        ])
+
+        system_prompt = f"""你是一位专业的{examiner_title}，名叫{examiner_name}。
+请根据一场完整的{skill_name}模拟面试记录，生成最终评估报告。
+
+评分维度定义：
+{dims_desc}
+
+问答记录：
+{qa_text}
+
+请输出 JSON 格式的评估报告：
+{{
+    "overall_score": 综合评分（0-100）,
+    "strengths": ["优势点1", "优势点2", "优势点3"],
+    "improvements": ["改进建议1", "改进建议2", "改进建议3"],
+    "dimensions": [
+        {{"name": "维度名称", "score": 维度分数, "max_score": 满分, "comment": "维度评语"}}
+    ],
+    "overall_comment": "总体评价和建议"
+}}
+
+要求：
+1. 综合评分基于各维度加权计算
+2. 优势和改进各 3-5 条，具体且有针对性
+3. 总体评价要全面、中肯，有指导意义"""
+
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+
+        payload = {
+            "model": "deepseek-chat",
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"请为以下{skill_name}模拟面试生成评估报告：\n\n{qa_text}"}
+            ],
+            "temperature": 0.4,
+            "max_tokens": 2000
+        }
+
+        try:
+            with httpx.Client(timeout=httpx.Timeout(self.timeout)) as client:
+                response = client.post(self.api_url, headers=headers, json=payload)
+                response.raise_for_status()
+                response_data = response.json()
+
+                if "choices" in response_data and len(response_data["choices"]) > 0:
+                    content = response_data["choices"][0]["message"]["content"].strip()
+                    try:
+                        return json.loads(content)
+                    except json.JSONDecodeError:
+                        import re
+                        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+                        if json_match:
+                            return json.loads(json_match.group())
+                        return {
+                            "overall_score": 75,
+                            "strengths": ["回答较为流畅"],
+                            "improvements": ["建议增加具体实例"],
+                            "dimensions": [],
+                            "overall_comment": content,
+                        }
+                return {}
+        except Exception as e:
+            raise Exception(f"LLM 反馈报告生成失败: {str(e)}")
+
+    # ==================== LLM + Tool 协作 ====================
+
+    @retry(
+        stop=stop_after_attempt(2),
+        wait=wait_exponential(multiplier=1, min=1, max=3),
+        retry=retry_if_exception_type((httpx.TimeoutException, httpx.HTTPStatusError))
+    )
+    def chat_with_tools(self, scenario_id: str, user_message: str,
+                        conversation_history: List[Dict[str, str]],
+                        tools: List[Dict[str, Any]],
+                        user_background: str = "") -> Dict[str, Any]:
+        """
+        AI考官聊天（支持工具调用）
+
+        在 examiner_chat 的基础上，告知 LLM 可用工具。
+        LLM 可在回复中包含工具调用请求，由调用方执行。
+
+        Args:
+            scenario_id: 场景 ID
+            user_message: 用户消息
+            conversation_history: 对话历史
+            tools: 可用工具列表 [{"id": "...", "name": "...", "description": "...", "parameters": [...]}]
+            user_background: 用户背景
+
+        Returns:
+            {
+                "response": 回复内容,
+                "tool_calls": [{"tool_id": "...", "arguments": {...}}] 或 None
+            }
+        """
+        profile = EXAMINER_PROFILES.get(scenario_id, EXAMINER_PROFILES["job_interview"])
+        scenario_name = profile["title"]
+        examiner_name = profile["name"]
+        tone = profile["tone"]
+
+        # 构建工具描述
+        tools_desc = ""
+        if tools:
+            tools_desc = "\n\n你有以下工具可以使用：\n"
+            for t in tools:
+                params_desc = ", ".join([
+                    f"{p.get('name', '?')}({'必填' if p.get('required') else '可选'})"
+                    for p in t.get("parameters", [])
+                ])
+                tools_desc += f"- {t.get('name', t.get('id', '?'))}: {t.get('description', '')}。参数：{params_desc}\n"
+            tools_desc += (
+                "\n如果你觉得需要调用工具来分析用户回答，"
+                "请在回复中在最后一行附上 JSON 格式的工具调用：\n"
+                "TOOL_CALL: {\"tool_id\": \"工具ID\", \"arguments\": {...}}\n"
+            )
+
+        system_prompt = f"""
+你是一位{scenario_name}考官，名叫{examiner_name}。
+
+你的任务是：
+1. 进行一场约5轮的模拟面试
+2. 每次只问一个问题，根据用户回答进行追问
+3. 语气{tone}，适当给予鼓励
+4. 可以调用工具来分析用户回答（如有需要）
+5. 结束后给出结构化评估
+
+当前场景：{scenario_name}
+用户背景：{user_background}
+{tools_desc}
+
+请按照真实面试流程进行对话，不要一次问多个问题。
+        """.strip()
+
+        messages = [{"role": "system", "content": system_prompt}]
+        for msg in conversation_history:
+            messages.append({"role": msg["role"], "content": msg["content"]})
+        messages.append({"role": "user", "content": user_message})
+
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+
+        payload = {
+            "model": "deepseek-chat",
+            "messages": messages,
+            "temperature": 0.7,
+            "max_tokens": 1200
+        }
+
+        try:
+            with httpx.Client(timeout=httpx.Timeout(self.timeout)) as client:
+                response = client.post(self.api_url, headers=headers, json=payload)
+                response.raise_for_status()
+                response_data = response.json()
+
+                if "choices" in response_data and len(response_data["choices"]) > 0:
+                    content = response_data["choices"][0]["message"]["content"].strip()
+
+                    # 检查是否有工具调用请求
+                    tool_calls = None
+                    import re
+                    tool_match = re.search(r'TOOL_CALL:\s*(\{.*?\})', content, re.DOTALL)
+                    if tool_match:
+                        try:
+                            tool_calls = json.loads(tool_match.group(1))
+                            # 从回复中移除 TOOL_CALL 行
+                            content = re.sub(r'\nTOOL_CALL:\s*\{.*?\}', '', content, flags=re.DOTALL).strip()
+                        except json.JSONDecodeError:
+                            pass
+
+                    return {
+                        "response": content,
+                        "tool_calls": [tool_calls] if tool_calls else None,
+                    }
+                return {"response": "", "tool_calls": None}
+        except httpx.TimeoutException:
+            raise Exception(f"LLM API请求超时（{self.timeout}秒）")
+        except httpx.HTTPStatusError as e:
+            raise Exception(f"LLM API返回错误: {e.response.status_code}")
+        except Exception as e:
+            raise Exception(f"LLM API调用失败: {str(e)}")
+
 
 # 导出
-__all__ = ["LLMClient", "LLM_TIMEOUT", "FALLBACK_QUESTIONS"]
+__all__ = ["LLMClient", "LLM_TIMEOUT", "FALLBACK_QUESTIONS", "EXAMINER_PROFILES"]

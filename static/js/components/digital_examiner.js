@@ -49,6 +49,16 @@
     mba_interview:  'mba',
   };
 
+  // 场景默认性别
+  const SCENE_GENDER = {
+    job_interview:  'male',
+    teacher_cert:   'female',
+    ielts_speaking: 'male',
+    civil_service:  'male',
+    graduate_school:'male',
+    mba_interview:  'male',
+  };
+
   // 公历场景名 → 头像 emoji fallback
   const SCENE_ICON = {
     job_interview:  '👔',
@@ -65,6 +75,7 @@
     initialized: false,
     scenario: 'job_interview',
     sceneAlias: 'job',
+    gender: 'male',
     currentExpression: 'neutral',
     containerId: 'examiner-container',
     hasImages: false,       // true=使用 PNG, false=使用 CSS 占位
@@ -92,6 +103,7 @@
       opts = opts || {};
       state.scenario = opts.scenario || 'job_interview';
       state.sceneAlias = SCENE_ALIAS[state.scenario] || 'job';
+      state.gender = opts.gender || SCENE_GENDER[state.scenario] || 'male';
       state.containerId = opts.containerId || 'examiner-container';
 
       // 尝试检测图片是否存在
@@ -473,10 +485,11 @@
 
     /** 构建图片路径 */
     _imageSrc: function (expr) {
-      // 优先尝试多场景命名
+      // 命名规则: examiner_{场景缩写}_{性别}_{表情}.png
+      // 例如: examiner_job_male_neutral.png, examiner_teaching_female_smile.png
       const basePath = '/static/images/examiners/';
-      // 尝试 examiner_{sceneAlias}_{expr}.png
-      return basePath + 'examiner_' + state.sceneAlias + '_' + expr + '.png';
+      // 优先尝试带性别的命名
+      return basePath + 'examiner_' + state.sceneAlias + '_' + state.gender + '_' + expr + '.png';
     },
 
     /** 启动自动眨眼 */
