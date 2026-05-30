@@ -61,6 +61,16 @@ def mock_exam_page():
                            active_page='mock', sidebar_items=SIDEBAR_ITEMS)
 
 
+@web_bp.route('/setup/<scenario_id>')
+def interview_setup_page(scenario_id):
+    scenario = deps.scenario_manager.get_scenario(scenario_id)
+    if not scenario:
+        return redirect(url_for('web.index'))
+    return render_template('interview_setup.html',
+                           scenario_id=scenario_id,
+                           scenario_name=scenario.get('name', '面试'))
+
+
 @web_bp.route('/chat/<scenario_id>')
 def examiner_chat_page(scenario_id):
     scenario = deps.scenario_manager.get_scenario(scenario_id)
@@ -72,6 +82,12 @@ def examiner_chat_page(scenario_id):
 @web_bp.route('/result/<conversation_id>')
 def interview_result_page(conversation_id):
     return render_template('interview_result.html', conversation_id=conversation_id)
+
+
+@web_bp.route('/ielts-chat')
+def ielts_chat_page():
+    """雅思口语实时语音考试页面"""
+    return render_template('ielts_chat.html')
 
 
 @web_bp.route('/practice/<scenario_id>')

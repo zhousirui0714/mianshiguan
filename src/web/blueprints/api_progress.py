@@ -85,3 +85,13 @@ def get_user_streak(user_id):
         return jsonify({'success': True, 'streak': streak})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@progress_bp.route('/user/<user_id>/dashboard')
+def get_user_dashboard(user_id):
+    """首页学习看板聚合数据"""
+    try:
+        data = deps.db.get_user_dashboard_stats(user_id)
+        return jsonify({'success': True, 'data': data})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500

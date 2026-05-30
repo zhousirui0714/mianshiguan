@@ -149,6 +149,21 @@ CREATE TABLE IF NOT EXISTS user_badges (
     PRIMARY KEY (user_id, badge_id)
 );
 CREATE INDEX IF NOT EXISTS idx_user_badges_user ON user_badges(user_id);
+
+-- 面经表（爬虫数据）
+CREATE TABLE IF NOT EXISTS interview_experiences (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    company_name TEXT NOT NULL,
+    position TEXT DEFAULT '',
+    round TEXT DEFAULT '',
+    questions TEXT DEFAULT '[]',
+    content TEXT DEFAULT '',
+    publish_date TEXT DEFAULT '',
+    source_url TEXT DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_exp_company ON interview_experiences(company_name);
+CREATE INDEX IF NOT EXISTS idx_exp_position ON interview_experiences(position);
 """
 
 

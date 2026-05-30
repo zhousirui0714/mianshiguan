@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Speaking Test - AI Examiner</title>
+    <link rel="stylesheet" href="/static/css/components/digital_examiner.css">
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+    <script src="/static/js/components/digital_examiner.js"></script>
+    <script src="/static/js/audio-record.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0a0e1a;
+            --card: rgba(30, 41, 59, 0.85);
+            --primary: #6366F1;
+            --primary-hover: #818CF8;
+            --text: #E2E8F0;
+            --text-dim: #94A3B8;
+            --text-muted: #64748B;
+            --border: rgba(148, 163, 184, 0.15);
+            --success: #22C55E;
+            --warning: #F59E0B;
+            --error: #EF4444;
+            --radius: 16px;
+        }
+
+        body {
+            font-family: -apple-system, 'Inter', 'SF Pro', 'PingFang SC', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ---- 极光背景 ---- */
+        .aurora-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .aurora-layer {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(ellipse at 20% 50%, rgba(99,102,241,0.08) 0%, transparent 60%),
+                        radial-gradient(ellipse at 80% 20%, rgba(139,92,246,0.06) 0%, transparent 50%),
+                        radial-gradient(ellipse at 50% 80%, rgba(59,130,246,0.04) 0%, transparent 50%);
+            animation: auroraDrift 20s ease-in-out infinite alternate;
+        }
+        @keyframes auroraDrift {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(-5%, -3%) rotate(3deg); }
+        }
+
+        /* ---- 主布局 ---- */
+        .app {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 16px 24px;
+        }
+
+        /* ---- 顶部栏 ---- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 24px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            backdrop-filter: blur(20px);
+            margin-bottom: 16px;
+            flex-shrink: 0;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header .title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .header .subtitle {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .part-badge {
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--primary);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .timer-display {
+            font-size: 1rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--text);
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .timer-display.warning {
+            color: var(--warning);
+        }
+
+        .btn {
+            padding: 8px 18px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            background: rgba(148, 163, 184, 0.1);
+            color: var(--text);
+        }
+        .btn:hover { background: rgba(148, 163, 184, 0.2); }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-danger {
+            background: var(--error);
+            color: white;
+        }
+        .btn-danger:hover { background: #DC2626; }
+
+        /* ---- 主体区域（考官居中） ---- */
+        .main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px 0;
+            min-height: 0;
+        }
+
+        /* ---- 考官容器（居中放大） ---- */
+        .examiner-wrapper {
+            width: min(360px, 40vw);
+            flex-shrink: 0;
+        }
+
+        .examiner-wrapper #examiner-container {
+            width: 100%;
+        }
+
+        /* ---- 对话气泡 ---- */
+        .speech-bubble {
+            max-width: 700px;
+            width: 100%;
+            padding: 24px 28px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+            font-size: 1.05rem;
+            line-height: 1.7;
+            text-align: center;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .speech-bubble .typing-dots {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .speech-bubble .typing-dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-dim);
+            animation: dotBounce 1.4s infinite ease-in-out;
+        }
+        .speech-bubble .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .speech-bubble .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes dotBounce {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        /* ---- 控制区 ---- */
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-shrink: 0;
+        }
+
+        .record-btn {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            border: 3px solid var(--text-dim);
+            background: rgba(148, 163, 184, 0.08);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .record-btn .icon {
+            font-size: 1.6rem;
+            color: var(--text-dim);
+            transition: all 0.3s ease;
+        }
+
+        .record-btn.active {
+            border-color: var(--error);
+            background: rgba(239, 68, 68, 0.1);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .record-btn.active .icon {
+            color: var(--error);
+        }
+
+        .record-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3); }
+            50% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+        }
+
+        .record-btn .ripple {
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+            border: 2px solid rgba(239, 68, 68, 0.2);
+            animation: ripple 2s ease-out infinite;
+        }
+
+        @keyframes ripple {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.2); opacity: 0; }
+        }
+
+        /* 音量波形 */
+        .waveform {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            height: 40px;
+            width: 120px;
+        }
+
+        .waveform .bar {
+            width: 4px;
+            border-radius: 2px;
+            background: var(--primary);
+            height: 4px;
+            transition: height 0.1s ease;
+        }
+
+        .waveform.idle .bar { height: 4px !important; }
+
+        /* ---- 文字输入（退路） ---- */
+        .text-input-row {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            max-width: 700px;
+            flex-shrink: 0;
+        }
+
+        .text-input-row input {
+            flex: 1;
+            padding: 12px 18px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: rgba(30, 41, 59, 0.6);
+            color: var(--text);
+            font-size: 0.95rem;
+            outline: none;
+        }
+        .text-input-row input:focus {
+            border-color: var(--primary);
+        }
+        .text-input-row input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* ---- 消息历史（可选的） ---- */
+        .history-toggle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px 12px;
+            border-radius: 8px;
+            background: rgba(148, 163, 184, 0.05);
+        }
+        .history-toggle:hover {
+            background: rgba(148, 163, 184, 0.1);
+        }
+
+        .history-panel {
+            display: none;
+            position: fixed;
+            right: 24px;
+            top: 80px;
+            width: 360px;
+            max-height: calc(100vh - 160px);
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            backdrop-filter: blur(20px);
+            overflow-y: auto;
+            padding: 16px;
+            z-index: 10;
+        }
+        .history-panel.open { display: block; }
+
+        .history-panel .msg {
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        .history-panel .msg.user {
+            background: rgba(99, 102, 241, 0.1);
+            border-left: 3px solid var(--primary);
+        }
+        .history-panel .msg.examiner {
+            background: rgba(148, 163, 184, 0.05);
+            border-left: 3px solid var(--text-dim);
+        }
+        .history-panel .msg .label {
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        /* ---- Part 状态 ---- */
+        .part-indicator {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .part-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(148, 163, 184, 0.2);
+            transition: all 0.3s ease;
+        }
+        .part-dot.active {
+            background: var(--primary);
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+        }
+        .part-dot.done {
+            background: var(--success);
+        }
+
+        /* ---- 响应式 ---- */
+        @media (max-width: 768px) {
+            .app { padding: 12px; }
+            .examiner-wrapper { width: min(260px, 60vw); }
+            .speech-bubble { padding: 18px 20px; font-size: 0.95rem; }
+            .record-btn { width: 60px; height: 60px; }
+            .history-panel { right: 12px; width: calc(100% - 24px); }
+        }
+
+        @media (max-width: 480px) {
+            .header { flex-wrap: wrap; gap: 8px; }
+            .timer-display { min-width: 50px; font-size: 0.9rem; }
+            .part-badge { font-size: 0.7rem; padding: 3px 10px; }
+        }
+
+        /* ---- 滚动条 ---- */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.2); border-radius: 2px; }
+
+        /* ---- 状态提示 ---- */
+        .status-hint {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-align: center;
+            min-height: 24px;
+            transition: all 0.3s ease;
+        }
+        .status-hint.listening { color: var(--success); }
+        .status-hint.processing { color: var(--warning); }
+        .status-hint.error { color: var(--error); }
+
+        /* ---- 报告覆盖 ---- */
+        .report-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .report-overlay.open { display: flex; }
+
+        .report-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 32px;
+            max-width: 520px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .report-card .score {
+            text-align: center;
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+        .report-card .band-label {
+            text-align: center;
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            margin-bottom: 20px;
+        }
+
+        .report-card .section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 16px 0 8px;
+            color: var(--text);
+        }
+        .report-card .item {
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: rgba(148,163,184,0.05);
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        /* ---- 结束确认弹窗 ---- */
+        .confirm-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .confirm-overlay.open { display: flex; }
+
+        .confirm-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px 28px 24px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            animation: confirmIn 0.25s ease-out;
+        }
+        @keyframes confirmIn {
+            from { opacity: 0; transform: scale(0.92) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .confirm-icon { font-size: 2.5rem; margin-bottom: 12px; }
+        .confirm-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 8px; color: var(--text); }
+        .confirm-text { font-size: 0.9rem; color: var(--text-dim); line-height: 1.6; margin-bottom: 24px; }
+        .confirm-actions { display: flex; gap: 12px; justify-content: center; }
+        .confirm-cancel {
+            flex: 1; padding: 10px; border-radius: 12px;
+            background: rgba(148,163,184,0.1); color: var(--text);
+            border: none; cursor: pointer; font-size: 0.9rem; font-weight: 500;
+        }
+        .confirm-cancel:hover { background: rgba(148,163,184,0.2); }
+        .confirm-ok {
+            flex: 1; padding: 10px; border-radius: 12px;
+            background: var(--error); color: white;
+            border: none; cursor: pointer; font-size: 0.9rem; font-weight: 500;
+        }
+        .confirm-ok:hover { background: #DC2626; }
+    </style>
+</head>
+<body>
+
+<div class="aurora-bg">
+    <div class="aurora-layer"></div>
+    <div class="aurora-layer"></div>
+</div>
+
+<div class="app">
+    <!-- 顶部栏 -->
+    <div class="header">
+        <div class="header-left">
+            <div>
+                <div class="title">IELTS Speaking Test</div>
+                <div class="subtitle" id="examinerInfo">Mr. Smith — IELTS Examiner</div>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="part-indicator">
+                <span class="part-dot active" id="dot1" title="Part 1"></span>
+                <span class="part-dot" id="dot2" title="Part 2"></span>
+                <span class="part-dot" id="dot3" title="Part 3"></span>
+            </div>
+            <span class="part-badge" id="partLabel">Part 1</span>
+            <span class="timer-display" id="timerDisplay">--:--</span>
+            <button class="btn" onclick="toggleHistory()">History</button>
+            <button class="btn btn-danger" onclick="endInterview()">End</button>
+        </div>
+    </div>
+
+    <!-- 历史记录面板 -->
+    <div class="history-panel" id="historyPanel">
+        <div style="font-weight:600;margin-bottom:12px;">Conversation History</div>
+        <div id="historyMessages"></div>
+    </div>
+
+    <!-- 主区域（考官居中） -->
+    <div class="main-area">
+        <!-- 考官 -->
+        <div class="examiner-wrapper">
+            <div id="examiner-container"></div>
+        </div>
+
+        <!-- 对话气泡 -->
+        <div class="speech-bubble" id="speechBubble">
+            <span id="bubbleText">Welcome to the IELTS Speaking test. Press the mic button to begin.</span>
+        </div>
+
+        <!-- 状态提示 -->
+        <div class="status-hint" id="statusHint">Press the microphone button to start</div>
+
+        <!-- 控制区 -->
+        <div class="controls">
+            <!-- 波形 -->
+            <div class="waveform idle" id="waveform"></div>
+
+            <!-- 录音按钮 -->
+            <button class="record-btn" id="recordBtn" onclick="toggleRecording()">
+                <span class="icon" id="recordIcon">🎤</span>
+                <span class="ripple" id="ripple" style="display:none;"></span>
+            </button>
+
+            <!-- 下一步 -->
+            <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" style="display:none;">
+                Next Question →
+            </button>
+        </div>
+
+        <!-- 文字输入退路 -->
+        <div class="text-input-row">
+            <input type="text" id="textInput" placeholder="Type your answer here..."
+                   onkeydown="if(event.key==='Enter') sendText()" disabled>
+            <button class="btn btn-primary" id="textSendBtn" onclick="sendText()" disabled>Send</button>
+        </div>
+    </div>
+</div>
+
+<!-- 报告 -->
+<!-- 结束确认弹窗 -->
+<div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-card">
+        <div class="confirm-icon">⚠️</div>
+        <div class="confirm-title">End the test?</div>
+        <div class="confirm-text">Are you sure you want to end the IELTS Speaking test? Your progress will be saved and a report will be generated.</div>
+        <div class="confirm-actions">
+            <button class="btn confirm-cancel" onclick="closeConfirm()">Cancel</button>
+            <button class="btn confirm-ok" onclick="confirmEnd()">Yes, end test</button>
+        </div>
+    </div>
+</div>
+
+<div class="report-overlay" id="reportOverlay">
+    <div class="report-card" id="reportCard">
+        <div class="score" id="finalScore">0</div>
+        <div class="band-label" id="bandLabel">IELTS Band</div>
+        <div id="reportBody"></div>
+        <div style="display:flex;gap:12px;margin-top:20px;">
+            <button class="btn btn-primary" style="flex:1;" onclick="location.reload()">Try Again</button>
+            <button class="btn" style="flex:1;" onclick="window.location.href='/'">Home</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ================================================================
+    // 全局状态
+    // ================================================================
+    const SCENARIO_ID = 'ielts_speaking';
+    let conversationId = null;
+    let socket = null;
+    let isRecording = false;
+    let isProcessing = false;
+    let currentPart = 1;
+    let history = [];
+    let audioChunks = [];       // 累积的 TTS 音频块
+    let audioContext = null;
+    let isPlaying = false;
+    let timerInterval = null;
+
+    // ================================================================
+    // DOM
+    // ================================================================
+    const bubbleText = document.getElementById('bubbleText');
+    const speechBubble = document.getElementById('speechBubble');
+    const statusHint = document.getElementById('statusHint');
+    const recordBtn = document.getElementById('recordBtn');
+    const recordIcon = document.getElementById('recordIcon');
+    const ripple = document.getElementById('ripple');
+    const waveform = document.getElementById('waveform');
+    const textInput = document.getElementById('textInput');
+    const textSendBtn = document.getElementById('textSendBtn');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const partLabel = document.getElementById('partLabel');
+
+    // ================================================================
+    // 初始化
+    // ================================================================
+    document.addEventListener('DOMContentLoaded', function () {
+        initWaveform(20);
+        initSocket();
+        initExaminer();
+    });
+
+    function initExaminer() {
+        try {
+            Examiner.init({
+                scenario: SCENARIO_ID,
+                containerId: 'examiner-container',
+                examinerInfo: {
+                    name: 'Mr. Smith',
+                    title: 'IELTS Examiner',
+                }
+            });
+            // welcome expression
+            setTimeout(function () {
+                Examiner.setExpression('smile');
+                setTimeout(function () { Examiner.setExpression('neutral'); }, 2500);
+            }, 500);
+        } catch (e) {
+            console.warn('Examiner init failed:', e);
+        }
+    }
+
+    // ================================================================
+    // WebSocket
+    // ================================================================
+    function initSocket() {
+        socket = io();
+
+        socket.on('connect', function () {
+            console.log('[WS] Connected');
+            setStatus('connected', 'Connected. Press the mic to start.');
+        });
+
+        socket.on('recording_started', function (data) {
+            console.log('[WS] Recording started');
+            if (data && data.degraded) {
+                setStatus('idle', data.message || 'Voice not available. Use text input below.');
+                enableTextInput();
+                recordBtn.disabled = true;
+                recordBtn.title = 'Voice not available';
+            }
+        });
+
+        socket.on('stt_partial', function (data) {
+            setStatus('listening', 'Listening: ' + data.text);
+        });
+
+        socket.on('stt_final', function (data) {
+            console.log('[WS] STT final:', data.text);
+            addHistory('user', data.text);
+        });
+
+        socket.on('llm_thinking', function () {
+            setStatus('processing', 'Thinking...');
+            showTyping();
+        });
+
+        socket.on('examiner_text', function (data) {
+            hideTyping();
+            showBubble(data.text);
+            addHistory('examiner', data.text);
+            Examiner.setExpression('smile');
+            setTimeout(function () { Examiner.setExpression('neutral'); }, 2000);
+            setStatus('idle', 'Tap the mic to answer');
+            enableControls();
+        });
+
+        socket.on('tts_audio', function (data) {
+            // 累积 TTS 音频块
+            if (data instanceof ArrayBuffer) {
+                audioChunks.push(data);
+            } else if (data.buffer) {
+                audioChunks.push(data.buffer);
+            }
+            // 开始播放
+            if (!isPlaying) {
+                isPlaying = true;
+                playAudio();
+            }
+        });
+
+        socket.on('tts_end', function () {
+            Examiner.stopSpeaking();
+            isPlaying = false;
+        });
+
+        socket.on('error', function (data) {
+            console.error('[WS] Error:', data.message);
+            var msg = data.message || '';
+            // 语音识别未配置等降级情况，不显示红色错误
+            if (msg.indexOf('未配置') !== -1 || msg.indexOf('降级') !== -1) {
+                setStatus('idle', 'Voice not configured. Please use text input below.');
+                enableTextInput();
+                recordBtn.disabled = true;
+            } else {
+                setStatus('error', 'Error: ' + msg);
+            }
+            hideTyping();
+            enableControls();
+        });
+
+        socket.on('disconnect', function () {
+            console.log('[WS] Disconnected');
+            setStatus('error', 'Connection lost. Refresh to reconnect.');
+        });
+    }
+
+    // ================================================================
+    // 录音控制
+    // ================================================================
+    function toggleRecording() {
+        if (isProcessing) return;
+
+        if (!isRecording) {
+            startRecording();
+        } else {
+            stopRecording();
+        }
+    }
+
+    function startRecording() {
+        if (isProcessing) return;
+
+        // 请求麦克风并初始化 AudioRecorder
+        AudioRecorder.init({
+            socket: socket,
+            onVisualData: function (level) {
+                updateWaveform(level);
+            },
+            onStateChange: function (state) {
+                if (state === 'error') {
+                    setStatus('error', 'Microphone access denied. Use text input instead.');
+                    enableTextInput();
+                }
+            }
+        });
+
+        // 开始录音
+        AudioRecorder.start();
+        isRecording = true;
+
+        // UI
+        recordBtn.classList.add('active');
+        ripple.style.display = '';
+        recordIcon.textContent = '⏹';
+        setStatus('listening', 'Recording... Speak now');
+        disableControls();
+        textInput.disabled = true;
+        textSendBtn.disabled = true;
+    }
+
+    function stopRecording() {
+        if (!isRecording) return;
+
+        AudioRecorder.stop();
+        isRecording = false;
+        isProcessing = true;
+
+        // UI
+        recordBtn.classList.remove('active');
+        ripple.style.display = 'none';
+        recordIcon.textContent = '🎤';
+        setStatus('processing', 'Processing your speech...');
+        waveform.classList.add('idle');
+    }
+
+    // ================================================================
+    // 文字输入（降级）
+    // ================================================================
+    function enableTextInput() {
+        textInput.disabled = false;
+        textSendBtn.disabled = false;
+    }
+
+    function sendText() {
+        var text = textInput.value.trim();
+        if (!text || isProcessing) return;
+
+        textInput.value = '';
+        addHistory('user', text);
+        showTyping();
+        setStatus('processing', 'Thinking...');
+        socket.emit('send_text', { text: text, conversation_id: conversationId });
+        isProcessing = true;
+        disableControls();
+    }
+
+    // ================================================================
+    // UI 更新
+    // ================================================================
+    function showBubble(text) {
+        bubbleText.textContent = text;
+        speechBubble.style.opacity = '0';
+        setTimeout(function () {
+            speechBubble.style.opacity = '1';
+        }, 50);
+
+        // 说话动效
+        Examiner.startSpeaking();
+    }
+
+    function showTyping() {
+        speechBubble.querySelector('.typing-dots') &&
+        speechBubble.querySelector('.typing-dots').remove();
+        var dots = document.createElement('div');
+        dots.className = 'typing-dots';
+        dots.innerHTML = '<span></span><span></span><span></span>';
+        var container = speechBubble.querySelector('#bubbleText');
+        while (container.firstChild) container.removeChild(container.firstChild);
+        container.appendChild(dots);
+    }
+
+    function hideTyping() {
+        var dots = speechBubble.querySelector('.typing-dots');
+        if (dots) dots.remove();
+    }
+
+    function setStatus(type, text) {
+        statusHint.textContent = text;
+        statusHint.className = 'status-hint ' + (type || '');
+    }
+
+    function disableControls() {
+        recordBtn.disabled = true;
+    }
+
+    function enableControls() {
+        recordBtn.disabled = false;
+        isProcessing = false;
+        textInput.disabled = false;
+        textSendBtn.disabled = false;
+    }
+
+    // ---- 波形 ----
+    function initWaveform(count) {
+        waveform.innerHTML = '';
+        for (var i = 0; i < count; i++) {
+            var bar = document.createElement('div');
+            bar.className = 'bar';
+            waveform.appendChild(bar);
+        }
+    }
+
+    function updateWaveform(level) {
+        if (!isRecording) return;
+        waveform.classList.remove('idle');
+        var bars = waveform.querySelectorAll('.bar');
+        var h = Math.max(4, (level / 100) * 36);
+        bars.forEach(function (bar, i) {
+            var variation = 0.6 + Math.random() * 0.8;
+            bar.style.height = Math.round(h * variation) + 'px';
+        });
+    }
+
+    // ---- 历史记录 ----
+    function addHistory(role, text) {
+        history.push({ role: role, text: text });
+        var container = document.getElementById('historyMessages');
+        var msg = document.createElement('div');
+        msg.className = 'msg ' + role;
+        msg.innerHTML = '<div class="label">' + (role === 'user' ? 'You' : 'Examiner') + '</div>' + text;
+        container.appendChild(msg);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function toggleHistory() {
+        document.getElementById('historyPanel').classList.toggle('open');
+    }
+
+    // ---- 音频播放 ----
+    function playAudio() {
+        if (audioChunks.length === 0) {
+            isPlaying = false;
+            return;
+        }
+
+        var chunk = audioChunks.shift();
+        try {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            audioContext.decodeAudioData(chunk, function (buffer) {
+                var source = audioContext.createBufferSource();
+                source.buffer = buffer;
+                source.connect(audioContext.destination);
+                source.onended = function () {
+                    if (audioChunks.length > 0) {
+                        playAudio();
+                    } else {
+                        isPlaying = false;
+                    }
+                };
+                source.start(0);
+            }, function () {
+                // decode 失败，跳过该块
+                if (audioChunks.length > 0) {
+                    playAudio();
+                } else {
+                    isPlaying = false;
+                }
+            });
+        } catch (e) {
+            console.warn('[Audio] Play error:', e);
+            isPlaying = false;
+        }
+    }
+
+    // ---- 下一步 / 结束 ----
+    function nextQuestion() {
+        // 由服务器端控制流程，客户端仅重置状态
+        showBubble('Please go ahead.');
+        setStatus('idle', 'Press the mic to answer');
+        enableControls();
+    }
+
+    // ---- 结束确认弹窗 ----
+    function endInterview() {
+        document.getElementById('confirmOverlay').classList.add('open');
+    }
+
+    function closeConfirm() {
+        document.getElementById('confirmOverlay').classList.remove('open');
+    }
+
+    function confirmEnd() {
+        closeConfirm();
+
+        if (isRecording) {
+            AudioRecorder.stop();
+            isRecording = false;
+        }
+        if (socket) {
+            socket.emit('stop_recording');
+        }
+
+        // 跳转到结果页面
+        if (conversationId) {
+            window.location.href = '/result/' + conversationId;
+        } else {
+            window.location.href = '/';
+        }
+    }
+
+    function showReport(report) {
+        document.getElementById('finalScore').textContent = report.overall_score || 'N/A';
+        document.getElementById('bandLabel').textContent =
+            'Overall Band: ' + ((report.overall_score / 9).toFixed(1)) + ' / 9';
+
+        var html = '';
+
+        if (report.strengths && report.strengths.length) {
+            html += '<div class="section-title">Strengths</div>';
+            report.strengths.forEach(function (s) {
+                html += '<div class="item">' + s + '</div>';
+            });
+        }
+
+        if (report.improvements && report.improvements.length) {
+            html += '<div class="section-title">Areas to Improve</div>';
+            report.improvements.forEach(function (s) {
+                html += '<div class="item">' + s + '</div>';
+            });
+        }
+
+        if (report.overall_comment) {
+            html += '<div class="section-title">Overall Comment</div>';
+            html += '<div class="item">' + report.overall_comment + '</div>';
+        }
+
+        document.getElementById('reportBody').innerHTML = html;
+        document.getElementById('reportOverlay').classList.add('open');
+    }
+</script>
+
+</body>
+</html>

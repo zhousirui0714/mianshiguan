@@ -4,28 +4,32 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>面试结果 - 面试成长伴侣</title>
+<link rel="stylesheet" href="/static/css/theme.css">
+<link rel="stylesheet" href="/static/css/effects.css">
+<link rel="stylesheet" href="/static/css/3d-overlay.css">
+<link rel="stylesheet" href="/static/css/video-preview.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 /* ========== 全局重置与主题 ========== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #0F172A;
+  --bg: var(--bg-primary);
   --bg-alt: #0A0F1E;
   --card: rgba(30, 41, 59, 0.85);
   --card-hover: rgba(30, 41, 59, 0.95);
-  --text: #F8FAFC;
-  --text-secondary: #94A3B8;
-  --text-muted: #64748B;
-  --border: rgba(148, 163, 184, 0.12);
+  --text: var(--text-primary);
+  --text-secondary: var(--text-secondary);
+  --text-muted: var(--text-muted);
+  --border: var(--border-color);
   --border-hover: rgba(148, 163, 184, 0.25);
   --primary: #6366F1;
   --primary-light: #818CF8;
   --primary-glow: rgba(99, 102, 241, 0.3);
-  --secondary: #10B981;
-  --accent: #F59E0B;
-  --danger: #EF4444;
-  --purple: #8B5CF6;
+  --secondary: var(--accent-green);
+  --accent: var(--accent-amber);
+  --danger: var(--accent-red);
+  --purple: var(--accent-purple);
   --radius: 16px;
   --radius-sm: 10px;
   --shadow: 0 8px 32px rgba(0,0,0,0.3);
@@ -342,19 +346,8 @@ body {
   background: rgba(99, 102, 241, 0.06);
   border: 1px solid rgba(99, 102, 241, 0.2);
   border-radius: var(--radius-sm);
-  animation: badgeReveal 0.5s ease-out both;
   cursor: default;
 }
-
-@keyframes badgeReveal {
-  from { opacity: 0; transform: scale(0.85); box-shadow: 0 0 0 transparent; }
-  50% { box-shadow: 0 0 30px var(--primary-glow); }
-  to { opacity: 1; transform: scale(1); box-shadow: 0 0 0 transparent; }
-}
-
-.badge-card:nth-child(1) { animation-delay: 0.1s; }
-.badge-card:nth-child(2) { animation-delay: 0.3s; }
-.badge-card:nth-child(3) { animation-delay: 0.5s; }
 
 .badge-icon {
   width: 48px;
@@ -527,6 +520,13 @@ body {
 </style>
 </head>
 <body>
+<!-- 极光背景 -->
+<div class="aurora-bg">
+  <div class="aurora-layer"></div>
+  <div class="aurora-layer"></div>
+  <div class="aurora-layer"></div>
+  <div class="aurora-layer"></div>
+</div>
 <div id="app">
   <!-- 加载状态 -->
   <div class="loading-state" id="loadingState">
@@ -585,6 +585,12 @@ body {
       <div class="empty-chart" id="emptyRadar" style="display:none;">暂无维度数据</div>
     </div>
 
+    <!-- 视频回放 -->
+    <div class="glass-card video-playback-section" id="videoSection" style="display:none;">
+      <div class="section-title"><span class="icon">🎥</span> 面试回放</div>
+      <div id="video-playback"></div>
+    </div>
+
     <!-- AI 点评 -->
     <div class="glass-card" id="reviewSection">
       <div class="section-title"><span class="icon">🤖</span> 考官点评</div>
@@ -632,7 +638,6 @@ body {
 
   var conversationId = '{{ conversation_id }}';
   var chartInstance = null;
-  var animationId = null;
 
   // ========== DOM 引用 ==========
   var $ = function(id) { return document.getElementById(id); };
@@ -677,8 +682,12 @@ body {
     $('metaDate').textContent = d || '';
     $('percentileValue').textContent = data.percentile || 0;
 
-    // 分数滚动动画
-    animateScore(0, data.overall_score || 0, 1200);
+    // 分数滚动动画（使用 effects.js）
+    if (window.Effects && window.Effects.animateNumber) {
+      window.Effects.animateNumber($('scoreNumber'), 0, data.overall_score || 0, 2000, '分');
+    } else {
+      $('scoreNumber').textContent = (data.overall_score || 0) + '分';
+    }
 
     // 雷达图
     if (data.dimensions && data.dimensions.length > 0) {
@@ -707,30 +716,32 @@ body {
       oc.textContent = data.overall_comment;
       oc.style.display = 'block';
     }
+
+    // 视频回放
+    loadVideoPlayback();
   }
 
-  // ========== 分数滚动动画 ==========
-  function animateScore(start, end, duration) {
-    if (animationId) cancelAnimationFrame(animationId);
-    var el = $('scoreNumber');
-    var startTime = null;
+  // ========== 视频回放 ==========
+  function loadVideoPlayback() {
+    var section = $('videoSection');
+    var container = $('video-playback');
+    if (!section || !container) return;
 
-    function easeOutQuad(t) { return t * (2 - t); }
-
-    function step(ts) {
-      if (!startTime) startTime = ts;
-      var progress = Math.min((ts - startTime) / duration, 1);
-      var eased = easeOutQuad(progress);
-      var current = Math.round(start + (end - start) * eased);
-      el.textContent = current;
-      if (progress < 1) {
-        animationId = requestAnimationFrame(step);
-      } else {
-        el.textContent = end;
-      }
+    // 尝试加载视频录制
+    if (window.VideoRecorder && window.VideoRecorder.hasRecording) {
+      window.VideoRecorder.hasRecording(conversationId).then(function(has) {
+        if (has) {
+          section.style.display = 'block';
+          window.VideoRecorder.playback(conversationId, container);
+        } else {
+          section.style.display = 'none';
+        }
+      }).catch(function() {
+        section.style.display = 'none';
+      });
+    } else {
+      section.style.display = 'none';
     }
-
-    animationId = requestAnimationFrame(step);
   }
 
   // ========== 雷达图 ==========
@@ -806,8 +817,8 @@ body {
     var grid = $('badgesGrid');
     section.style.display = 'block';
 
-    grid.innerHTML = badges.map(function(b) {
-      return '<div class="badge-card">' +
+    grid.innerHTML = badges.map(function(b, idx) {
+      return '<div class="badge-card unlocking" data-badge-idx="' + idx + '">' +
         '<div class="badge-icon">' + (b.icon || '🎯') + '</div>' +
         '<div class="badge-info">' +
           '<div class="badge-name">' + escapeHtml(b.name || '') + '</div>' +
@@ -816,6 +827,19 @@ body {
         '</div>' +
       '</div>';
     }).join('');
+
+    // 触发徽章解锁特效（延迟确保 DOM 已渲染）
+    setTimeout(function() {
+      var cards = grid.querySelectorAll('.badge-card');
+      cards.forEach(function(card, idx) {
+        setTimeout(function() {
+          // 粒子爆发
+          if (window.ThreeDEffects && window.ThreeDEffects.triggerBadgeUnlock) {
+            window.ThreeDEffects.triggerBadgeUnlock(card);
+          }
+        }, idx * 600); // 每个徽章间隔 0.6 秒
+      });
+    }, 500);
   }
 
   // ========== 答题回顾 ==========
@@ -854,5 +878,16 @@ body {
 
 })();
 </script>
+<script src="/static/js/video-record.js"></script>
+<script src="/static/js/effects.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module" src="/static/js/3d-effects.js"></script>
 </body>
 </html>

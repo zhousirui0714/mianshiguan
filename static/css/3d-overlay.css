@@ -1,0 +1,167 @@
+/* ==========================================
+   3d-overlay.css — Three.js 与游戏级特效样式
+   ========================================== */
+
+/* -------- 减少动效偏好 -------- */
+@media (prefers-reduced-motion: reduce) {
+  #three-canvas { display: none !important; }
+  .badge-halo { display: none !important; }
+  .burst-particle { display: none !important; }
+}
+
+/* ==========================================
+   Three.js Canvas
+   ========================================== */
+#three-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  display: block;
+}
+
+#three-canvas.interactive {
+  pointer-events: auto;
+}
+
+/* 内容层位于 Three.js 之上 */
+.content-above-three {
+  position: relative;
+  z-index: 1;
+}
+
+/* ==========================================
+   首页英雄区 3D 标题容器
+   ========================================== */
+.hero-3d-container {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  margin-bottom: 20px;
+  pointer-events: none;
+}
+
+.hero-3d-container canvas {
+  pointer-events: auto;
+  cursor: default;
+}
+
+.hero-overlay-text {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.hero-overlay-sub {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  letter-spacing: 4px;
+  font-weight: 300;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.6);
+}
+
+/* ==========================================
+   徽章解锁动效 — 光环旋转
+   ========================================== */
+.badge-card {
+  position: relative;
+  overflow: visible !important;
+}
+
+.badge-halo {
+  position: absolute;
+  inset: -8px;
+  border-radius: 16px;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.badge-halo.active {
+  opacity: 1;
+  animation: haloSpin 3s linear infinite;
+}
+
+@keyframes haloSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.badge-halo::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(
+    transparent 0deg,
+    rgba(255, 215, 0, 0.6) 90deg,
+    transparent 180deg,
+    rgba(255, 215, 0, 0.6) 270deg,
+    transparent 360deg
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.badge-halo.glow-pulse {
+  animation:
+    haloSpin 3s linear infinite,
+    glowPulse 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes glowPulse {
+  from { filter: brightness(1); }
+  to { filter: brightness(1.5); }
+}
+
+/* 徽章卡片入场增强 */
+.badge-card.unlocking {
+  animation: badgeUnlockReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes badgeUnlockReveal {
+  from {
+    opacity: 0;
+    transform: scale(0.5) rotateY(90deg);
+    filter: brightness(2);
+  }
+  50% {
+    transform: scale(1.1) rotateY(-10deg);
+    filter: brightness(1.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotateY(0deg);
+    filter: brightness(1);
+  }
+}
+
+/* ==========================================
+   徽章粒子爆发 Canvas
+   ========================================== */
+.burst-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+}
+
+/* ==========================================
+   低端 / 移动端降级
+   ========================================== */
+@media (max-width: 768px) {
+  .hero-3d-container {
+    height: 200px;
+  }
+  .hero-overlay-sub {
+    font-size: 0.85rem;
+  }
+}

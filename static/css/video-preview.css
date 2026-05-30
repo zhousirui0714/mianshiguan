@@ -1,0 +1,207 @@
+/* ==========================================
+   video-preview.css — 摄像头预览样式
+   录制状态指示器
+   结果页视频回放
+   隐私保护提示
+   ========================================== */
+
+/* -------- 摄像头预览容器 -------- */
+.video-preview-container {
+  position: relative;
+  width: 200px;
+  height: 150px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+  border: 2px solid var(--border-color);
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.video-preview-container.video-hidden {
+  display: none;
+}
+
+.video-preview-container.video-active {
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.video-preview-container.video-recording {
+  border-color: #EF4444;
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.2);
+}
+
+/* 预览画面 */
+.video-preview-element {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* 镜像，更自然 */
+}
+
+/* -------- 录制状态指示器 -------- */
+.video-recording-indicator {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 20px;
+  font-size: 0.75rem;
+  color: #fff;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.video-recording-indicator.active {
+  opacity: 1;
+}
+
+.video-record-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #EF4444;
+  animation: recordPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes recordPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+.video-recording-timer {
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+}
+
+/* -------- 隐私提示 -------- */
+.video-privacy-notice {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.65);
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+  z-index: 2;
+  line-height: 1.4;
+}
+
+/* -------- 结果页视频回放 -------- */
+.video-playback-section {
+  margin-bottom: 24px;
+}
+
+.video-player-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+  aspect-ratio: 4 / 3;
+}
+
+.video-player {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: #000;
+}
+
+.video-player::-webkit-media-controls-panel {
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+}
+
+.video-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.btn-delete-video {
+  font-size: 0.85rem;
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.08);
+  color: #EF4444;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-delete-video:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #EF4444;
+}
+
+.video-empty {
+  text-align: center;
+  padding: 24px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* -------- 录制按钮（聊天页 header） -------- */
+.video-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px !important;
+  font-size: 0.8rem !important;
+  white-space: nowrap;
+}
+
+.video-toggle-btn.btn-danger {
+  background: #EF4444 !important;
+  color: white !important;
+  border-color: #EF4444 !important;
+}
+
+.video-toggle-btn.btn-danger:hover {
+  background: #DC2626 !important;
+}
+
+/* -------- 响应式 -------- */
+@media (max-width: 768px) {
+  .video-preview-container {
+    width: 140px;
+    height: 105px;
+  }
+
+  .video-player-wrapper {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .video-preview-container {
+    width: 100px;
+    height: 75px;
+  }
+
+  .video-recording-indicator {
+    font-size: 0.65rem;
+    padding: 2px 8px;
+  }
+
+  .video-record-dot {
+    width: 6px;
+    height: 6px;
+  }
+
+  .video-privacy-notice {
+    font-size: 0.5rem;
+  }
+}

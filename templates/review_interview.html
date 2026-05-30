@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>复盘分析 - {{ interview.company_name }} - 面试成长伴侣</title>
+    <link rel="stylesheet" href="/static/css/theme.css">
+    <link rel="stylesheet" href="/static/css/effects.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -282,6 +284,13 @@
     </style>
 </head>
 <body>
+<!-- 极光背景 -->
+<div class="aurora-bg">
+  <div class="aurora-layer"></div>
+  <div class="aurora-layer"></div>
+  <div class="aurora-layer"></div>
+  <div class="aurora-layer"></div>
+</div>
     <div class="header">
         <a href="/interviews/{{ interview.id }}" style="color: var(--text-secondary); text-decoration: none; display: inline-block; margin-bottom: 10px;">← 返回面试详情</a>
         <h1>复盘分析</h1>
@@ -442,5 +451,6 @@
             alert('复盘表单功能开发中...');
         }
     </script>
+    <script src="/static/js/effects.js"></script>
 </body>
 </html>

@@ -123,6 +123,7 @@
       if (dom.speakingIndicator) {
         dom.speakingIndicator.classList.add('active');
       }
+      this._startMouthSync();
     },
 
     stopSpeaking: function () {
@@ -130,6 +131,33 @@
       if (dom.speakingIndicator) {
         dom.speakingIndicator.classList.remove('active');
       }
+      this._stopMouthSync();
+    },
+
+    /**
+     * 根据音频振幅驱动嘴部开合（口型同步）
+     * @param {number} amplitude 0-100，来自音频 RMS 或其他音量指标
+     */
+    setMouthAmplitude: function (amplitude) {
+      if (!state.speaking) return;
+      var mouthPath = document.getElementById(state.containerId + '-mouth-path');
+      if (!mouthPath) return;
+
+      // 将振幅映射到嘴巴张开程度
+      var openRatio = Math.min(1, (amplitude || 0) / 60);
+      var yOffset = Math.round(openRatio * 10); // 0 ~ 10
+
+      // 中性嘴形高 4px，张大时高 14px
+      var topY = 6 - yOffset;
+      var botY = 6 + yOffset;
+      var d = 'M 4 ' + topY + ' Q 20 ' + (topY + botY) / 2 + ' 36 ' + topY;
+
+      // 如果振幅较大，增加嘴角上扬效果
+      if (openRatio > 0.5) {
+        d = 'M 2 ' + (topY + 2) + ' Q 20 ' + (topY + botY - 4) / 2 + ' 38 ' + (topY + 2);
+      }
+
+      mouthPath.setAttribute('d', d);
     },
 
     setEmotion: function (emotion) {
@@ -359,6 +387,33 @@
         _blinkTimer = setTimeout(doBlink, 3000 + Math.random() * 2500);
       }
       _blinkTimer = setTimeout(doBlink, 1500);
+    },
+
+    /** 口型同步动画循环 */
+    _startMouthSync: function () {
+      if (_expressionTimer) return;
+      var self = this;
+      var phase = 0;
+      _expressionTimer = setInterval(function () {
+        if (!state.speaking) return;
+        // 模拟自然说话时的振幅波动 (0-40)
+        phase += 0.3;
+        var amp = 15 + Math.sin(phase) * 12 + Math.sin(phase * 2.3) * 5;
+        self.setMouthAmplitude(Math.max(0, amp));
+      }, 80);
+    },
+
+    /** 停止口型同步 */
+    _stopMouthSync: function () {
+      if (_expressionTimer) {
+        clearInterval(_expressionTimer);
+        _expressionTimer = null;
+      }
+      // 重置嘴形为中性
+      var mouthPath = document.getElementById(state.containerId + '-mouth-path');
+      if (mouthPath) {
+        mouthPath.setAttribute('d', 'M 4 6 Q 20 10 36 6');
+      }
     },
 
     /* ========================================

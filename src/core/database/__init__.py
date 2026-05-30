@@ -1028,6 +1028,96 @@ class DatabaseManager:
         finally:
             conn.close()
 
+    def get_user_dashboard_stats(self, user_id: str) -> dict:
+        """获取首页看板统计数据"""
+        conn = self._get_conn()
+        try:
+            # 1. 累计练习时长（秒）
+            duration_row = conn.execute(
+                "SELECT COALESCE(SUM(duration), 0) as total_seconds FROM answers WHERE user_id = ?",
+                (user_id,)
+            ).fetchone()
+            total_seconds = duration_row["total_seconds"] if duration_row else 0
+
+            # 2. 完成模拟次数
+            count_row = conn.execute(
+                "SELECT COUNT(*) as cnt FROM conversations WHERE user_id = ? AND status = 'finished'",
+                (user_id,)
+            ).fetchone()
+            total_practices = count_row["cnt"] if count_row else 0
+
+            # 3. 连续练习天数
+            streak = self.get_user_streak(user_id)
+
+            # 4. 最近 7 次练习得分趋势
+            recent_scores = conn.execute(
+                "SELECT score, created_at FROM answers WHERE user_id = ? AND score IS NOT NULL "
+                "ORDER BY created_at DESC LIMIT 7",
+                (user_id,)
+            ).fetchall()
+
+            # 5. 维度平均分（最近 10 次练习）
+            last_answers = conn.execute(
+                "SELECT dimension_scores FROM answers WHERE user_id = ? "
+                "AND dimension_scores IS NOT NULL AND dimension_scores != '{}' AND dimension_scores != '' "
+                "ORDER BY created_at DESC LIMIT 10",
+                (user_id,)
+            ).fetchall()
+
+            dim_agg = {}
+            dim_count = {}
+            for ans in last_answers:
+                raw = ans.get("dimension_scores", "{}")
+                dims = {}
+                if isinstance(raw, str) and raw.strip():
+                    try:
+                        dims = json.loads(raw)
+                    except json.JSONDecodeError:
+                        dims = {}
+                elif isinstance(raw, dict):
+                    dims = raw
+                for k, v in dims.items():
+                    if isinstance(v, (int, float)):
+                        dim_agg.setdefault(k, 0)
+                        dim_agg[k] += v
+                        dim_count.setdefault(k, 0)
+                        dim_count[k] += 1
+
+            dimensions = []
+            # 固定维度顺序
+            dim_order = ["流利度", "词汇", "语法", "发音"]
+            for name in dim_order:
+                if name in dim_agg:
+                    avg = round(dim_agg[name] / dim_count[name], 1) if dim_count.get(name) else 0
+                    dimensions.append({"name": name, "score": avg, "max_score": 100})
+            # 补充不在固定顺序中的维度
+            for name in sorted(dim_agg.keys()):
+                if name not in dim_order:
+                    avg = round(dim_agg[name] / dim_count[name], 1) if dim_count.get(name) else 0
+                    dimensions.append({"name": name, "score": avg, "max_score": 100})
+
+            # 6. 最新 3 枚徽章
+            badges = conn.execute(
+                """SELECT b.id, b.name, b.description, b.icon, b.rarity, ub.unlocked_at
+                   FROM user_badges ub JOIN badges b ON ub.badge_id = b.id
+                   WHERE ub.user_id = ? ORDER BY ub.unlocked_at DESC LIMIT 3""",
+                (user_id,)
+            ).fetchall()
+
+            return {
+                "total_seconds": total_seconds,
+                "total_practices": total_practices,
+                "streak_days": streak,
+                "dimensions": dimensions,
+                "recent_scores": [
+                    {"score": r["score"], "date": r["created_at"]}
+                    for r in reversed(recent_scores)
+                ],
+                "badges": badges,
+            }
+        finally:
+            conn.close()
+
     def get_user_streak(self, user_id: str) -> int:
         """
         计算用户当前连续练习天数
@@ -1069,6 +1159,61 @@ class DatabaseManager:
                         break
 
             return streak
+        finally:
+            conn.close()
+
+    # ==================== 面经数据 ====================
+
+    def save_interview_experience(self, data: dict) -> int:
+        """保存一篇面经"""
+        conn = self._get_conn()
+        try:
+            cur = conn.execute(
+                """INSERT INTO interview_experiences
+                   (company_name, position, round, questions, content, publish_date, source_url)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                (data["company_name"], data.get("position", ""),
+                 data.get("round", ""), json.dumps(data.get("questions", []), ensure_ascii=False),
+                 data.get("content", ""), data.get("publish_date", ""),
+                 data.get("source_url", ""))
+            )
+            conn.commit()
+            return cur.lastrowid
+        finally:
+            conn.close()
+
+    def experience_exists(self, source_url: str) -> bool:
+        """检查面经是否已存在（避免重复）"""
+        conn = self._get_conn()
+        try:
+            row = conn.execute(
+                "SELECT 1 FROM interview_experiences WHERE source_url = ?",
+                (source_url,)
+            ).fetchone()
+            return row is not None
+        finally:
+            conn.close()
+
+    def search_interview_experiences(self, company: str = "", position: str = "",
+                                     limit: int = 10) -> list:
+        """搜索面经，按公司+岗位模糊匹配"""
+        conn = self._get_conn()
+        try:
+            sql = "SELECT * FROM interview_experiences WHERE 1=1"
+            params = []
+            if company:
+                sql += " AND company_name LIKE ?"
+                params.append(f"%{company}%")
+            if position:
+                sql += " AND position LIKE ?"
+                params.append(f"%{position}%")
+            sql += " ORDER BY created_at DESC LIMIT ?"
+            params.append(limit)
+            rows = conn.execute(sql, params).fetchall()
+            for r in rows:
+                if isinstance(r.get("questions"), str):
+                    r["questions"] = json.loads(r["questions"])
+            return rows
         finally:
             conn.close()
 

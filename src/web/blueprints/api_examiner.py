@@ -177,9 +177,50 @@ def examiner_start():
         if not scenario_id:
             return jsonify({'success': False, 'error': '缺少场景ID'}), 400
 
+        # 从 user_background 中提取各种场景信息（适配所有场景）
+        extracted = {}
+        spider_questions = []
+        lines = user_background.split('\n')
+        resume_text = ""
+        for line in lines:
+            line_stripped = line.strip()
+            for prefix in ['目标岗位：', '目标公司：', '报考科目：', '报考学段：',
+                           '目标院校：', '目标专业：', '报考单位：', '报考岗位类别：',
+                           '所在公司/行业：']:
+                if line_stripped.startswith(prefix):
+                    key = prefix.rstrip('：')
+                    extracted[key] = line_stripped.replace(prefix, '').strip()
+            if line_stripped.startswith('个人简历：'):
+                resume_text = user_background.split('个人简历：\n', 1)[-1].strip() if '个人简历：\n' in user_background else ''
+
+        # 搜索面经数据（仅对求职类场景有效）
+        search_position = extracted.get('目标岗位') or extracted.get('报考岗位类别') or ''
+        search_company = extracted.get('目标公司') or extracted.get('报考单位') or ''
+        if search_position:
+            try:
+                spider_results = deps.db.search_interview_experiences(
+                    company=search_company, position=search_position, limit=5
+                )
+                seen = set()
+                for r in spider_results:
+                    questions = r.get('questions', [])
+                    if isinstance(questions, list):
+                        for q in questions:
+                            if q and q not in seen:
+                                spider_questions.append(q)
+                                seen.add(q)
+                spider_questions = spider_questions[:8]
+            except Exception:
+                spider_questions = []
+
         skill = deps.skill_registry.get(scenario_id)
         if skill:
-            session_data = skill.create_session(user_id, {"user_background": user_background})
+            session_data = skill.create_session(user_id, {
+                "user_background": user_background,
+                "spider_questions": spider_questions,
+                "position": search_position,
+                "company": search_company,
+            })
             welcome_message = skill.get_welcome_message(session_data)
 
             conversation_id = session_data.id
@@ -218,11 +259,23 @@ def examiner_start():
         conversation_id = create_result['conversation_id']
 
         examiner = deps.EXAMINERS.get(scenario_id, deps.EXAMINERS['job_interview'])
-        welcome_message = (
-            f"你好！我是{examiner['name']}，{examiner['title']}。\n\n"
-            f"欢迎参加{scenario_name}模拟面试。我们将进行约{deps.MAX_ROUNDS}轮的面试。\n\n"
-            f"首先，请做一个简短的自我介绍。"
-        )
+
+        # 构建个性化欢迎消息
+        welcome_parts = [f"你好！我是{examiner['name']}，{examiner['title']}。"]
+        welcome_parts.append(f"")
+        if search_position:
+            welcome_parts.append(f"我看到你正在准备{search_position}岗位{'（' + search_company + '）' if search_company else ''}的面试。我已经根据你的背景和真实面经数据，准备好了针对性的面试题。")
+        welcome_parts.append(f"")
+        welcome_parts.append(f"欢迎参加{scenario_name}模拟面试，我们将进行约{deps.MAX_ROUNDS}轮的问答。")
+        if spider_questions:
+            welcome_parts.append(f"")
+            welcome_parts.append(f"在面试中，我会参考以下来自真实面经的高频问题方向：")
+            for i, q in enumerate(spider_questions[:3], 1):
+                welcome_parts.append(f"  {i}. {q}")
+        welcome_parts.append(f"")
+        welcome_parts.append(f"那么，我们先从自我介绍开始吧——请简要介绍一下你自己和你的专业背景。")
+
+        welcome_message = "\n".join(welcome_parts)
 
         deps.db.add_message(conversation_id, 'assistant', welcome_message)
 

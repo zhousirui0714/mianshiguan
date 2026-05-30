@@ -1,6 +1,7 @@
 """Flask 应用工厂"""
 import os
 from flask import Flask
+from flask_socketio import SocketIO
 
 from src.scenarios.manager import ScenarioManager
 from src.services.llm_client import LLMClient
@@ -17,6 +18,11 @@ from src.web.blueprints.api_questions import questions_bp
 from src.web.blueprints.api_badges import badges_bp
 from src.web.blueprints.api_progress import progress_bp
 from src.web.blueprints.api_skills import skills_bp
+from src.web.blueprints.api_spider import spider_bp
+from src.web.websocket_handler import register_handlers
+
+# 全局 SocketIO 实例
+socketio = SocketIO()
 
 
 def create_app():
@@ -25,9 +31,14 @@ def create_app():
     static_dir = os.path.join(project_root, 'static')
     app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'interview-companion-secret-key')
+    app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB 最大音频
 
     _init_dependencies()
     _register_blueprints(app)
+
+    # 初始化 SocketIO
+    socketio.init_app(app, cors_allowed_origins="*", max_http_buffer_size=50*1024*1024)
+    register_handlers(socketio)
 
     print("=" * 70)
     print("        面试成长伴侣 - 多场景面试模拟平台        ")
@@ -71,3 +82,4 @@ def _register_blueprints(app):
     app.register_blueprint(badges_bp, url_prefix='/api')
     app.register_blueprint(progress_bp, url_prefix='/api')
     app.register_blueprint(skills_bp, url_prefix='/api')
+    app.register_blueprint(spider_bp, url_prefix='/api')

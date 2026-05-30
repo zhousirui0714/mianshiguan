@@ -1,30 +1,5 @@
 /* ===== 面试成长伴侣 - 公共基础样式 ===== */
-
-:root {
-    --bg-primary: #F8FAFC;
-    --bg-secondary: #FFFFFF;
-    --bg-sidebar: #F1F5F9;
-    --bg-card: #FFFFFF;
-
-    --primary: #60A5FA;
-    --primary-hover: #3B82F6;
-    --primary-glow: rgba(96, 165, 250, 0.3);
-
-    --text-primary: #1E293B;
-    --text-secondary: #64748B;
-    --text-tertiary: #94A3B8;
-
-    --border: rgba(0, 0, 0, 0.06);
-    --border-light: rgba(0, 0, 0, 0.04);
-
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.04);
-    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.06);
-
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
-}
+/* 全局主题变量在 theme.css 中定义 */
 
 *, *::before, *::after {
     margin: 0;
@@ -53,7 +28,7 @@ input, textarea, select { font: inherit; }
 .card {
     background: var(--bg-card);
     border-radius: var(--radius-md);
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-color);
     box-shadow: var(--shadow-sm);
 }
 
@@ -70,17 +45,17 @@ input, textarea, select { font: inherit; }
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+    background: var(--accent-gradient);
     color: #fff;
 }
 .btn-primary:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px var(--primary-glow);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .btn-secondary {
     background: var(--bg-secondary);
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-color);
     color: var(--text-primary);
 }
 .btn-secondary:hover {
@@ -103,7 +78,7 @@ input, textarea, select { font: inherit; }
 .empty-state {
     text-align: center;
     padding: 60px 20px;
-    color: var(--text-tertiary);
+    color: var(--text-muted);
 }
 .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
 .empty-state .title { font-size: 18px; margin-bottom: 8px; color: var(--text-secondary); }

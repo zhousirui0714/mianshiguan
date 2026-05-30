@@ -4,19 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>题库中心 - 百工模拟考场</title>
+    <link rel="stylesheet" href="/static/css/theme.css">
+    <link rel="stylesheet" href="/static/css/effects.css">
     <style>
-        :root {
-            --primary: #60A5FA;
-            --primary-hover: #3B82F6;
-            --bg-primary: #F8FAFC;
-            --bg-secondary: #FFFFFF;
-            --bg-card: #FFFFFF;
-            --text-primary: #1E293B;
-            --text-secondary: #64748B;
-            --text-tertiary: #94A3B8;
-            --border: rgba(0, 0, 0, 0.06);
-            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.04);
-        }
+        
         
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -536,6 +527,13 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/sidebar.css') }}">
 </head>
 <body>
+<!-- 极光背景 -->
+<div class="aurora-bg">
+  <div class="aurora-layer"></div>
+  <div class="aurora-layer"></div>
+  <div class="aurora-layer"></div>
+  <div class="aurora-layer"></div>
+</div>
     {% include 'components/sidebar.html' %}
 
     <main class="main-content">
@@ -970,5 +968,6 @@
         });
     </script>
     <script src="{{ url_for('static', filename='js/components/sidebar.js') }}"></script>
+    <script src="/static/js/effects.js"></script>
 </body>
 </html>

@@ -4,21 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>成长中心 - 面试成长伴侣</title>
+    <link rel="stylesheet" href="/static/css/theme.css">
+    <link rel="stylesheet" href="/static/css/effects.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         :root {
             --primary: #6366F1;
             --primary-light: rgba(99, 102, 241, 0.1);
-            --secondary: #10B981;
-            --accent: #F59E0B;
-            --bg: #0F172A;
+            --secondary: var(--accent-green);
+            --accent: var(--accent-amber);
+            --bg: var(--bg-primary);
             --card: #1E293B;
-            --text: #F8FAFC;
-            --text-secondary: #94A3B8;
-            --border: #334155;
-            --success: #10B981;
-            --warning: #F59E0B;
-            --danger: #EF4444;
+            --text: var(--text-primary);
+            --text-secondary: var(--text-secondary);
+            --border: var(--border-color);
+            --success: var(--accent-green);
+            --warning: var(--accent-amber);
+            --danger: var(--accent-red);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -110,6 +112,13 @@
     </style>
 </head>
 <body>
+    <!-- 极光背景 -->
+    <div class="aurora-bg">
+      <div class="aurora-layer"></div>
+      <div class="aurora-layer"></div>
+      <div class="aurora-layer"></div>
+      <div class="aurora-layer"></div>
+    </div>
     <nav class="nav-bar">
         <div class="logo"><span>📚</span> 面试成长伴侣</div>
         <div class="nav-links">
@@ -448,5 +457,6 @@
 
         document.addEventListener('DOMContentLoaded', init);
     </script>
+    <script src="/static/js/effects.js"></script>
 </body>
 </html>

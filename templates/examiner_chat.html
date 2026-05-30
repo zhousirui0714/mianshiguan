@@ -4,22 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI考官模拟面试</title>
+    <link rel="stylesheet" href="/static/css/theme.css">
+    <link rel="stylesheet" href="/static/css/effects.css">
+    <link rel="stylesheet" href="/static/css/video-preview.css">
     <link rel="stylesheet" href="/static/css/components/digital_examiner.css">
     <script src="/static/js/components/digital_examiner.js"></script>
     <style>
-        :root {
-            --primary: #60A5FA;
-            --primary-hover: #3B82F6;
-            --bg-primary: #F8FAFC;
-            --bg-secondary: #FFFFFF;
-            --bg-card: #FFFFFF;
-            --text-primary: #1E293B;
-            --text-secondary: #64748B;
-            --text-tertiary: #94A3B8;
-            --border: rgba(0, 0, 0, 0.06);
-            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.04);
-        }
-        
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
@@ -27,6 +17,8 @@
             background: var(--bg-primary);
             min-height: 100vh;
             display: flex;
+            position: relative;
+            z-index: 1;
         }
 
         .app-layout {
@@ -48,7 +40,7 @@
         /* 顶部栏 */
         .chat-header {
             background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--border-color);
             padding: 16px 24px;
             display: flex;
             justify-content: space-between;
@@ -68,7 +60,7 @@
             width: 44px;
             height: 44px;
             border-radius: 12px;
-            background: linear-gradient(135deg, var(--primary), #3B82F6);
+            background: linear-gradient(135deg, var(--accent-blue), #3B82F6);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -103,7 +95,7 @@
         .round-info {
             font-size: 0.85rem;
             color: var(--text-secondary);
-            background: rgba(96, 165, 250, 0.08);
+            background: rgba(59, 130, 246, 0.08);
             padding: 6px 12px;
             border-radius: 8px;
         }
@@ -119,23 +111,23 @@
         }
         
         .btn-primary {
-            background: var(--primary);
+            background: var(--accent-blue);
             color: white;
         }
         
         .btn-primary:hover {
-            background: var(--primary-hover);
+            background: var(--accent-blue);
             box-shadow: 0 0 12px rgba(96, 165, 250, 0.3);
         }
         
         .btn-secondary {
             background: var(--bg-primary);
             color: var(--text-primary);
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-color);
         }
         
         .btn-secondary:hover {
-            background: rgba(96, 165, 250, 0.08);
+            background: rgba(59, 130, 246, 0.08);
         }
         
         /* 消息区域 */
@@ -179,12 +171,12 @@
         }
         
         .message.assistant .message-avatar {
-            background: linear-gradient(135deg, var(--primary), #3B82F6);
+            background: linear-gradient(135deg, var(--accent-blue), #3B82F6);
         }
         
         .message.user .message-avatar {
             background: var(--bg-secondary);
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-color);
         }
         
         .message-content {
@@ -196,13 +188,13 @@
         
         .message.assistant .message-content {
             background: var(--bg-card);
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-color);
             border-radius: 0 14px 14px 14px;
             color: var(--text-primary);
         }
         
         .message.user .message-content {
-            background: var(--primary);
+            background: var(--accent-blue);
             color: white;
             border-radius: 14px 0 14px 14px;
         }
@@ -218,7 +210,7 @@
             gap: 4px;
             padding: 14px 18px;
             background: var(--bg-card);
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-color);
             border-radius: 0 14px 14px 14px;
             width: fit-content;
         }
@@ -227,7 +219,7 @@
             width: 6px;
             height: 6px;
             border-radius: 50%;
-            background: var(--text-tertiary);
+            background: var(--text-muted);
             animation: typingBounce 1.4s infinite ease-in-out;
         }
         
@@ -243,19 +235,19 @@
         /* 打字机效果 */
         .typewriter {
             overflow: hidden;
-            border-right: 2px solid var(--primary);
+            border-right: 2px solid var(--accent-blue);
             animation: typingCursor 0.7s step-end infinite;
         }
         
         @keyframes typingCursor {
             from, to { border-color: transparent; }
-            50% { border-color: var(--primary); }
+            50% { border-color: var(--accent-blue); }
         }
         
         /* 输入区域 */
         .input-container {
             background: var(--bg-secondary);
-            border-top: 1px solid var(--border);
+            border-top: 1px solid var(--border-color);
             padding: 16px 24px;
         }
         
@@ -270,7 +262,7 @@
             min-height: 60px;
             max-height: 200px;
             padding: 12px 16px;
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
             font-size: 0.95rem;
             font-family: inherit;
@@ -282,19 +274,19 @@
         }
         
         textarea:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.08);
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
         }
         
         textarea::placeholder {
-            color: var(--text-tertiary);
+            color: var(--text-muted);
         }
         
         .send-btn {
             width: 48px;
             height: 48px;
             border-radius: 12px;
-            background: var(--primary);
+            background: var(--accent-blue);
             color: white;
             border: none;
             cursor: pointer;
@@ -307,7 +299,7 @@
         }
         
         .send-btn:hover:not(:disabled) {
-            background: var(--primary-hover);
+            background: var(--accent-blue);
             box-shadow: 0 0 12px rgba(96, 165, 250, 0.3);
         }
         
@@ -348,7 +340,7 @@
         
         .modal-header {
             padding: 20px 24px;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -386,7 +378,7 @@
         .score-value {
             font-size: 4rem;
             font-weight: 700;
-            color: var(--primary);
+            color: var(--accent-blue);
             margin-bottom: 8px;
         }
         
@@ -444,7 +436,7 @@
         
         .dimension-bar-container {
             height: 6px;
-            background: rgba(96, 165, 250, 0.1);
+            background: rgba(59, 130, 246, 0.1);
             border-radius: 3px;
             overflow: hidden;
             margin-bottom: 6px;
@@ -452,7 +444,7 @@
         
         .dimension-bar {
             height: 100%;
-            background: var(--primary);
+            background: var(--accent-blue);
             border-radius: 3px;
             transition: width 0.5s ease-out;
         }
@@ -460,11 +452,11 @@
         .dimension-score {
             font-size: 0.9rem;
             font-weight: 600;
-            color: var(--primary);
+            color: var(--accent-blue);
         }
         
         .overall-comment {
-            background: rgba(96, 165, 250, 0.08);
+            background: rgba(59, 130, 246, 0.08);
             border-radius: 10px;
             padding: 16px;
             font-size: 0.9rem;
@@ -474,7 +466,7 @@
         
         .modal-footer {
             padding: 20px 24px;
-            border-top: 1px solid var(--border);
+            border-top: 1px solid var(--border-color);
             display: flex;
             justify-content: flex-end;
             gap: 12px;
@@ -506,6 +498,13 @@
     </style>
 </head>
 <body>
+<!-- 极光背景 -->
+<div class="aurora-bg">
+  <div class="aurora-layer"></div>
+  <div class="aurora-layer"></div>
+  <div class="aurora-layer"></div>
+  <div class="aurora-layer"></div>
+</div>
     <div class="app-layout">
         <!-- 左侧数字人考官（玻璃态卡片） -->
         <div id="examiner-container" class="examiner-container"></div>
@@ -522,6 +521,17 @@
                 </div>
                 <div class="header-right">
                     <span class="round-info" id="roundInfo">第 1/5 轮</span>
+                    <!-- 摄像头预览 -->
+                    <div class="video-preview-container video-hidden" id="video-preview">
+                        <div class="video-recording-indicator" id="video-recording-indicator">
+                            <span class="video-record-dot"></span>
+                            <span class="video-recording-timer" id="video-recording-timer">00:00</span>
+                        </div>
+                        <div class="video-privacy-notice" id="video-privacy-notice" style="display:none;">
+                            🔒 仅本地保存，不上传服务器
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary video-toggle-btn" id="video-toggle-btn">🎥 录制</button>
                     <button class="btn btn-secondary" id="finishBtn">结束面试</button>
                 </div>
             </div>
@@ -633,19 +643,97 @@
                 sendBtn.disabled = !messageInput.value.trim();
             });
             initDigitalExaminer();
+
+            // 初始化视频录制（先不请求摄像头）
+            VideoRecorder.init({
+                containerId: 'video-preview',
+                onStateChange: function(state) {
+                    updateVideoUI(state);
+                }
+            });
+
             startInterview();
         });
+
+        // 视频录制开关
+        const videoToggleBtn = document.getElementById('video-toggle-btn');
+        videoToggleBtn.addEventListener('click', async () => {
+            const state = VideoRecorder.getState();
+            if (state === 'idle' || state === 'preview') {
+                // 开始预览 / 开始录制
+                try {
+                    await VideoRecorder.startPreview();
+                    // 用户手动选择开始录制
+                    if (conversationId) {
+                        VideoRecorder.start(conversationId);
+                    }
+                } catch (err) {
+                    alert('无法访问摄像头，请检查权限设置。\n你可以继续面试，视频功能将被跳过。');
+                }
+            } else if (state === 'recording') {
+                // 停止录制
+                VideoRecorder.stop();
+            }
+        });
+
+        // 更新录制按钮状态
+        function updateVideoUI(state) {
+            const indicator = document.getElementById('video-recording-indicator');
+            if (state === 'recording') {
+                indicator.classList.add('active');
+            } else {
+                indicator.classList.remove('active');
+            }
+
+            const privacy = document.getElementById('video-privacy-notice');
+            if (state === 'preview' || state === 'recording') {
+                privacy.style.display = '';
+            } else {
+                privacy.style.display = 'none';
+            }
+        }
         
+        // 读取 URL 参数（面试设置页传入的各种场景信息）
+        function getUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            return {
+                position: params.get('position') || '',
+                company: params.get('company') || '',
+                resume: params.get('resume') || '',
+                subject: params.get('subject') || '',
+                level: params.get('level') || '',
+                school: params.get('school') || '',
+                major: params.get('major') || '',
+                department: params.get('department') || '',
+            };
+        }
+
+        // 构建用户背景信息（适配所有场景）
+        function buildUserBackground() {
+            const urlParams = getUrlParams();
+            const parts = [];
+            if (urlParams.position) parts.push('目标岗位：' + urlParams.position);
+            if (urlParams.company) parts.push('目标公司：' + urlParams.company);
+            if (urlParams.subject) parts.push('报考科目：' + urlParams.subject);
+            if (urlParams.level) parts.push('报考学段：' + urlParams.level);
+            if (urlParams.school) parts.push('目标院校：' + urlParams.school);
+            if (urlParams.major) parts.push('目标专业：' + urlParams.major);
+            if (urlParams.department) parts.push('报考单位：' + urlParams.department);
+            if (urlParams.resume) parts.push('个人简历：\n' + urlParams.resume);
+            return parts.join('\n');
+        }
+
         // 开始面试
         async function startInterview() {
             try {
+                const userBg = buildUserBackground();
                 const response = await fetch('/api/examiner/start', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         scenario_id: scenarioId,
                         user_id: 'anonymous',
-                        user_background: ''
+                        user_background: userBg
                     })
                 });
                 
@@ -860,15 +948,24 @@
         
         // 结束面试
         async function finishInterview() {
+            // 自动停止录制
+            if (VideoRecorder.getState() === 'recording') {
+                try {
+                    await VideoRecorder.stop();
+                } catch (e) {
+                    console.warn('停止录制失败:', e);
+                }
+            }
+
             try {
                 const response = await fetch('/api/examiner/finish', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ conversation_id: conversationId })
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (result.success) {
                     showReport(result.report);
                 }
@@ -1000,5 +1097,7 @@
             }
         }
     </script>
+    <script src="/static/js/video-record.js"></script>
+    <script src="/static/js/effects.js"></script>
 </body>
 </html>

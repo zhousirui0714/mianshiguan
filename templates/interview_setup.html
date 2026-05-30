@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>面试设置 - 百工模拟考场</title>
+    <link rel="stylesheet" href="/static/css/theme.css">
+    <link rel="stylesheet" href="/static/css/effects.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary: #6366F1;
+            --bg-dark: #0F172A;
+            --bg-card: #1E293B;
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --border: #334155;
+            --success: #10B981;
+            --warning: #F59E0B;
+        }
+
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', -apple-system, sans-serif;
+            background: var(--bg-dark);
+            min-height: 100vh;
+            color: var(--text-primary);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 860px;
+            width: 100%;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .back-btn {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 1.1rem;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .back-btn:hover { background: rgba(255,255,255,0.05); color: var(--primary); }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .header .scenario-tag {
+            font-size: 0.8rem;
+            padding: 4px 12px;
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--primary);
+            border-radius: 20px;
+        }
+
+        .setup-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            transition: border-color 0.2s;
+        }
+        .card:hover { border-color: rgba(99, 102, 241, 0.3); }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .form-label .required { color: #EF4444; margin-left: 2px; }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: all 0.25s;
+            outline: none;
+        }
+        .form-input:focus {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.06);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        .form-input::placeholder { color: rgba(148, 163, 184, 0.4); }
+
+        .form-textarea {
+            min-height: 140px;
+            resize: vertical;
+            font-family: inherit;
+            line-height: 1.6;
+        }
+
+        .form-hint {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            margin-top: 6px;
+        }
+
+        .example-badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+            cursor: pointer;
+            margin-right: 4px;
+            margin-bottom: 4px;
+            transition: background 0.2s;
+        }
+        .example-badge:hover { background: rgba(99, 102, 241, 0.2); }
+
+        .spider-preview { margin-top: 20px; }
+
+        .spider-preview-title {
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .spider-question {
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            border-left: 3px solid var(--primary);
+        }
+
+        .spider-empty {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-align: center;
+            padding: 24px 0;
+            opacity: 0.6;
+        }
+
+        .spider-loading {
+            text-align: center;
+            padding: 20px 0;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(99, 102, 241, 0.2);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            grid-column: 1 / -1;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 24px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.25s;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+        .btn-secondary:hover { border-color: var(--primary); }
+
+        .info-list {
+            list-style: none;
+            padding: 0;
+        }
+        .info-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            display: flex;
+            gap: 10px;
+            line-height: 1.5;
+        }
+        .info-list li:last-child { border-bottom: none; }
+        .info-list .icon { flex-shrink: 0; width: 20px; text-align: center; }
+
+        @media (max-width: 768px) {
+            .setup-grid { grid-template-columns: 1fr; }
+            body { padding: 20px 12px; }
+            .card { padding: 24px; }
+        }
+    </style>
+</head>
+<body>
+<div class="aurora-bg">
+    <div class="aurora-layer"></div>
+    <div class="aurora-layer"></div>
+    <div class="aurora-layer"></div>
+    <div class="aurora-layer"></div>
+</div>
+
+<div class="container">
+    <div class="header">
+        <a href="/" class="back-btn">&#8592; 返回</a>
+        <h1>面试设置</h1>
+        <span class="scenario-tag" id="scenarioTag">{{ scenario_name }}</span>
+    </div>
+
+    <div class="setup-grid">
+        <!-- 左侧：动态表单 -->
+        <div class="card">
+            <div class="card-title" id="formTitle">&#128221; 填写信息</div>
+            <div class="card-desc" id="formDesc">填写相关信息，AI 将为你生成个性化面试题</div>
+
+            <form id="setupForm" onsubmit="handleSubmit(event)">
+                <div id="formFields">
+                    <!-- 由 JS 动态生成 -->
+                </div>
+            </form>
+        </div>
+
+        <!-- 右侧信息 -->
+        <div>
+            <div class="card" style="margin-bottom:20px;">
+                <div class="card-title">&#128202; 场景信息</div>
+                <ul class="info-list">
+                    <li><span class="icon">&#128218;</span> <span><strong>场景：</strong><span id="displayScenarioName">{{ scenario_name }}</span></span></li>
+                    <li><span class="icon">&#9203;</span> <span>预计进行 <strong>5</strong> 轮问答</span></li>
+                    <li><span class="icon" id="infoIcon">&#9889;</span> <span id="infoText">AI 考官将根据你填写的信息，从面经题库中抽取相关问题</span></li>
+                    <li><span class="icon">&#128274;</span> <span>面试过程仅本地保存，不上传服务器</span></li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <div class="card-title">&#128270; 相关真实面试题</div>
+                <div class="card-desc" id="spiderDesc">填写信息后，系统将自动搜索真实面经中的高频问题</div>
+                <div class="spider-preview" id="spiderPreview">
+                    <div class="spider-empty">&#128069; 填写相关信息后自动匹配真实面经问题</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <a href="/" class="btn btn-secondary">取消</a>
+            <button class="btn btn-primary" id="startBtn" onclick="handleSubmit(event)" disabled>开始面试 &#10132;</button>
+        </div>
+    </div>
+</div>
+
+<script src="/static/js/effects.js"></script>
+<script>
+    // ================================================================
+    // 场景配置
+    // ================================================================
+    const SCENARIO_ID = '{{ scenario_id }}';
+
+    const SCENARIO_CONFIG = {
+        job_interview: {
+            title: '填写求职信息',
+            desc: '输入你的目标岗位和个人简历，AI 将基于真实面经数据为你生成个性化面试题',
+            infoText: 'AI 考官将根据你的目标岗位和简历，从面经题库中抽取相关问题',
+            spiderField: 'position',
+            spiderLabel: '目标岗位',
+            urlKeys: ['position', 'company', 'resume'],
+            fields: [
+                {
+                    id: 'position', label: '目标岗位', required: true,
+                    placeholder: '例如：前端工程师、产品经理、Java 后端',
+                    examples: ['前端工程师', '产品经理', 'Java 开发', '算法工程师']
+                },
+                {
+                    id: 'company', label: '目标公司', required: false,
+                    placeholder: '例如：腾讯、字节跳动、阿里巴巴',
+                    examples: ['腾讯', '字节跳动', '阿里巴巴', '百度', '华为']
+                },
+                {
+                    id: 'resume', label: '个人简历 / 背景', type: 'textarea', required: true,
+                    placeholder: '请详细描述你的教育背景、工作经历、项目经验、技术栈等',
+                    examples: [
+                        { text: '前端示例', value: '本科计算机科学，3年大厂前端开发经验，精通 React/TypeScript/Webpack，主导过日活百万级电商平台重构' },
+                        { text: '后端示例', value: '硕士计算机科学，5年后端经验，精通 Java/Spring Cloud/MySQL，负责过千万级用户系统架构设计' },
+                        { text: '产品示例', value: '3年互联网产品经验，擅长用户增长和数据分析，主导过APP从0到1的产品规划' },
+                    ]
+                }
+            ]
+        },
+        teacher_cert: {
+            title: '填写教资面试信息',
+            desc: '输入你报考的科目和学段，AI 考官将模拟真实教资面试流程',
+            infoText: 'AI 考官将根据你的报考科目和学段，进行结构化面试和试讲提问',
+            urlKeys: ['subject', 'level', 'resume'],
+            fields: [
+                {
+                    id: 'subject', label: '报考科目', required: true,
+                    placeholder: '例如：语文、数学、英语、音乐',
+                    examples: ['语文', '数学', '英语', '音乐', '体育']
+                },
+                {
+                    id: 'level', label: '报考学段', required: true,
+                    placeholder: '例如：小学、初中、高中',
+                    examples: ['小学', '初中', '高中', '幼儿园']
+                },
+                {
+                    id: 'resume', label: '教育背景 / 教学经历', type: 'textarea', required: true,
+                    placeholder: '请描述你的教育背景、教学实践经验、相关证书等',
+                    examples: [
+                        { text: '师范生', value: '师范院校英语教育专业大四学生，已通过普通话二甲，有半年初中实习教学经验' },
+                        { text: '跨专业', value: '理工科硕士，已通过教师资格证笔试，有辅导班兼职教学经验，擅长数学教学' },
+                    ]
+                }
+            ]
+        },
+        graduate_school: {
+            title: '填写考研复试信息',
+            desc: '输入你的目标院校和专业，AI 将模拟考研复试面试场景',
+            infoText: 'AI 考官将根据你的目标院校和专业方向，考察专业基础和科研潜力',
+            urlKeys: ['school', 'major', 'resume'],
+            fields: [
+                {
+                    id: 'school', label: '目标院校', required: true,
+                    placeholder: '例如：北京大学、清华大学、浙江大学',
+                    examples: ['北京大学', '清华大学', '浙江大学', '复旦大学', '上海交大']
+                },
+                {
+                    id: 'major', label: '目标专业', required: true,
+                    placeholder: '例如：计算机科学与技术、金融学、法学',
+                    examples: ['计算机科学', '金融学', '法学', '机械工程', '新闻传播']
+                },
+                {
+                    id: 'resume', label: '学术背景 / 科研经历', type: 'textarea', required: true,
+                    placeholder: '请描述你的本科院校、专业排名、科研项目、论文发表、竞赛获奖等',
+                    examples: [
+                        { text: '科研型', value: '211大学计算机专业前10%，参与国家自然科学基金项目1项，发表CCF-C论文1篇，获全国数学建模大赛省级一等奖' },
+                        { text: '实践型', value: '本科软件工程专业，GPA 3.7/4.0，参与2个校企合作项目，获ACM区域赛铜奖，有互联网公司实习经历' },
+                    ]
+                }
+            ]
+        },
+        civil_service: {
+            title: '填写公考面试信息',
+            desc: '输入你报考的岗位和单位，AI 将模拟结构化面试流程',
+            infoText: 'AI 考官将根据报考岗位特点，进行结构化面试题型训练',
+            urlKeys: ['position', 'department', 'resume'],
+            fields: [
+                {
+                    id: 'position', label: '报考岗位类别', required: true,
+                    placeholder: '例如：综合管理类、行政执法类',
+                    examples: ['综合管理类', '行政执法类', '专业技术类', '乡镇街道']
+                },
+                {
+                    id: 'department', label: '报考单位', required: false,
+                    placeholder: '例如：税务局、公安局、发改委',
+                    examples: ['税务局', '公安局', '发改委', '市场监督局', '乡镇政府']
+                },
+                {
+                    id: 'resume', label: '个人经历 / 专业背景', type: 'textarea', required: true,
+                    placeholder: '请描述你的教育背景、工作经历、政治面貌、基层经验等',
+                    examples: [
+                        { text: '应届生', value: '211大学公共管理专业应届毕业生，党员，有学生会干部经历，参加过暑期基层挂职锻炼' },
+                        { text: '在职', value: '3年事业单位工作经验，负责文书处理和群众接待，熟悉机关工作流程，多次获得年度考核优秀' },
+                    ]
+                }
+            ]
+        },
+        mba_interview: {
+            title: '填写MBA面试信息',
+            desc: '输入目标院校和职业背景，AI 将模拟商学院面试场景',
+            infoText: 'AI 考官将根据你的职业背景和管理经验，考察领导力和商业洞察',
+            urlKeys: ['school', 'company', 'resume'],
+            fields: [
+                {
+                    id: 'school', label: '目标院校', required: true,
+                    placeholder: '例如：清华经管、北大光华、复旦管院',
+                    examples: ['清华经管', '北大光华', '复旦管院', '上交安泰', '长江商学院']
+                },
+                {
+                    id: 'company', label: '所在公司 / 行业', required: true,
+                    placeholder: '例如：互联网、金融、咨询',
+                    examples: ['互联网行业', '金融行业', '管理咨询', '医疗健康', '制造业']
+                },
+                {
+                    id: 'resume', label: '工作经历 / 管理经验', type: 'textarea', required: true,
+                    placeholder: '请描述你的工作经历、管理经验、职业成就、职业规划等',
+                    examples: [
+                        { text: '管理岗', value: '7年互联网行业经验，现任某中型公司产品总监，带15人团队，负责多个千万级营收产品线，MBA联考分数185+' },
+                        { text: '创业者', value: '连续创业者，现为某AI领域创业公司CEO，团队30人，已完成A轮融资2000万。本科985院校，希望系统提升管理能力' },
+                    ]
+                }
+            ]
+        }
+    };
+
+    const SCENARIO_NAMES = {
+        job_interview: '求职面试',
+        teacher_cert: '教资面试',
+        ielts_speaking: '雅思口语',
+        civil_service: '公务员面试',
+        graduate_school: '考研复试',
+        mba_interview: 'MBA面试',
+    };
+
+    // ================================================================
+    // 渲染表单
+    // ================================================================
+    const config = SCENARIO_CONFIG[SCENARIO_ID] || SCENARIO_CONFIG.job_interview;
+    let searchTimer = null;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // 更新标题和说明
+        document.getElementById('formTitle').textContent = '✏️ ' + (config.title || '填写信息');
+        document.getElementById('formDesc').textContent = config.desc || '';
+        if (config.infoText) {
+            document.getElementById('infoText').textContent = config.infoText;
+        }
+
+        // 渲染字段
+        renderFields();
+    });
+
+    function renderFields() {
+        const container = document.getElementById('formFields');
+        container.innerHTML = '';
+
+        config.fields.forEach(function (f) {
+            const group = document.createElement('div');
+            group.className = 'form-group';
+
+            // label
+            const label = document.createElement('label');
+            label.className = 'form-label';
+            label.textContent = f.label;
+            if (f.required) {
+                const req = document.createElement('span');
+                req.className = 'required';
+                req.textContent = ' *';
+                label.appendChild(req);
+            }
+            group.appendChild(label);
+
+            // input/textarea
+            if (f.type === 'textarea') {
+                const textarea = document.createElement('textarea');
+                textarea.className = 'form-input form-textarea';
+                textarea.id = f.id;
+                textarea.placeholder = f.placeholder || '';
+                if (f.required) textarea.required = true;
+                group.appendChild(textarea);
+            } else {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'form-input';
+                input.id = f.id;
+                input.placeholder = f.placeholder || '';
+                if (f.required) input.required = true;
+                group.appendChild(input);
+            }
+
+            // examples
+            if (f.examples && f.examples.length) {
+                const hint = document.createElement('div');
+                hint.className = 'form-hint';
+                f.examples.forEach(function (ex) {
+                    const badge = document.createElement('span');
+                    badge.className = 'example-badge';
+                    if (typeof ex === 'string') {
+                        badge.textContent = ex;
+                        badge.onclick = function () { setExample(f.id, ex); };
+                    } else {
+                        badge.textContent = ex.text;
+                        badge.onclick = function () { setExample(f.id, ex.value); };
+                    }
+                    hint.appendChild(badge);
+                });
+                group.appendChild(hint);
+            }
+
+            container.appendChild(group);
+        });
+
+        // 绑定事件
+        config.fields.forEach(function (f) {
+            const el = document.getElementById(f.id);
+            if (!el) return;
+            el.addEventListener('input', function () {
+                checkForm();
+                triggerSearch();
+            });
+        });
+
+        checkForm();
+    }
+
+    // ================================================================
+    // 表单验证 & 面经搜索
+    // ================================================================
+    function checkForm() {
+        const required = config.fields.filter(function (f) { return f.required; });
+        const allFilled = required.every(function (f) {
+            const el = document.getElementById(f.id);
+            return el && el.value.trim();
+        });
+        document.getElementById('startBtn').disabled = !allFilled;
+    }
+
+    function triggerSearch() {
+        clearTimeout(searchTimer);
+        // 获取用于搜索面经的关键字段
+        const spiderFieldId = config.spiderField || config.fields[0].id;
+        const el = document.getElementById(spiderFieldId);
+        const val = el ? el.value.trim() : '';
+        if (val.length >= 2) {
+            searchTimer = setTimeout(function () {
+                // 收集所有填写的字段作为搜索参数
+                var params = {};
+                config.fields.forEach(function (f) {
+                    var inp = document.getElementById(f.id);
+                    if (inp && inp.value.trim()) {
+                        params[f.id] = inp.value.trim();
+                    }
+                });
+                searchSpider(params);
+            }, 500);
+        }
+    }
+
+    async function searchSpider(params) {
+        const preview = document.getElementById('spiderPreview');
+        preview.innerHTML = '<div class="spider-loading"><span class="spinner"></span>正在搜索相关面经...</div>';
+
+        try {
+            const qp = new URLSearchParams();
+            // 用第一个非空字段搜索
+            var searchVal = '';
+            config.fields.forEach(function (f) {
+                if (!searchVal && params[f.id]) searchVal = params[f.id];
+            });
+            if (searchVal) qp.set('position', searchVal);
+            qp.set('limit', '6');
+
+            const resp = await fetch('/api/interview/search?' + qp.toString());
+            const result = await resp.json();
+
+            if (result.success && result.data.length > 0) {
+                const allQuestions = [];
+                result.data.forEach(function (item) {
+                    if (item.questions && Array.isArray(item.questions)) {
+                        item.questions.forEach(function (q) {
+                            if (allQuestions.indexOf(q) === -1) allQuestions.push(q);
+                        });
+                    }
+                });
+
+                if (allQuestions.length > 0) {
+                    const show = allQuestions.slice(0, 6);
+                    var html = '<div class="spider-preview-title">&#128203; 来自 ' + result.data.length + ' 篇面经的常见问题</div>';
+                    show.forEach(function (q) {
+                        html += '<div class="spider-question">' + escapeHtml(q) + '</div>';
+                    });
+                    if (allQuestions.length > 6) {
+                        html += '<div style="text-align:center;font-size:0.8rem;color:var(--text-secondary);margin-top:8px;">还有 ' + (allQuestions.length - 6) + ' 道相关题目将在面试中展示</div>';
+                    }
+                    preview.innerHTML = html;
+                } else {
+                    preview.innerHTML = '<div class="spider-empty">&#128200; 找到 ' + result.data.length + ' 篇面经，但未能提取到具体问题</div>';
+                }
+            } else {
+                preview.innerHTML = '<div class="spider-empty">&#128270; 未找到相关面经数据，AI 将根据你的信息生成问题</div>';
+            }
+        } catch (e) {
+            preview.innerHTML = '<div class="spider-empty">&#128270; 面经搜索暂不可用，AI 将直接为你出题</div>';
+        }
+    }
+
+    // ================================================================
+    // 提交
+    // ================================================================
+    function handleSubmit(event) {
+        event.preventDefault();
+
+        var params = new URLSearchParams();
+        var allFilled = true;
+
+        config.fields.forEach(function (f) {
+            var el = document.getElementById(f.id);
+            var val = el ? el.value.trim() : '';
+            if (f.required && !val) allFilled = false;
+            if (val) params.set(f.id, val);
+        });
+
+        if (!allFilled) {
+            alert('请填写所有必填项');
+            return;
+        }
+
+        window.location.href = '/chat/' + SCENARIO_ID + '?' + params.toString();
+    }
+
+    function setExample(fieldId, value) {
+        document.getElementById(fieldId).value = value;
+        document.getElementById(fieldId).dispatchEvent(new Event('input'));
+        checkForm();
+        triggerSearch();
+    }
+
+    function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+</script>
+</body>
+</html>

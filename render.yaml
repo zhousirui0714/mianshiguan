@@ -1,0 +1,36 @@
+# ================================================================
+# Render 部署配置文件
+# 百工模拟考场 - Flask + SocketIO
+# ================================================================
+
+services:
+  - type: web
+    name: interview-companion
+    runtime: python
+    region: singapore  # 新加坡节点，亚洲访问延迟较低
+
+    # --- 构建命令 ---
+    buildCommand: pip install -r requirements.txt
+
+    # --- 启动命令（eventlet worker 支持 WebSocket） ---
+    startCommand: gunicorn -k eventlet -w 1 app:app --bind 0.0.0.0:$PORT --access-logfile - --error-logfile -
+
+    # --- 健康检查 ---
+    healthCheckPath: /
+
+    # --- 环境变量 ---
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SECRET_KEY
+        generateValue: true  # Render 自动生成随机密钥
+      - key: ALIYUN_ACCESS_KEY
+        sync: false  # 需要在 Render 手动填写
+      - key: ALIYUN_SECRET_KEY
+        sync: false
+      - key: ALIYUN_APP_KEY
+        sync: false
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: DEEPSEEK_BASE_URL
+        sync: false

@@ -2,33 +2,9 @@
 {% block title %}百工模拟考场 - 面试成长伴侣{% endblock %}
 {% block head %}
 <style>
-        :root {
-            /* 淡蓝色色调 */
-            --bg-primary: #F8FAFC;
-            --bg-secondary: #FFFFFF;
-            --bg-sidebar: #F1F5F9;
-            --bg-card: #FFFFFF;
-            
-            /* 主色 - 淡蓝色 */
-            --primary: #60A5FA;
-            --primary-hover: #3B82F6;
-            --primary-glow: rgba(96, 165, 250, 0.3);
-            
-            /* 文字体系 */
-            --text-primary: #1E293B;
-            --text-secondary: #64748B;
-            --text-tertiary: #94A3B8;
-            
-            /* 边框与分割 */
-            --border: rgba(0, 0, 0, 0.06);
-            --border-light: rgba(0, 0, 0, 0.04);
-            
-            /* 阴影 */
-            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.04);
-            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.06);
-        }
-        
+        /* 隐藏原有极光背景，Three.js 替代 */
+        .aurora-bg { display: none !important; }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         html {
@@ -49,7 +25,7 @@
         .sidebar {
             width: 260px;
             background: var(--bg-sidebar);
-            border-right: 1px solid var(--border);
+            border-right: 1px solid var(--border-color);
             padding: 24px 0;
             display: flex;
             flex-direction: column;
@@ -70,7 +46,7 @@
             width: 40px;
             height: 40px;
             border-radius: 10px;
-            background: linear-gradient(135deg, var(--primary), #3B82F6);
+            background: linear-gradient(135deg, var(--accent-blue), #3B82F6);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -104,12 +80,12 @@
         
         .nav-item:hover {
             background: rgba(96, 165, 250, 0.08);
-            color: var(--primary);
+            color: var(--accent-blue);
         }
         
         .nav-item.active {
             background: rgba(96, 165, 250, 0.12);
-            color: var(--primary);
+            color: var(--accent-blue);
             font-weight: 500;
         }
         
@@ -156,7 +132,7 @@
             height: 36px;
             border-radius: 9px;
             background: var(--bg-card);
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -179,7 +155,7 @@
         
         .user-email {
             font-size: 0.75rem;
-            color: var(--text-tertiary);
+            color: var(--text-muted);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -195,7 +171,7 @@
         /* 顶部栏 */
         .top-bar {
             background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--border-color);
             padding: 16px 32px;
             display: flex;
             justify-content: space-between;
@@ -216,14 +192,14 @@
             align-items: center;
             gap: 8px;
             background: var(--bg-primary);
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-color);
             border-radius: 10px;
             padding: 8px 14px;
             min-width: 280px;
         }
         
         .search-icon {
-            color: var(--text-tertiary);
+            color: var(--text-muted);
             font-size: 0.9rem;
         }
         
@@ -237,7 +213,7 @@
         }
         
         .search-input::placeholder {
-            color: var(--text-tertiary);
+            color: var(--text-muted);
         }
         
         .top-bar-right {
@@ -251,7 +227,7 @@
             height: 36px;
             border-radius: 10px;
             background: var(--bg-primary);
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -261,11 +237,11 @@
         
         .notification-btn:hover {
             background: rgba(96, 165, 250, 0.08);
-            border-color: var(--primary);
+            border-color: var(--accent-blue);
         }
         
         .btn-primary {
-            background: var(--primary);
+            background: var(--accent-blue);
             color: white;
             border: none;
             border-radius: 10px;
@@ -286,23 +262,6 @@
             padding: 32px;
         }
         
-        /* 主标语区 */
-        .hero-section {
-            margin-bottom: 40px;
-        }
-        
-        .hero-title {
-            font-size: 2.25rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-        }
-        
-        .hero-subtitle {
-            font-size: 1rem;
-            color: var(--text-secondary);
-        }
-        
         /* 统计卡片 */
         .stats-grid {
             display: grid;
@@ -313,7 +272,7 @@
         
         .stat-card {
             background: var(--bg-card);
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-color);
             border-radius: 14px;
             padding: 24px;
             transition: all 0.2s ease;
@@ -386,7 +345,7 @@
         
         .section-link {
             font-size: 0.875rem;
-            color: var(--primary);
+            color: var(--accent-blue);
             text-decoration: none;
             font-weight: 500;
             transition: color 0.2s ease;
@@ -404,7 +363,7 @@
         
         .scenario-card {
             background: var(--bg-card);
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-color);
             border-radius: 14px;
             padding: 28px;
             cursor: pointer;
@@ -450,7 +409,7 @@
         
         .scenario-badge.recommend {
             background: rgba(96, 165, 250, 0.1);
-            color: var(--primary);
+            color: var(--accent-blue);
         }
         
         .scenario-badge.new {
@@ -484,14 +443,14 @@
         
         .scenario-meta {
             font-size: 0.75rem;
-            color: var(--text-tertiary);
+            color: var(--text-muted);
             display: flex;
             gap: 12px;
         }
         
         .scenario-action {
             font-size: 0.875rem;
-            color: var(--primary);
+            color: var(--accent-blue);
             font-weight: 500;
             display: flex;
             align-items: center;
@@ -510,7 +469,7 @@
         
         .recent-table {
             background: var(--bg-card);
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-color);
             border-radius: 14px;
             overflow: hidden;
         }
@@ -520,7 +479,7 @@
             grid-template-columns: 3fr 1.5fr 1.5fr 1fr;
             padding: 16px 24px;
             background: var(--bg-primary);
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--border-color);
             font-size: 0.8rem;
             font-weight: 600;
             color: var(--text-secondary);
@@ -568,7 +527,7 @@
         
         .table-subtitle {
             font-size: 0.75rem;
-            color: var(--text-tertiary);
+            color: var(--text-muted);
         }
         
         .table-value {
@@ -579,7 +538,7 @@
         .table-score {
             font-size: 0.875rem;
             font-weight: 600;
-            color: var(--primary);
+            color: var(--accent-blue);
         }
         
         /* 响应式设计 */
@@ -672,6 +631,8 @@
         }
     </style>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components/sidebar.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="{{ url_for('static', filename='js/dashboard-chart.js') }}"></script>
 {% endblock %}
 {% block body %}
     {% include 'components/sidebar.html' %}
@@ -694,12 +655,9 @@
         
         <!-- 页面内容 -->
         <div class="page-content">
-            <!-- 主标语区 -->
-            <section class="hero-section">
-                <h1 class="hero-title">四大核心模块</h1>
-                <p class="hero-subtitle">从模拟到复盘，全方位提升你的面试能力</p>
-            </section>
-            
+            <!-- 学习数据看板 -->
+            {% include 'components/dashboard.html' %}
+
             <!-- 统计卡片 -->
             <section class="stats-grid">
                 <div class="stat-card">
@@ -740,7 +698,7 @@
             </section>
             
             <!-- 场景卡片 -->
-            <section>
+            <section id="scenarios-section">
                 <div class="section-header">
                     <h2 class="section-title">面试场景</h2>
                     <a href="#" class="section-link">查看全部 →</a>
@@ -932,8 +890,115 @@
 {% block scripts %}
     <script src="{{ url_for('static', filename='js/components/sidebar.js') }}"></script>
     <script>
-        function selectScenario(scenarioId) {
-            window.location.href = `/chat/${scenarioId}`;
+        // ================================================================
+        // 加载学习看板数据
+        // ================================================================
+        var USER_ID = 'anonymous';
+
+        function loadDashboard() {
+            var loadingEl = document.getElementById('dashboardLoading');
+            var contentEl = document.getElementById('dashboardContent');
+            var emptyEl = document.getElementById('dashboardEmpty');
+
+            fetch('/api/user/' + USER_ID + '/dashboard')
+                .then(function (r) { return r.json(); })
+                .then(function (result) {
+                    loadingEl.style.display = 'none';
+
+                    if (!result.success || !result.data) {
+                        emptyEl.style.display = '';
+                        return;
+                    }
+
+                    var data = result.data;
+
+                    // 检查是否有任何练习数据
+                    if (data.total_practices === 0 && data.total_seconds === 0) {
+                        emptyEl.style.display = '';
+                        return;
+                    }
+
+                    // 显示内容
+                    contentEl.style.display = '';
+
+                    // --- 统计卡片 ---
+                    // 时长
+                    var totalMin = Math.round(data.total_seconds / 60);
+                    var hours = Math.floor(totalMin / 60);
+                    var mins = totalMin % 60;
+                    var durationStr = hours > 0
+                        ? hours + ' <span class="unit">小时</span> ' + mins + ' <span class="unit">分钟</span>'
+                        : totalMin + ' <span class="unit">分钟</span>';
+                    document.getElementById('statDuration').innerHTML = durationStr;
+
+                    // 次数
+                    document.getElementById('statCount').innerHTML = data.total_practices + ' <span class="unit">次</span>';
+
+                    // 连续天数
+                    document.getElementById('statStreak').innerHTML = data.streak_days + ' <span class="unit">天</span>';
+
+                    // --- 雷达图 ---
+                    var radarCanvas = document.getElementById('radarChart');
+                    if (data.dimensions && data.dimensions.length > 0) {
+                        if (typeof initRadarChart === 'function') {
+                            initRadarChart(radarCanvas, data.dimensions);
+                        }
+                    } else {
+                        // 无维度数据，显示占位
+                        radarCanvas.parentElement.innerHTML = '<div style="text-align:center;padding:60px 0;color:rgba(255,255,255,0.3);font-size:0.9rem;">暂无维度数据<br><span style="font-size:0.78rem;">完成一次面试后即可查看</span></div>';
+                    }
+
+                    // --- 得分趋势 ---
+                    var trendCanvas = document.getElementById('trendChart');
+                    if (data.recent_scores && data.recent_scores.length >= 2) {
+                        if (typeof initTrendChart === 'function') {
+                            initTrendChart(trendCanvas, data.recent_scores);
+                        }
+                    } else {
+                        trendCanvas.parentElement.innerHTML = '<div style="text-align:center;padding:60px 0;color:rgba(255,255,255,0.3);font-size:0.9rem;">暂无足够数据<br><span style="font-size:0.78rem;">完成 2 次以上练习后显示趋势</span></div>';
+                    }
+
+                    // --- 徽章 ---
+                    var badgeList = document.getElementById('badgeList');
+                    if (data.badges && data.badges.length > 0) {
+                        var badgeHtml = '';
+                        data.badges.forEach(function (b) {
+                            badgeHtml +=
+                                '<div class="dash-badge-item">' +
+                                    '<div class="dash-badge-icon">' + (b.icon || '🎯') + '</div>' +
+                                    '<div class="dash-badge-info">' +
+                                        '<div class="dash-badge-name">' + escapeHtml(b.name || b.id) + '</div>' +
+                                        '<div class="dash-badge-desc">' + escapeHtml(b.description || '') + '</div>' +
+                                    '</div>' +
+                                    '<span class="dash-badge-rarity ' + (b.rarity || 'common') + '">' + (b.rarity || 'common') + '</span>' +
+                                '</div>';
+                        });
+                        badgeList.innerHTML = badgeHtml;
+                    } else {
+                        badgeList.innerHTML = '<div class="dash-badge-empty">完成面试练习解锁成就徽章 🏆</div>';
+                    }
+                })
+                .catch(function (err) {
+                    loadingEl.style.display = 'none';
+                    emptyEl.style.display = '';
+                    console.error('[Dashboard] 加载失败:', err);
+                });
         }
+
+        function escapeHtml(text) {
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function selectScenario(scenarioId) {
+            if (scenarioId === 'ielts_speaking') {
+                window.location.href = '/ielts-chat';
+            } else {
+                window.location.href = '/setup/' + scenarioId;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadDashboard);
     </script>
 {% endblock %}
