@@ -33,6 +33,11 @@ htmlcov/
 .pytest_cache/
 .tox/
 
+# 数据库
+data/
+*.db
+*.sqlite
+
 # 数据文件
 *.json
 *.csv
