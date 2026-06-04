@@ -12,8 +12,8 @@ services:
     # --- 构建命令 ---
     buildCommand: pip install -r requirements.txt
 
-    # --- 启动命令（eventlet worker 支持 WebSocket） ---
-    startCommand: gunicorn -k eventlet -w 1 app:app --bind 0.0.0.0:$PORT --access-logfile - --error-logfile -
+    # --- 启动命令 ---
+    startCommand: gunicorn wsgi:app --bind 0.0.0.0:$PORT --access-logfile - --error-logfile - --timeout 120
 
     # --- 健康检查 ---
     healthCheckPath: /
