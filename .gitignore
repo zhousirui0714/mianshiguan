@@ -42,6 +42,7 @@ data/
 *.json
 *.csv
 *.txt
+!requirements.txt
 
 # 压缩文件
 *.zip
