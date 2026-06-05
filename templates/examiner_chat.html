@@ -60,7 +60,7 @@
             width: 44px;
             height: 44px;
             border-radius: 12px;
-            background: linear-gradient(135deg, var(--accent-blue), #3B82F6);
+            background: var(--accent-gradient);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -95,7 +95,7 @@
         .round-info {
             font-size: 0.85rem;
             color: var(--text-secondary);
-            background: rgba(59, 130, 246, 0.08);
+            background: rgba(125, 211, 252, 0.08);
             padding: 6px 12px;
             border-radius: 8px;
         }
@@ -111,13 +111,13 @@
         }
         
         .btn-primary {
-            background: var(--accent-blue);
+            background: var(--accent-gradient);
             color: white;
         }
-        
+
         .btn-primary:hover {
-            background: var(--accent-blue);
-            box-shadow: 0 0 12px rgba(96, 165, 250, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(125, 211, 252, 0.15);
         }
         
         .btn-secondary {
@@ -127,7 +127,7 @@
         }
         
         .btn-secondary:hover {
-            background: rgba(59, 130, 246, 0.08);
+            background: var(--bg-hover);
         }
         
         /* 消息区域 */
@@ -171,7 +171,7 @@
         }
         
         .message.assistant .message-avatar {
-            background: linear-gradient(135deg, var(--accent-blue), #3B82F6);
+            background: var(--accent-gradient);
         }
         
         .message.user .message-avatar {
@@ -241,7 +241,7 @@
         
         @keyframes typingCursor {
             from, to { border-color: transparent; }
-            50% { border-color: var(--accent-blue); }
+            50% { border-color: #7DD3FC; }
         }
         
         /* 输入区域 */
@@ -274,8 +274,8 @@
         }
         
         textarea:focus {
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+            border-color: #7DD3FC;
+            box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.08);
         }
         
         textarea::placeholder {
@@ -286,7 +286,7 @@
             width: 48px;
             height: 48px;
             border-radius: 12px;
-            background: var(--accent-blue);
+            background: var(--accent-deep);
             color: white;
             border: none;
             cursor: pointer;
@@ -297,10 +297,10 @@
             transition: all 0.2s ease;
             flex-shrink: 0;
         }
-        
+
         .send-btn:hover:not(:disabled) {
-            background: var(--accent-blue);
-            box-shadow: 0 0 12px rgba(96, 165, 250, 0.3);
+            background: var(--accent-deep);
+            box-shadow: 0 4px 16px rgba(56, 189, 248, 0.2);
         }
         
         .send-btn:disabled {
@@ -436,7 +436,7 @@
         
         .dimension-bar-container {
             height: 6px;
-            background: rgba(59, 130, 246, 0.1);
+            background: rgba(125, 211, 252, 0.08);
             border-radius: 3px;
             overflow: hidden;
             margin-bottom: 6px;
@@ -456,7 +456,7 @@
         }
         
         .overall-comment {
-            background: rgba(59, 130, 246, 0.08);
+            background: rgba(125, 211, 252, 0.08);
             border-radius: 10px;
             padding: 16px;
             font-size: 0.9rem;

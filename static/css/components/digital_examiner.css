@@ -234,8 +234,8 @@
 }
 .examiner-info .status.smile { color: #10B981; border-color: rgba(16, 185, 129, 0.2); background: rgba(16, 185, 129, 0.08); }
 .examiner-info .status.thinking { color: #F59E0B; border-color: rgba(245, 158, 11, 0.2); background: rgba(245, 158, 11, 0.08); }
-.examiner-info .status.encouraging { color: #60A5FA; border-color: rgba(96, 165, 250, 0.2); background: rgba(96, 165, 250, 0.08); }
-.examiner-info .status.ending { color: #8B5CF6; border-color: rgba(139, 92, 246, 0.2); background: rgba(139, 92, 246, 0.08); }
+.examiner-info .status.encouraging { color: #7DD3FC; border-color: rgba(125, 211, 252, 0.2); background: rgba(125, 211, 252, 0.08); }
+.examiner-info .status.ending { color: #7DD3FC; border-color: rgba(125, 211, 252, 0.2); background: rgba(125, 211, 252, 0.08); }
 
 /* ========================================
    CSS 占位考官（无图片时的后备方案）

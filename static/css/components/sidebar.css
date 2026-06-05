@@ -1,10 +1,10 @@
-/* ===== 侧边栏组件样式 ===== */
+/* ===== Linear 风格侧边栏 ===== */
 
 .sidebar {
-    width: 260px;
+    width: 240px;
     background: var(--bg-sidebar);
-    border-right: 1px solid var(--border-color);
-    padding: 24px 0;
+    border-right: none;
+    padding: 20px 0;
     display: flex;
     flex-direction: column;
     position: fixed;
@@ -17,58 +17,96 @@
 
 /* 头部 */
 .sidebar-header {
-    padding: 0 24px 24px;
-    border-bottom: 1px solid var(--border-light);
-    margin-bottom: 16px;
+    padding: 0 16px 20px 16px;
+    margin-bottom: 8px;
 }
 
 .logo {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
     background: var(--accent-gradient);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.25rem;
+    font-size: 0.9rem;
+    font-weight: 600;
     margin-bottom: 12px;
+    color: #fff;
+    position: relative;
 }
 
 .brand-name {
-    font-size: 1.125rem;
+    font-size: 0.95rem;
     font-weight: 600;
     color: var(--text-primary);
+    letter-spacing: -0.02em;
 }
 
 /* 导航菜单 */
 .nav-menu {
     flex: 1;
-    padding: 0 12px;
+    padding: 0 8px;
 }
 
 .nav-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 10px 12px;
-    margin-bottom: 4px;
-    border-radius: 10px;
+    gap: 10px;
+    padding: 8px 10px;
+    margin-bottom: 2px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
     color: var(--text-secondary);
     text-decoration: none;
     user-select: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    position: relative;
 }
 
 .nav-item:hover {
-    background: rgba(59, 130, 246, 0.08);
-    color: var(--accent-blue);
+    background: var(--bg-hover);
+    color: var(--text-primary);
 }
 
 .nav-item.active {
-    background: rgba(59, 130, 246, 0.12);
+    background: rgba(90, 180, 255, 0.1);
     color: var(--accent-blue);
-    font-weight: 500;
+}
+
+.nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 18px;
+    border-radius: 0 3px 3px 0;
+    background: var(--accent-blue);
+    box-shadow: 0 0 8px rgba(90, 180, 255, 0.4);
+}
+
+/* Logo 呼吸光动画 */
+.logo {
+    position: relative;
+}
+
+.logo.pulse::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: inherit;
+    background: rgba(90, 180, 255, 0.1);
+    animation: logoPulse 3s ease-in-out infinite;
+    z-index: -1;
+}
+
+@keyframes logoPulse {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.08); }
 }
 
 .nav-icon {
@@ -77,12 +115,16 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1rem;
+    font-size: 0.85rem;
     flex-shrink: 0;
+    opacity: 0.7;
+}
+
+.nav-item.active .nav-icon {
+    opacity: 1;
 }
 
 .nav-label {
-    font-size: 0.9rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -91,9 +133,9 @@
 /* 徽章通知 */
 .badge-notification {
     margin-left: auto;
-    background: var(--accent-red);
-    color: #fff;
-    font-size: 0.65rem;
+    background: var(--accent-blue);
+    color: #08111F;
+    font-size: 0.6rem;
     font-weight: 700;
     min-width: 18px;
     height: 18px;
@@ -107,39 +149,38 @@
 /* 分割线 */
 .sidebar-divider {
     height: 1px;
-    background: var(--border-light);
-    margin: 16px 12px;
+    background: var(--border-color);
+    margin: 12px 10px;
 }
 
 /* 底部用户信息 */
 .sidebar-footer {
-    padding: 0 12px;
+    padding: 12px 8px 16px;
 }
 
 .user-profile {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 10px 12px;
-    border-radius: 10px;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: background 0.2s ease;
+    transition: background 0.15s ease;
 }
 
 .user-profile:hover {
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--bg-hover);
 }
 
 .user-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 9px;
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: var(--bg-hover);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1rem;
+    font-size: 0.8rem;
     flex-shrink: 0;
 }
 
@@ -149,7 +190,7 @@
 }
 
 .user-name {
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     font-weight: 500;
     color: var(--text-primary);
     white-space: nowrap;
@@ -158,23 +199,22 @@
 }
 
 .user-email {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: var(--text-muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-/* ===== 响应式 ===== */
-
+/* 响应式 */
 @media (max-width: 900px) {
     .sidebar {
-        width: 72px;
-        padding: 20px 0;
+        width: 64px;
+        padding: 16px 0;
     }
 
     .sidebar-header {
-        padding: 0 16px 20px;
+        padding: 0 12px 16px;
         text-align: center;
     }
 
@@ -191,20 +231,21 @@
         padding: 10px;
     }
 
+    .nav-item.active::before {
+        display: none;
+    }
+
     .nav-label {
         display: none;
     }
 
     .nav-icon {
-        font-size: 1.2rem;
-    }
-
-    .sidebar-divider {
-        margin: 16px 8px;
+        font-size: 1rem;
+        opacity: 0.8;
     }
 
     .sidebar-footer {
-        padding: 0 16px 20px;
+        padding: 0 8px 12px;
     }
 
     .user-profile {
@@ -216,7 +257,7 @@
     }
 
     .main-content {
-        margin-left: 72px;
+        margin-left: 64px;
     }
 }
 

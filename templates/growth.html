@@ -9,8 +9,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         :root {
-            --primary: #6366F1;
-            --primary-light: rgba(99, 102, 241, 0.1);
+            --primary: #7DD3FC;
+            --primary-light: rgba(125, 211, 252, 0.08);
             --secondary: var(--accent-green);
             --accent: var(--accent-amber);
             --bg: var(--bg-primary);
@@ -91,7 +91,7 @@
             text-decoration: none; transition: all 0.3s;
         }
         .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: #5558E3; }
+        .btn-primary:hover { background: #38BDF8; }
         .btn-outline {
             background: transparent; border: 1px solid var(--border);
             color: var(--text-secondary); margin-left: 8px;
@@ -187,7 +187,7 @@
             'graduate-school': '考研复试', 'mba-interview': 'MBA面试'
         };
         const SCENARIO_COLORS = [
-            '#6366F1', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'
+            '#7DD3FC', '#10B981', '#F59E0B', '#EF4444', '#38BDF8', '#EC4899'
         ];
         const SCENARIOS = Object.keys(SCENARIO_NAMES);
 
@@ -255,10 +255,10 @@
                     datasets: [{
                         label: '平均得分',
                         data: scores,
-                        backgroundColor: 'rgba(99, 102, 241, 0.2)',
-                        borderColor: '#6366F1',
+                        backgroundColor: 'rgba(125, 211, 252, 0.12)',
+                        borderColor: '#7DD3FC',
                         borderWidth: 2,
-                        pointBackgroundColor: '#6366F1',
+                        pointBackgroundColor: '#7DD3FC',
                     }]
                 },
                 options: {
@@ -302,11 +302,11 @@
                     datasets: [{
                         label: '得分趋势',
                         data: allEntries.map(e => e.score),
-                        borderColor: '#6366F1',
-                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        borderColor: '#7DD3FC',
+                        backgroundColor: 'rgba(125, 211, 252, 0.08)',
                         fill: true,
                         tension: 0.3,
-                        pointBackgroundColor: '#6366F1',
+                        pointBackgroundColor: '#7DD3FC',
                         pointRadius: 4,
                     }]
                 },
@@ -385,7 +385,7 @@
                 return;
             }
             const bins = ['<60', '60-69', '70-79', '80-89', '90-100'];
-            const colors = ['#EF4444', '#F59E0B', '#EAB308', '#10B981', '#6366F1'];
+            const colors = ['#EF4444', '#F59E0B', '#EAB308', '#10B981', '#7DD3FC'];
             new Chart(ctx, {
                 type: 'doughnut',
                 data: {

@@ -91,8 +91,8 @@ import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
     var colors = new Float32Array(count * 3);
     var sizes = new Float32Array(count);
 
-    var colorA = new THREE.Color('#6366F1'); // 靛蓝
-    var colorB = new THREE.Color('#8B5CF6'); // 紫色
+    var colorA = new THREE.Color('#7DD3FC'); // 冰川蓝
+    var colorB = new THREE.Color('#38BDF8'); // 深冰川蓝
 
     for (var i = 0; i < count; i++) {
       var radius = 60 + Math.random() * 40;

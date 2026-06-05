@@ -1,23 +1,17 @@
 /* ==========================================
-   effects.css — 高级视觉效果
-   优先级 1: 微光渐变背景（极光呼吸）
-   优先级 2: 卡片悬浮动效
-   优先级 4: 页面转场动画
+   effects.css — 极简视觉效果
+   无霓虹发光，无过度动效
    ========================================== */
 
-/* -------- 减少动效偏好检测 -------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-  .aurora-bg { display: none !important; }
-  .particle-canvas { display: none !important; }
 }
 
 /* ==========================================
-   优先级 1：极光渐变背景
+   背景：柔和径向光晕（替代极光）
    ========================================== */
 .aurora-bg {
   position: fixed;
@@ -30,262 +24,141 @@
 .aurora-layer {
   position: absolute;
   border-radius: 50%;
-  filter: blur(120px);
-  opacity: 0.25;
+  filter: blur(160px);
+  opacity: 0.12;
   will-change: transform;
-  animation: auroraDrift 12s ease-in-out infinite alternate;
+  animation: layerDrift 20s ease-in-out infinite alternate;
 }
 
 .aurora-layer:nth-child(1) {
-  width: 700px;
-  height: 700px;
-  top: -10%;
+  width: 600px;
+  height: 600px;
+  top: -15%;
   left: -5%;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.3), transparent 70%);
-  animation-duration: 14s;
-  animation-delay: 0s;
+  background: radial-gradient(circle, rgba(125, 211, 252, 0.15), transparent 70%);
+  animation-duration: 22s;
 }
 
 .aurora-layer:nth-child(2) {
-  width: 600px;
-  height: 600px;
-  bottom: -15%;
+  width: 500px;
+  height: 500px;
+  bottom: -20%;
   right: -8%;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.25), transparent 70%);
-  animation-duration: 16s;
-  animation-delay: -4s;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.08), transparent 70%);
+  animation-duration: 26s;
+  animation-delay: -6s;
 }
 
 .aurora-layer:nth-child(3) {
-  width: 500px;
-  height: 500px;
+  width: 400px;
+  height: 400px;
   top: 40%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.15), transparent 70%);
-  animation-duration: 18s;
-  animation-delay: -8s;
+  left: 60%;
+  background: radial-gradient(circle, rgba(125, 211, 252, 0.04), transparent 70%);
+  animation-duration: 30s;
+  animation-delay: -12s;
 }
 
 .aurora-layer:nth-child(4) {
-  width: 400px;
-  height: 400px;
-  top: 60%;
-  left: 15%;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.1), transparent 70%);
-  animation-duration: 15s;
-  animation-delay: -2s;
+  display: none;
 }
 
-@keyframes auroraDrift {
+@keyframes layerDrift {
   0%   { transform: translate(0, 0) scale(1); }
-  25%  { transform: translate(40px, -30px) scale(1.05); }
-  50%  { transform: translate(-20px, 20px) scale(0.95); }
-  75%  { transform: translate(30px, 40px) scale(1.02); }
-  100% { transform: translate(-40px, -10px) scale(0.98); }
-}
-
-/* 呼吸脉动叠加在漂移之上 */
-.aurora-layer::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  animation: auroraPulse 6s ease-in-out infinite alternate;
-}
-
-@keyframes auroraPulse {
-  0%   { opacity: 0.6; }
-  100% { opacity: 1; }
+  50%  { transform: translate(20px, -15px) scale(1.02); }
+  100% { transform: translate(-15px, 10px) scale(0.98); }
 }
 
 /* ==========================================
-   优先级 2：卡片悬浮动效
+   卡片悬浮 — 极简
    ========================================== */
 .glass-card,
 .stat-card,
 .chart-card,
-.badge-card,
-.glass-card-hover {
+.badge-card {
   transition:
-    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
-    box-shadow 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
-    border-color 0.25s ease;
+    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.25s ease;
   will-change: transform;
 }
 
 .glass-card:hover,
 .stat-card:hover,
 .chart-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-2px);
   box-shadow:
-    0 12px 48px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(99, 102, 241, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  border-color: rgba(99, 102, 241, 0.25);
+    0 8px 24px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(125, 211, 252, 0.03);
 }
 
-/* 按钮增强悬浮 */
+/* 按钮悬浮 */
 .btn {
   transition:
-    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
-    box-shadow 0.3s ease,
-    background 0.3s ease;
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.2s ease,
+    background 0.2s ease;
 }
 
 .btn:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
-/* 导航链接悬浮 */
+/* 导航 hover */
 .nav-links a,
 .sidebar a {
-  position: relative;
-  transition: color 0.3s ease;
-}
-
-.nav-links a::after,
-.sidebar a::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: linear-gradient(90deg, #6366F1, #8B5CF6);
-  border-radius: 1px;
-  transition: width 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.nav-links a:hover::after,
-.nav-links a.active::after,
-.sidebar a:hover::after,
-.sidebar a.active::after {
-  width: 100%;
+  transition: all 0.15s ease;
 }
 
 /* ==========================================
-   优先级 4：页面转场动画
+   页面转场
    ========================================== */
 .page-wrapper {
-  animation: pageEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: pageEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
   will-change: transform, opacity;
 }
 
 @keyframes pageEnter {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* 内容卡片交错入场 */
+/* 卡片入场 */
 .glass-card,
 .stat-card,
 .chart-card,
 .section-card {
-  animation: cardEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: cardEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
-
-.glass-card:nth-child(1),
-.stat-card:nth-child(1),
-.chart-card:nth-child(1) { animation-delay: 0.05s; }
 
 .glass-card:nth-child(2),
 .stat-card:nth-child(2),
-.chart-card:nth-child(2) { animation-delay: 0.10s; }
-
-.glass-card:nth-child(3) { animation-delay: 0.15s; }
-
-.glass-card:nth-child(4) { animation-delay: 0.20s; }
-
-.glass-card:nth-child(5) { animation-delay: 0.25s; }
-
-.glass-card:nth-child(6) { animation-delay: 0.30s; }
+.chart-card:nth-child(2) { animation-delay: 0.08s; }
+.glass-card:nth-child(3),
+.stat-card:nth-child(3),
+.chart-card:nth-child(3) { animation-delay: 0.15s; }
+.glass-card:nth-child(4) { animation-delay: 0.22s; }
+.glass-card:nth-child(5) { animation-delay: 0.28s; }
+.glass-card:nth-child(6) { animation-delay: 0.34s; }
 
 @keyframes cardEnter {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* 分数圆环微光 */
-.score-circle {
-  position: relative;
-}
-
-.score-circle::after {
-  content: '';
-  position: absolute;
-  inset: -4px;
-  border-radius: 50%;
-  background: conic-gradient(
-    transparent 0deg,
-    rgba(99, 102, 241, 0.15) 120deg,
-    transparent 240deg,
-    transparent 360deg
-  );
-  animation: scoreGlow 4s ease-in-out infinite;
-  z-index: -1;
-}
-
-@keyframes scoreGlow {
-  0%, 100% { opacity: 0.4; transform: scale(1); }
-  50%      { opacity: 0.8; transform: scale(1.08); }
-}
-
-/* 百分比徽章微光 */
-.percentile-badge {
-  position: relative;
-  overflow: hidden;
-}
-
-.percentile-badge::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(99, 102, 241, 0.08) 50%,
-    transparent 100%
-  );
-  animation: shimmer 3s ease-in-out infinite;
-}
-
-@keyframes shimmer {
-  0%   { transform: translateX(-100%); }
-  60%  { transform: translateX(100%); }
-  100% { transform: translateX(100%); }
-}
-
-/* 移动端 - 减少效果 */
+/* 移动端 */
 @media (max-width: 768px) {
-  .aurora-layer {
-    filter: blur(80px);
-    opacity: 0.15;
-  }
+  .aurora-layer { filter: blur(100px); opacity: 0.08; }
   .aurora-layer:nth-child(1) { width: 400px; height: 400px; }
   .aurora-layer:nth-child(2) { width: 350px; height: 350px; }
-  .aurora-layer:nth-child(3) { width: 300px; height: 300px; }
-  .aurora-layer:nth-child(4) { display: none; }
+  .aurora-layer:nth-child(3) { display: none; }
 
   .glass-card:hover,
   .stat-card:hover,
   .chart-card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-1px);
   }
 
   .page-wrapper {
-    animation-duration: 0.35s;
+    animation-duration: 0.3s;
   }
 }

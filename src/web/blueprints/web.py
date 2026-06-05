@@ -7,18 +7,27 @@ from src.web import dependencies as deps
 web_bp = Blueprint('web', __name__)
 
 
+_HOME_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12l9-9 9 9"/><path d="M5 10v9a1 1 0 001 1h3v-5a1 1 0 011-1h2a1 1 0 011 1v5h3a1 1 0 001-1v-9"/></svg>'
+_DOC_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
+_CLOCK_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
+_TREND_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>'
+_EDIT_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'
+_STAR_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>'
+_GEAR_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>'
+_HELP_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+
 SIDEBAR_ITEMS = [
-    {'id': 'home',      'label': '首页',       'icon': '🏠', 'url': '/'},
-    {'id': 'questions', 'label': '题库中心',   'icon': '📚', 'url': '/question-bank'},
-    {'id': 'learning',  'label': '学习计划',   'icon': '📅', 'url': '/learning-plan'},
-    {'id': 'growth',    'label': '成长中心',   'icon': '📈', 'url': '/growth'},
-    {'id': 'mock',      'label': '模拟练习',   'icon': '✍️', 'url': '/mock-exam'},
-    {'id': 'badges',    'label': '成就徽章',   'icon': '🏆', 'url': '/badges'},
+    {'id': 'home',      'label': '首页',       'icon': _HOME_SVG, 'url': '/'},
+    {'id': 'questions', 'label': '题库中心',   'icon': _DOC_SVG, 'url': '/question-bank'},
+    {'id': 'learning',  'label': '学习计划',   'icon': _CLOCK_SVG, 'url': '/learning-plan'},
+    {'id': 'growth',    'label': '成长中心',   'icon': _TREND_SVG, 'url': '/growth'},
+    {'id': 'mock',      'label': '模拟练习',   'icon': _EDIT_SVG, 'url': '/mock-exam'},
+    {'id': 'badges',    'label': '成就徽章',   'icon': _STAR_SVG, 'url': '/badges'},
 ]
 
 SIDEBAR_EXTRA = [
-    {'id': 'settings', 'label': '设置', 'icon': '⚙️', 'url': '#'},
-    {'id': 'help',     'label': '帮助中心', 'icon': '❓', 'url': '#'},
+    {'id': 'settings', 'label': '设置', 'icon': _GEAR_SVG, 'url': '#'},
+    {'id': 'help',     'label': '帮助中心', 'icon': _HELP_SVG, 'url': '#'},
 ]
 
 

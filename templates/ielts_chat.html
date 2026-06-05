@@ -14,8 +14,8 @@
         :root {
             --bg: #0a0e1a;
             --card: rgba(30, 41, 59, 0.85);
-            --primary: #6366F1;
-            --primary-hover: #818CF8;
+            --primary: #7DD3FC;
+            --primary-hover: #38BDF8;
             --text: #E2E8F0;
             --text-dim: #94A3B8;
             --text-muted: #64748B;
@@ -47,9 +47,9 @@
             height: 200%;
             top: -50%;
             left: -50%;
-            background: radial-gradient(ellipse at 20% 50%, rgba(99,102,241,0.08) 0%, transparent 60%),
-                        radial-gradient(ellipse at 80% 20%, rgba(139,92,246,0.06) 0%, transparent 50%),
-                        radial-gradient(ellipse at 50% 80%, rgba(59,130,246,0.04) 0%, transparent 50%);
+            background: radial-gradient(ellipse at 20% 50%, rgba(125, 211, 252, 0.06) 0%, transparent 60%),
+                        radial-gradient(ellipse at 80% 20%, rgba(56, 189, 248, 0.04) 0%, transparent 50%),
+                        radial-gradient(ellipse at 50% 80%, rgba(56, 189, 248, 0.03) 0%, transparent 50%);
             animation: auroraDrift 20s ease-in-out infinite alternate;
         }
         @keyframes auroraDrift {
@@ -110,9 +110,9 @@
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 600;
-            background: rgba(99, 102, 241, 0.15);
+            background: rgba(125, 211, 252, 0.1);
             color: var(--primary);
-            border: 1px solid rgba(99, 102, 241, 0.3);
+            border: 1px solid rgba(125, 211, 252, 0.2);
         }
 
         .timer-display {
@@ -147,7 +147,7 @@
         }
         .btn-primary:hover {
             background: var(--primary-hover);
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 0 20px rgba(125, 211, 252, 0.2);
         }
 
         .btn-danger {
@@ -365,7 +365,7 @@
             line-height: 1.5;
         }
         .history-panel .msg.user {
-            background: rgba(99, 102, 241, 0.1);
+            background: rgba(125, 211, 252, 0.08);
             border-left: 3px solid var(--primary);
         }
         .history-panel .msg.examiner {
@@ -395,7 +395,7 @@
         }
         .part-dot.active {
             background: var(--primary);
-            box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 0 8px rgba(125, 211, 252, 0.3);
         }
         .part-dot.done {
             background: var(--success);

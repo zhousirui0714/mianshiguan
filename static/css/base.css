@@ -1,5 +1,5 @@
-/* ===== 面试成长伴侣 - 公共基础样式 ===== */
-/* 全局主题变量在 theme.css 中定义 */
+/* ===== Apple + Linear 风格 - 公共基础样式 ===== */
+/* 主题变量在 theme.css 中定义 */
 
 *, *::before, *::after {
     margin: 0;
@@ -9,39 +9,56 @@
 
 html {
     scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-    font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    font-family: var(--font-sans);
     background: var(--bg-primary);
     min-height: 100vh;
     color: var(--text-primary);
     overflow-x: hidden;
-    -webkit-font-smoothing: antialiased;
+    font-size: 15px;
+    line-height: 1.6;
+    letter-spacing: 0.01em;
 }
 
 a { text-decoration: none; color: inherit; }
 button { cursor: pointer; border: none; background: none; font: inherit; }
 input, textarea, select { font: inherit; }
 
-/* 通用卡片 */
+/* 标题 — 克制字体权重 */
+h1, h2, h3, h4 {
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+}
+h1 { font-size: 1.75rem; }
+h2 { font-size: 1.35rem; }
+h3 { font-size: 1.15rem; }
+h4 { font-size: 1rem; }
+
+/* 通用卡片 — 无边框，纯阴影 */
 .card {
     background: var(--bg-card);
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
+    border: none;
 }
 
+/* 按钮 — 极简 */
 .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
-    padding: 10px 24px;
+    padding: 8px 20px;
     border-radius: var(--radius-sm);
     font-weight: 500;
     font-size: 14px;
     transition: all 0.2s ease;
+    letter-spacing: 0.01em;
 }
 
 .btn-primary {
@@ -50,16 +67,16 @@ input, textarea, select { font: inherit; }
 }
 .btn-primary:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 16px rgba(125, 211, 252, 0.15);
 }
 
 .btn-secondary {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    background: var(--bg-card);
     color: var(--text-primary);
+    border: 1px solid var(--border-color);
 }
 .btn-secondary:hover {
-    background: var(--bg-sidebar);
+    background: var(--bg-hover);
 }
 
 /* 布局 */
@@ -71,14 +88,22 @@ input, textarea, select { font: inherit; }
 .main-content {
     flex: 1;
     margin-left: 260px;
-    padding: 32px;
+    padding: var(--spacing-xl);
 }
 
 /* 空状态 */
 .empty-state {
     text-align: center;
-    padding: 60px 20px;
+    padding: 80px 20px;
     color: var(--text-muted);
 }
-.empty-state .icon { font-size: 48px; margin-bottom: 16px; }
-.empty-state .title { font-size: 18px; margin-bottom: 8px; color: var(--text-secondary); }
+.empty-state .icon {
+    font-size: 2.5rem;
+    margin-bottom: 16px;
+    opacity: 0.4;
+}
+.empty-state .title {
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+}
