@@ -1,838 +1,941 @@
-{% extends "base.html" %}
-{% block title %}百工模拟考场{% endblock %}
-{% block head %}
-<style>
-    /* ============================================================
-       首页 — Linear/Stripe 融资级 SaaS 风格
-       Dark: #0A0A0A · Glass: #141414 · 1280px centered
-    ============================================================ */
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>百工 — AI 模拟面试平台</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        /* ================================================================
+           百工 — 首页
+           风格参考：Linear / Stripe / Notion
+           配色：浅蓝色调 · 大量留白 · 克制
+        ================================================================ */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
-        display: flex;
-        background: #0A0A0A;
-        --bg-sidebar: #0A0A0A;
-    }
+        :root {
+            --blue-50: #f0f7ff;
+            --blue-100: #e0effe;
+            --blue-200: #b9dffb;
+            --blue-400: #60a5fa;
+            --blue-500: #3b82f6;
+            --blue-600: #2563eb;
+            --blue-700: #1d4ed8;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-900: #111827;
+            --max-w: 1200px;
+        }
 
-    .main-content {
-        flex: 1;
-        margin-left: 240px;
-        min-height: 100vh;
-        background: #0A0A0A;
-    }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #fff;
+            color: var(--gray-700);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        a { text-decoration: none; color: inherit; }
+        img { max-width: 100%; }
 
-    .top-bar {
-        max-width: 1280px;
-        margin: 0 auto;
-        padding: 20px 40px 0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        position: sticky; top: 0; z-index: 50;
-        background: #0A0A0A;
-    }
+        .container {
+            max-width: var(--max-w);
+            margin: 0 auto;
+            padding: 0 32px;
+        }
 
-    .page-content {
-        max-width: 1280px;
-        margin: 0 auto;
-        padding: 32px 40px 80px;
-    }
+        /* ================================================================
+           Nav
+        ================================================================ */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255,255,255,0.80);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--gray-100);
+        }
+        nav .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+        .nav-logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gray-900);
+            letter-spacing: -0.03em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .nav-logo span { color: var(--blue-500); }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            list-style: none;
+        }
+        .nav-links a {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--gray-500);
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--gray-900); }
 
-    .section-gap { margin-bottom: 80px; }
+        .nav-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 20px;
+            background: var(--blue-500);
+            color: #fff !important;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .nav-cta:hover {
+            background: var(--blue-600);
+            transform: translateY(-1px);
+        }
 
-    /* ===== 基础组件 ===== */
-    .glass-card {
-        background: #141414;
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 24px;
-        padding: 32px;
-    }
+        /* ================================================================
+           Sections common
+        ================================================================ */
+        section { padding: 96px 0; }
+        .section-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--blue-500);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        .section-title {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--gray-900);
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+            margin-bottom: 16px;
+        }
+        .section-sub {
+            font-size: 17px;
+            color: var(--gray-400);
+            max-width: 560px;
+            line-height: 1.6;
+        }
+        .section-header {
+            margin-bottom: 64px;
+        }
+        .section-header.centered {
+            text-align: center;
+        }
+        .section-header.centered .section-sub {
+            margin: 0 auto;
+        }
 
-    .section-label {
-        font-size: 12px;
-        font-weight: 600;
-        color: rgba(255,255,255,0.35);
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        margin-bottom: 16px;
-    }
+        hr {
+            border: none;
+            border-top: 1px solid var(--gray-100);
+            max-width: var(--max-w);
+            margin: 0 auto;
+        }
 
-    /* ============================================================
-       1. HERO — 500px 左右分栏
-    ============================================================ */
-    .gh-hero {
-        min-height: 500px;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 60px;
-        align-items: center;
-        position: relative;
-    }
+        /* ================================================================
+           1. Hero
+        ================================================================ */
+        .hero {
+            padding: 120px 0 80px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -320px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 900px;
+            height: 900px;
+            background: radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .hero .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 64px;
+            align-items: center;
+            position: relative;
+        }
+        .hero-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 14px;
+            background: var(--blue-50);
+            border: 1px solid var(--blue-100);
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--blue-600);
+            margin-bottom: 24px;
+        }
+        .hero h1 {
+            font-size: 52px;
+            font-weight: 700;
+            color: var(--gray-900);
+            letter-spacing: -0.04em;
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+        .hero h1 .highlight {
+            color: var(--blue-500);
+        }
+        .hero p {
+            font-size: 18px;
+            color: var(--gray-400);
+            line-height: 1.7;
+            max-width: 480px;
+            margin-bottom: 36px;
+        }
+        .hero-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 32px;
+            background: var(--blue-500);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover {
+            background: var(--blue-600);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59,130,246,0.20);
+        }
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 14px 24px;
+            background: transparent;
+            color: var(--gray-600);
+            border: 1px solid var(--gray-200);
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-secondary:hover {
+            border-color: var(--gray-300);
+            background: var(--gray-50);
+        }
 
-    .gh-hero::before {
-        content: '';
-        position: absolute;
-        top: -160px; left: -80px;
-        width: 700px; height: 700px;
-        background: radial-gradient(circle, rgba(56,189,248,0.06), transparent 60%);
-        pointer-events: none;
-    }
+        .hero-illustration {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .hero-card-mock {
+            width: 100%;
+            padding: 32px;
+            background: #fff;
+            border: 1px solid var(--gray-200);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px -12px rgba(0,0,0,0.08);
+        }
+        .hero-card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+        .hc-scenario {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--blue-500);
+            background: var(--blue-50);
+            padding: 4px 12px;
+            border-radius: 6px;
+        }
+        .hc-score {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+        .hc-score span { color: var(--blue-500); }
+        .hc-question {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--gray-900);
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--gray-100);
+        }
+        .hc-exchange {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .hc-msg {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        .hc-msg-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: var(--blue-100);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 12px;
+            color: var(--blue-600);
+            font-weight: 600;
+        }
+        .hc-msg.user .hc-msg-avatar {
+            background: var(--gray-100);
+            color: var(--gray-500);
+        }
+        .hc-msg-text {
+            font-size: 13px;
+            color: var(--gray-600);
+            line-height: 1.5;
+            padding: 6px 0;
+        }
+        .hc-msg-text .typing {
+            display: inline-flex;
+            gap: 4px;
+        }
+        .hc-msg-text .typing span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--blue-400);
+            animation: typingBounce 1.4s infinite;
+        }
+        .hc-msg-text .typing span:nth-child(2) { animation-delay: 0.2s; }
+        .hc-msg-text .typing span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typingBounce {
+            0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+            30% { opacity: 1; transform: translateY(-4px); }
+        }
 
-    .gh-left {
-        position: relative;
-        z-index: 1;
-    }
+        .hero-badge-row {
+            display: flex;
+            gap: 24px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--gray-100);
+        }
+        .hero-badge-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--gray-400);
+        }
+        .hero-badge-item svg { color: var(--blue-400); flex-shrink: 0; }
 
-    .gh-greeting {
-        font-size: 14px;
-        font-weight: 500;
-        color: rgba(255,255,255,0.4);
-        margin-bottom: 8px;
-    }
+        /* ================================================================
+           2. Scenarios — 支持场景
+        ================================================================ */
+        .scenarios { background: var(--gray-50); }
 
-    .gh-title {
-        font-size: 40px;
-        font-weight: 700;
-        color: #fff;
-        letter-spacing: -0.03em;
-        line-height: 1.15;
-        margin-bottom: 4px;
-    }
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .scenario-card {
+            padding: 28px;
+            background: #fff;
+            border: 1px solid var(--gray-200);
+            border-radius: 16px;
+            transition: all 0.25s;
+            cursor: default;
+        }
+        .scenario-card:hover {
+            border-color: var(--blue-200);
+            box-shadow: 0 8px 30px -8px rgba(59,130,246,0.08);
+            transform: translateY(-2px);
+        }
+        .scenario-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: var(--blue-50);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            color: var(--blue-500);
+        }
+        .scenario-card h3 {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 6px;
+        }
+        .scenario-card p {
+            font-size: 14px;
+            color: var(--gray-400);
+            line-height: 1.6;
+        }
 
-    .gh-sub {
-        font-size: 16px;
-        color: rgba(255,255,255,0.35);
-        font-weight: 400;
-        line-height: 1.5;
-        margin-bottom: 0;
-    }
+        /* ================================================================
+           3. Features — 产品能力
+        ================================================================ */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+        }
+        .feature-item {
+            padding: 8px 0;
+        }
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--blue-50);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            color: var(--blue-500);
+        }
+        .feature-item h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 8px;
+        }
+        .feature-item p {
+            font-size: 14px;
+            color: var(--gray-400);
+            line-height: 1.7;
+        }
 
-    .gh-divider {
-        width: 48px;
-        height: 1px;
-        background: rgba(255,255,255,0.15);
-        margin: 24px 0;
-    }
+        /* ================================================================
+           4. Workflow — 训练流程
+        ================================================================ */
+        .workflow { background: var(--gray-50); }
 
-    .gh-week-stats {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        margin-bottom: 28px;
-    }
+        .workflow-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            counter-reset: step;
+        }
+        .workflow-step {
+            text-align: center;
+            padding: 32px 20px;
+            position: relative;
+        }
+        .workflow-step::after {
+            content: '';
+            position: absolute;
+            top: 48px;
+            right: -16px;
+            width: 32px;
+            height: 2px;
+            background: var(--gray-200);
+        }
+        .workflow-step:last-child::after { display: none; }
+        .workflow-step-num {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--blue-50);
+            color: var(--blue-500);
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .workflow-step h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 8px;
+        }
+        .workflow-step p {
+            font-size: 13px;
+            color: var(--gray-400);
+            line-height: 1.6;
+        }
 
-    .ws-row {
-        font-size: 14px;
-        color: rgba(255,255,255,0.45);
-    }
+        /* ================================================================
+           5. Stats — 数据展示
+        ================================================================ */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 32px;
+        }
+        .stat-item {
+            text-align: center;
+            padding: 40px 16px;
+            border: 1px solid var(--gray-100);
+            border-radius: 16px;
+        }
+        .stat-number {
+            font-size: 44px;
+            font-weight: 700;
+            color: var(--gray-900);
+            letter-spacing: -0.04em;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+        .stat-number .blue { color: var(--blue-500); }
+        .stat-label {
+            font-size: 14px;
+            color: var(--gray-400);
+        }
 
-    .ws-row strong {
-        color: #fff;
-        font-weight: 600;
-    }
+        /* ================================================================
+           6. CTA
+        ================================================================ */
+        .cta-section {
+            padding: 96px 0;
+            text-align: center;
+            background: var(--gray-900);
+            position: relative;
+            overflow: hidden;
+        }
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(59,130,246,0.10) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .cta-section h2 {
+            font-size: 36px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.03em;
+            margin-bottom: 16px;
+        }
+        .cta-section p {
+            font-size: 17px;
+            color: rgba(255,255,255,0.5);
+            max-width: 480px;
+            margin: 0 auto 36px;
+        }
+        .cta-section .btn-primary {
+            background: #fff;
+            color: var(--gray-900);
+            font-size: 16px;
+            padding: 14px 36px;
+        }
+        .cta-section .btn-primary:hover {
+            background: var(--gray-100);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.20);
+        }
 
-    .gh-cta {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 14px 32px;
-        background: #fff;
-        color: #0A0A0A;
-        border: none;
-        border-radius: 12px;
-        font-size: 15px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-decoration: none;
-    }
+        /* ================================================================
+           Footer
+        ================================================================ */
+        footer {
+            padding: 48px 0;
+            border-top: 1px solid var(--gray-100);
+        }
+        footer .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        footer .nav-logo { font-size: 16px; }
+        footer .copyright {
+            font-size: 13px;
+            color: var(--gray-400);
+        }
 
-    .gh-cta:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 20px rgba(255,255,255,0.08);
-    }
+        /* ================================================================
+           Responsive
+        ================================================================ */
+        @media (max-width: 1024px) {
+            .hero .container {
+                grid-template-columns: 1fr;
+                gap: 48px;
+            }
+            .hero h1 { font-size: 42px; }
+            .hero-illustration { max-width: 500px; margin: 0 auto; }
+            .workflow-grid { grid-template-columns: repeat(2, 1fr); }
+            .workflow-step:nth-child(2)::after { display: none; }
+            .workflow-step::after { display: none; }
+        }
+        @media (max-width: 768px) {
+            section { padding: 64px 0; }
+            .container { padding: 0 24px; }
+            .hero { padding: 80px 0 48px; }
+            .hero h1 { font-size: 34px; }
+            .hero p { font-size: 16px; }
+            .hero-actions { flex-direction: column; align-items: stretch; }
+            .section-title { font-size: 28px; }
+            .section-sub { font-size: 15px; }
 
-    /* Hero 右侧 — 雷达图 */
-    .gh-right {
-        position: relative;
-        z-index: 1;
-        background: #141414;
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 24px;
-        padding: 24px;
-        min-height: 340px;
-        display: flex;
-        flex-direction: column;
-    }
+            .scenario-grid,
+            .features-grid { grid-template-columns: 1fr; gap: 16px; }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+            }
+            .stat-number { font-size: 34px; }
+            .workflow-grid { grid-template-columns: 1fr; }
 
-    .gh-chart-label {
-        font-size: 12px;
-        font-weight: 600;
-        color: rgba(255,255,255,0.3);
-        letter-spacing: 0.05em;
-        margin-bottom: 12px;
-    }
+            .nav-links { display: none; }
+            nav .container { height: 56px; }
 
-    .gh-chart-area {
-        flex: 1;
-        min-height: 260px;
-        position: relative;
-    }
+            .cta-section h2 { font-size: 28px; }
+            footer .container { flex-direction: column; gap: 12px; }
+        }
+        @media (max-width: 480px) {
+            .hero h1 { font-size: 28px; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .hero-card-mock { padding: 20px; }
+            .hero-badge-row { flex-wrap: wrap; gap: 12px; }
+        }
+    </style>
+</head>
+<body>
 
-    /* ============================================================
-       2. 最近训练 — Glass card + scenario tabs
-    ============================================================ */
-    .training-card {
-        background: #141414;
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 24px;
-        overflow: hidden;
-    }
+    <!-- ================================================================
+         Navigation
+    ================================================================ -->
+    <nav>
+        <div class="container">
+            <a href="/" class="nav-logo">百<span>工</span></a>
+            <ul class="nav-links">
+                <li><a href="#scenarios">场景</a></li>
+                <li><a href="#features">能力</a></li>
+                <li><a href="#workflow">流程</a></li>
+                <li><a href="#cta" class="nav-cta">开始面试</a></li>
+            </ul>
+        </div>
+    </nav>
 
-    .scenario-tabs {
-        display: flex;
-        gap: 2px;
-        padding: 20px 24px 0;
-        border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-
-    .scenario-tab {
-        padding: 10px 20px 12px;
-        font-size: 13px;
-        font-weight: 500;
-        color: rgba(255,255,255,0.35);
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        transition: all 0.2s;
-        position: relative;
-        border-radius: 8px 8px 0 0;
-    }
-
-    .scenario-tab:hover {
-        color: rgba(255,255,255,0.6);
-        background: rgba(255,255,255,0.03);
-    }
-
-    .scenario-tab.active {
-        color: #fff;
-        background: rgba(255,255,255,0.04);
-    }
-
-    .scenario-tab.active::after {
-        content: '';
-        position: absolute;
-        bottom: -1px;
-        left: 20px;
-        right: 20px;
-        height: 2px;
-        background: var(--accent-blue);
-        border-radius: 2px 2px 0 0;
-    }
-
-    .training-list {
-        padding: 8px 24px;
-    }
-
-    .training-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 16px 0;
-        border-bottom: 1px solid rgba(255,255,255,0.04);
-        cursor: pointer;
-        transition: opacity 0.15s;
-    }
-
-    .training-item:last-child { border-bottom: none; }
-    .training-item:hover { opacity: 0.7; }
-    .training-item.hidden { display: none; }
-
-    .ti-left {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-    }
-
-    .ti-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 10px;
-        background: rgba(255,255,255,0.04);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        color: rgba(255,255,255,0.5);
-    }
-
-    .ti-name {
-        font-size: 14px;
-        font-weight: 500;
-        color: #fff;
-    }
-
-    .ti-meta {
-        font-size: 12px;
-        color: rgba(255,255,255,0.3);
-    }
-
-    .ti-right {
-        text-align: right;
-    }
-
-    .ti-score {
-        font-size: 15px;
-        font-weight: 600;
-        color: var(--accent-blue);
-    }
-
-    .ti-time {
-        font-size: 11px;
-        color: rgba(255,255,255,0.25);
-    }
-
-    .training-empty {
-        text-align: center;
-        padding: 48px 24px;
-        color: rgba(255,255,255,0.25);
-        font-size: 14px;
-    }
-
-    .training-link {
-        display: block;
-        text-align: center;
-        padding: 16px;
-        font-size: 13px;
-        color: rgba(255,255,255,0.3);
-        text-decoration: none;
-        font-weight: 500;
-        transition: color 0.15s;
-        border-top: 1px solid rgba(255,255,255,0.06);
-    }
-
-    .training-link:hover { color: var(--accent-blue); }
-
-    /* ============================================================
-       3. AI成长分析 — Glass card
-    ============================================================ */
-    .analysis-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-    }
-
-    .analysis-chart {
-        min-height: 220px;
-        position: relative;
-    }
-
-    .analysis-insights {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        justify-content: center;
-    }
-
-    .insight-item {
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-    }
-
-    .insight-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: var(--accent-blue);
-        margin-top: 7px;
-        flex-shrink: 0;
-        opacity: 0.5;
-    }
-
-    .insight-text {
-        font-size: 13px;
-        color: rgba(255,255,255,0.55);
-        line-height: 1.6;
-    }
-
-    .insight-text strong {
-        color: rgba(255,255,255,0.8);
-        font-weight: 600;
-    }
-
-    .insight-text .up { color: var(--accent-green); }
-    .insight-text .down { color: var(--accent-red); }
-
-    .analysis-empty {
-        text-align: center;
-        padding: 40px;
-        color: rgba(255,255,255,0.25);
-        font-size: 14px;
-    }
-
-    .analysis-empty .big-icon {
-        font-size: 32px;
-        margin-bottom: 12px;
-        opacity: 0.3;
-    }
-
-    /* ============================================================
-       Loading & Empty
-    ============================================================ */
-    .loading-slim {
-        padding: 60px 0;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    .loading-line {
-        height: 14px;
-        border-radius: 8px;
-        background: rgba(255,255,255,0.04);
-        animation: loadingPulse 1.5s ease-in-out infinite;
-    }
-
-    .loading-line.w40 { width: 40%; }
-    .loading-line.w60 { width: 60%; }
-    .loading-line.w80 { width: 80%; }
-    .loading-line.h32 { height: 32px; }
-    .loading-line.h200 { height: 200px; }
-
-    @keyframes loadingPulse {
-        0%, 100% { opacity: 0.5; }
-        50% { opacity: 0.15; }
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 100px 24px;
-        max-width: 480px;
-        margin: 0 auto;
-    }
-
-    .empty-state-icon { font-size: 40px; margin-bottom: 16px; opacity: 0.3; }
-    .empty-state-title {
-        font-size: 22px;
-        font-weight: 700;
-        color: #fff;
-        margin-bottom: 8px;
-        letter-spacing: -0.02em;
-    }
-    .empty-state-desc {
-        font-size: 14px;
-        color: rgba(255,255,255,0.4);
-        line-height: 1.6;
-        margin-bottom: 28px;
-    }
-    .empty-state .btn-primary {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 12px 28px;
-        background: #fff;
-        color: #0A0A0A;
-        border: none;
-        border-radius: 12px;
-        font-size: 15px;
-        font-weight: 500;
-        cursor: pointer;
-        text-decoration: none;
-        transition: all 0.2s;
-    }
-    .empty-state .btn-primary:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 20px rgba(255,255,255,0.08);
-    }
-
-    /* ============================================================
-       响应式
-    ============================================================ */
-    @media (max-width: 1100px) {
-        .analysis-grid { grid-template-columns: 1fr; }
-    }
-
-    @media (max-width: 900px) {
-        .main-content { margin-left: 64px; }
-        .gh-hero { grid-template-columns: 1fr; gap: 32px; min-height: auto; }
-        .gh-hero::before { left: -40px; }
-        .gh-title { font-size: 32px; }
-        .gh-sub { font-size: 14px; }
-        .gh-right { min-height: 280px; }
-        .page-content { padding: 24px 24px 60px; }
-        .top-bar { padding: 16px 24px 0; }
-        .section-gap { margin-bottom: 60px; }
-        .scenario-tabs { overflow-x: auto; gap: 0; }
-        .scenario-tab { white-space: nowrap; padding: 10px 14px 12px; font-size: 12px; }
-    }
-
-    @media (max-width: 600px) {
-        .sidebar { display: none; }
-        .main-content { margin-left: 0; }
-        .page-content { padding: 20px 16px 48px; }
-        .top-bar { padding: 12px 16px 0; }
-        .gh-title { font-size: 28px; }
-        .glass-card { padding: 20px; border-radius: 20px; }
-        .gh-right { padding: 16px; border-radius: 20px; }
-        .training-list { padding: 4px 16px; }
-        .scenario-tabs { padding: 16px 16px 0; }
-        .section-gap { margin-bottom: 48px; }
-        .analysis-grid { gap: 16px; }
-    }
-</style>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/components/sidebar.css') }}">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="{{ url_for('static', filename='js/dashboard-chart.js') }}"></script>
-{% endblock %}
-{% block body %}
-    {% include 'components/sidebar.html' %}
-
-    <main class="main-content">
-        <header class="top-bar">
-            <div class="top-bar-left"></div>
-            <div class="top-bar-right">
-                <button onclick="window.location.reload()"
-                    style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,0.3);">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+    <!-- ================================================================
+         1. Hero
+    ================================================================ -->
+    <section class="hero" id="hero">
+        <div class="container">
+            <div>
+                <div class="hero-tag">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
                     </svg>
-                </button>
-            </div>
-        </header>
-
-        <div class="page-content">
-
-            <!-- Loading -->
-            <div class="loading-slim" id="pageLoading">
-                <div class="loading-line w40 h32"></div>
-                <div class="loading-line w60"></div>
-                <div class="loading-line w80"></div>
-                <div class="loading-line w60"></div>
-                <div class="loading-line h200" style="margin-top:20px;"></div>
-                <div class="loading-line w40" style="margin-top:20px;"></div>
-                <div class="loading-line w80"></div>
-            </div>
-
-            <!-- Content -->
-            <div id="pageContent" style="display:none;">
-
-                <!-- ============================================================
-                    1. HERO — 500px 左右分栏
-                ============================================================ -->
-                <section class="gh-hero section-gap">
-                    <div class="gh-left">
-                        <h1 class="gh-title">欢迎回来</h1>
-                        <p class="gh-sub" id="ghSub">今天距离理想 Offer 更近一步</p>
-
-                        <div class="gh-divider"></div>
-
-                        <div class="gh-week-stats" id="ghWeekStats">
-                            <div class="ws-row">本周训练 <strong id="wsPractices">0</strong> 次</div>
-                            <div class="ws-row">平均得分 <strong id="wsAvg">--</strong></div>
-                            <div class="ws-row">连续训练 <strong id="wsStreak">0</strong> 天</div>
-                        </div>
-
-                        <button class="gh-cta" id="heroCtaBtn">
-                            继续模拟
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-                            </svg>
-                        </button>
-
-                        <div class="gh-divider" style="margin-top:28px;"></div>
-                    </div>
-
-                    <div class="gh-right">
-                        <div class="gh-chart-label">能力维度</div>
-                        <div class="gh-chart-area">
-                            <canvas id="radarChart"></canvas>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- ============================================================
-                    2. 最近训练 — Glass card + scenario tabs
-                ============================================================ -->
-                <section class="section-gap">
-                    <div class="training-card">
-                        <div class="scenario-tabs" id="scenarioTabs">
-                            <button class="scenario-tab active" data-scenario="all">全部</button>
-                            <button class="scenario-tab" data-scenario="job_interview">求职面试</button>
-                            <button class="scenario-tab" data-scenario="teacher_cert">教师面试</button>
-                            <button class="scenario-tab" data-scenario="ielts_speaking">雅思口语</button>
-                            <button class="scenario-tab" data-scenario="civil_service">公务员面试</button>
-                        </div>
-
-                        <div class="training-list" id="trainingList">
-                            <!-- Timeline items with data-scenario attributes -->
-                            <div class="training-item" data-scenario="job_interview" onclick="selectScenario('job_interview')">
-                                <div class="ti-left">
-                                    <div class="ti-icon">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
-                                    </div>
-                                    <div>
-                                        <div class="ti-name">求职面试模拟</div>
-                                        <div class="ti-meta">5题 · 已完成</div>
-                                    </div>
-                                </div>
-                                <div class="ti-right">
-                                    <div class="ti-score">88分</div>
-                                    <div class="ti-time">10分钟前</div>
-                                </div>
-                            </div>
-
-                            <div class="training-item" data-scenario="teacher_cert" onclick="selectScenario('teacher_cert')">
-                                <div class="ti-left">
-                                    <div class="ti-icon">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-                                    </div>
-                                    <div>
-                                        <div class="ti-name">教资试讲练习</div>
-                                        <div class="ti-meta">3题 · 已完成</div>
-                                    </div>
-                                </div>
-                                <div class="ti-right">
-                                    <div class="ti-score">92分</div>
-                                    <div class="ti-time">1小时前</div>
-                                </div>
-                            </div>
-
-                            <div class="training-item" data-scenario="ielts_speaking" onclick="selectScenario('ielts_speaking')">
-                                <div class="ti-left">
-                                    <div class="ti-icon">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/><line x1="9" y1="10" x2="15" y2="10"/></svg>
-                                    </div>
-                                    <div>
-                                        <div class="ti-name">雅思口语 Part2</div>
-                                        <div class="ti-meta">1题 · 已完成</div>
-                                    </div>
-                                </div>
-                                <div class="ti-right">
-                                    <div class="ti-score">7.5</div>
-                                    <div class="ti-time">3小时前</div>
-                                </div>
-                            </div>
-
-                            <div class="training-item" data-scenario="civil_service" onclick="selectScenario('civil_service')">
-                                <div class="ti-left">
-                                    <div class="ti-icon">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                                    </div>
-                                    <div>
-                                        <div class="ti-name">公务员结构化</div>
-                                        <div class="ti-meta">4题 · 已完成</div>
-                                    </div>
-                                </div>
-                                <div class="ti-right">
-                                    <div class="ti-score">85分</div>
-                                    <div class="ti-time">昨天</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <a href="#" class="training-link">查看全部训练记录 →</a>
-                    </div>
-                </section>
-
-                <!-- ============================================================
-                    3. AI成长分析 — Glass card
-                ============================================================ -->
-                <section class="section-gap">
-                    <div class="glass-card">
-                        <div class="section-label">AI 成长分析</div>
-                        <div class="analysis-grid">
-                            <div class="analysis-chart">
-                                <canvas id="trendChart"></canvas>
-                            </div>
-                            <div class="analysis-insights" id="insightsContainer">
-                                <div class="analysis-empty" id="insightsEmpty">
-                                    <div class="big-icon">📊</div>
-                                    <div>完成 3 次训练后，AI 将为你生成个性化成长分析</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-            </div><!-- /pageContent -->
-
-            <!-- Empty state -->
-            <div class="empty-state" id="pageEmpty" style="display:none;">
-                <div class="empty-state-icon">🎯</div>
-                <div class="empty-state-title">开始你的成长之旅</div>
-                <div class="empty-state-desc">把你的每一次回答，都变成下一次机会</div>
-                <a href="#" class="btn-primary" onclick="selectScenario('job_interview'); return false;">
-                    开始第一次模拟
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-                    </svg>
-                </a>
+                    AI 驱动的模拟面试
+                </div>
+                <h1>
+                    面试不会白练<br>
+                    <span class="highlight">每一次都算数</span>
+                </h1>
+                <p>
+                    覆盖考研复试、公务员、教资、雅思口语、互联网求职。<br>
+                    AI 考官实时提问、评分、反馈，越练越强。
+                </p>
+                <div class="hero-actions">
+                    <a href="{{ url_for('web.register') }}" class="btn-primary">
+                        免费开始
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                        </svg>
+                    </a>
+                    <a href="#scenarios" class="btn-secondary">
+                        查看场景
+                    </a>
+                </div>
             </div>
 
-        </div><!-- /page-content -->
-    </main>
+            <div class="hero-illustration">
+                <div class="hero-card-mock">
+                    <div class="hero-card-top">
+                        <span class="hc-scenario">互联网求职 · 技术面</span>
+                        <span class="hc-score"><span>92</span> 分</span>
+                    </div>
+                    <div class="hc-question">"请描述你在这个项目中遇到的最大技术挑战，以及你是如何解决的。"</div>
+                    <div class="hc-exchange">
+                        <div class="hc-msg user">
+                            <div class="hc-msg-avatar">你</div>
+                            <div class="hc-msg-text">在我之前负责的支付系统中，最大的挑战是分布式事务的一致性问题……</div>
+                        </div>
+                        <div class="hc-msg">
+                            <div class="hc-msg-avatar">AI</div>
+                            <div class="hc-msg-text">
+                                很好的回答。追问一下：如果下游服务超时，你们的降级方案是什么？
+                                <div class="typing" style="margin-top:8px;">
+                                    <span></span><span></span><span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hero-badge-row">
+                        <div class="hero-badge-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                            实时评分
+                        </div>
+                        <div class="hero-badge-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                            逐题反馈
+                        </div>
+                        <div class="hero-badge-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                            个性报告
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-{% endblock %}
-{% block scripts %}
-    <script src="{{ url_for('static', filename='js/components/sidebar.js') }}"></script>
-    <script>
-        // ================================================================
-        // 首页 — 融资级 SaaS
-        // ================================================================
-        var USER_ID = 'anonymous';
+    <hr>
 
-        function loadDashboard() {
-            var loadingEl = document.getElementById('pageLoading');
-            var contentEl = document.getElementById('pageContent');
-            var emptyEl = document.getElementById('pageEmpty');
+    <!-- ================================================================
+         2. Scenarios — 支持场景
+    ================================================================ -->
+    <section class="scenarios" id="scenarios">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">覆盖场景</div>
+                <h2 class="section-title">一种练习，应对所有面试</h2>
+                <p class="section-sub">从校园到职场，从国内到海外，我们覆盖你需要的每一个面试场景。</p>
+            </div>
+            <div class="scenario-grid">
+                <div class="scenario-card">
+                    <div class="scenario-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                    </div>
+                    <h3>求职面试</h3>
+                    <p>互联网大厂技术面、产品面、HR 面全覆盖，AI 模拟真实面试官追问。</p>
+                </div>
+                <div class="scenario-card">
+                    <div class="scenario-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                    </div>
+                    <h3>考研复试</h3>
+                    <p>英语口语、专业课问答、综合面试，还原真实复试流程与评分标准。</p>
+                </div>
+                <div class="scenario-card">
+                    <div class="scenario-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    </div>
+                    <h3>公务员面试</h3>
+                    <p>结构化面试全真模拟，综合分析、组织管理、应急应变等题型专项训练。</p>
+                </div>
+                <div class="scenario-card">
+                    <div class="scenario-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/><line x1="9" y1="10" x2="15" y2="10"/></svg>
+                    </div>
+                    <h3>教资面试</h3>
+                    <p>试讲演练、结构化问答、答辩，AI 从教态、板书、教学设计多维度评估。</p>
+                </div>
+                <div class="scenario-card">
+                    <div class="scenario-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+                    </div>
+                    <h3>雅思口语</h3>
+                    <p>Part 1/2/3 全真模拟，流利度、词汇、语法、发音四大维度精准评分。</p>
+                </div>
+                <div class="scenario-card">
+                    <div class="scenario-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </div>
+                    <h3>MBA 面试</h3>
+                    <p>个人背景评估、管理案例分析、压力面试，帮你讲好商业故事。</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-            fetch('/api/user/' + USER_ID + '/dashboard')
-                .then(function (r) { return r.json(); })
-                .then(function (result) {
-                    loadingEl.style.display = 'none';
+    <hr>
 
-                    if (!result.success || !result.data) {
-                        emptyEl.style.display = '';
-                        return;
-                    }
+    <!-- ================================================================
+         3. Features — 产品能力
+    ================================================================ -->
+    <section id="features">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-label">产品能力</div>
+                <h2 class="section-title">不只是题库，是 AI 面试官</h2>
+                <p class="section-sub">每一次练习都是真实的面试体验，从提问到评分再到反馈，全部由 AI 完成。</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 0110 10c0 5-4 8-10 8-2 0-4-.5-6-1.5L2 22l1.5-4A8.5 8.5 0 012 12 10 10 0 0112 2z"/></svg>
+                    </div>
+                    <h3>AI 智能追问</h3>
+                    <p>不满足于预设问题，AI 会根据你的回答实时追问，模拟真实面试的深度对话。</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    </div>
+                    <h3>即时评分反馈</h3>
+                    <p>每道题提交后立即获得多维评分和文字反馈，告诉你哪里好、哪里需要改进。</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <h3>完整面试报告</h3>
+                    <p>每次模拟结束自动生成多维能力雷达图、强弱项分析、进步趋势和提升建议。</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                    </div>
+                    <h3>个性提升计划</h3>
+                    <p>基于你的历史表现，AI 自动生成薄弱环节的专项训练计划，精准突破瓶颈。</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    </div>
+                    <h3>海量真题库</h3>
+                    <p>持续更新的各行业面经与真题库，覆盖互联网、金融、教育、公务员等多个领域。</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 6l-9.5 9.5-5-5L1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                    </div>
+                    <h3>成长趋势追踪</h3>
+                    <p>分数趋势、练习频率、维度变化一目了然，看得见的进步是最好的动力。</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-                    var data = result.data;
-                    if (data.total_practices === 0 && data.total_seconds === 0) {
-                        emptyEl.style.display = '';
-                        return;
-                    }
+    <hr>
 
-                    contentEl.style.display = '';
+    <!-- ================================================================
+         4. Workflow — 训练流程
+    ================================================================ -->
+    <section class="workflow" id="workflow">
+        <div class="container">
+            <div class="section-header centered">
+                <div class="section-label">训练流程</div>
+                <h2 class="section-title">三步完成一次模拟面试</h2>
+                <p class="section-sub">从选择场景到获取报告，整个过程不超过 30 分钟。</p>
+            </div>
+            <div class="workflow-grid">
+                <div class="workflow-step">
+                    <div class="workflow-step-num">1</div>
+                    <h3>选择场景</h3>
+                    <p>从求职、考研、公务员、教资等场景中选择你的目标，系统自动匹配对应题库和评分标准。</p>
+                </div>
+                <div class="workflow-step">
+                    <div class="workflow-step-num">2</div>
+                    <h3>开始模拟</h3>
+                    <p>AI 面试官逐题提问，你可以选择文字或语音作答，每道题后即时获得评分与反馈。</p>
+                </div>
+                <div class="workflow-step">
+                    <div class="workflow-step-num">3</div>
+                    <h3>获取报告</h3>
+                    <p>面试结束自动生成完整报告，包含分数、维度分析、优劣总结和提升建议。</p>
+                </div>
+                <div class="workflow-step">
+                    <div class="workflow-step-num">4</div>
+                    <h3>持续进步</h3>
+                    <p>多练多总结，趋势图表记录你的成长轨迹，薄弱环节 AI 自动推荐专项训练。</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-                    var practices = data.total_practices;
-                    var scores = data.recent_scores || [];
-                    var dims = data.dimensions || [];
-                    var streak = data.streak_days || 0;
+    <hr>
 
-                    // ===== Hero =====
-                    document.getElementById('wsPractices').textContent = practices;
-                    document.getElementById('wsStreak').textContent = streak;
+    <!-- ================================================================
+         5. Stats — 数据展示
+    ================================================================ -->
+    <section id="stats">
+        <div class="container">
+            <div class="section-header centered">
+                <div class="section-label">数据</div>
+                <h2 class="section-title">用数据说话</h2>
+                <p class="section-sub">每一组数字背后，都是一次真实的进步。</p>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number"><span class="blue">6</span>+</div>
+                    <div class="stat-label">覆盖面试场景</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number"><span class="blue">500</span>+</div>
+                    <div class="stat-label">真题库题目</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number"><span class="blue">4</span> 维</div>
+                    <div class="stat-label">评分维度</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number"><span class="blue">15</span> 分</div>
+                    <div class="stat-label">平均单次训练</div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-                    if (scores.length > 0) {
-                        var sum = 0;
-                        scores.forEach(function (s) { sum += s.score; });
-                        var avg = Math.round(sum / scores.length);
-                        document.getElementById('wsAvg').textContent = avg + '分';
-                    }
+    <hr>
 
-                    // ===== 雷达图 =====
-                    if (typeof initRadarChart === 'function') {
-                        initRadarChart(document.getElementById('radarChart'), dims.length > 0 ? dims : null);
-                    }
+    <!-- ================================================================
+         6. CTA
+    ================================================================ -->
+    <section class="cta-section" id="cta">
+        <h2>开始你的第一次模拟面试</h2>
+        <p>免费注册，立即练习。不用等到面试前才焦虑，现在每一次练习都在为未来加分。</p>
+        <a href="{{ url_for('web.register') }}" class="btn-primary">
+            免费注册
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+            </svg>
+        </a>
+    </section>
 
-                    // ===== AI成长分析 — 趋势图 =====
-                    if (typeof initTrendChart === 'function') {
-                        initTrendChart(document.getElementById('trendChart'), scores.length > 0 ? scores : null);
-                    }
+    <!-- ================================================================
+         Footer
+    ================================================================ -->
+    <footer>
+        <div class="container">
+            <a href="/" class="nav-logo">百<span>工</span></a>
+            <span class="copyright">AI 模拟面试平台</span>
+        </div>
+    </footer>
 
-                    // ===== AI成长分析 — insights =====
-                    renderInsights(dims, scores, practices);
-
-                })
-                .catch(function (err) {
-                    console.error('[Home] 加载失败:', err);
-                    document.getElementById('pageLoading').style.display = 'none';
-                    document.getElementById('pageEmpty').style.display = '';
-                });
-        }
-
-        function renderInsights(dims, scores, practices) {
-            var container = document.getElementById('insightsContainer');
-
-            if (practices < 3) {
-                return; // keep default empty state
-            }
-
-            var items = [];
-
-            // Insight 1: top skill
-            if (dims && dims.length > 0) {
-                var sorted = dims.slice().sort(function (a, b) { return (b.score || 0) - (a.score || 0); });
-                var top = sorted[0];
-                if (top && top.score > 0) {
-                    items.push('你的 <strong>' + top.name + '</strong> 是最强能力维度，得分 <strong class="up">' + top.score + '</strong> 分');
-                }
-                var low = sorted[sorted.length - 1];
-                if (low && low.score > 0 && low !== top) {
-                    items.push('<strong>' + low.name + '</strong> 还有提升空间，针对性练习效果更佳');
-                }
-            }
-
-            // Insight 2: practice count
-            items.push('累计完成 <strong>' + practices + '</strong> 次训练，坚持就是胜利');
-
-            // Insight 3: score trend
-            if (scores.length >= 2) {
-                var last = scores[scores.length - 1].score;
-                var first = scores[0].score;
-                var diff = last - first;
-                if (diff > 0) {
-                    items.push('得分趋势 <strong class="up">上升 ' + diff + ' 分</strong>，继续保持！');
-                } else if (diff < 0) {
-                    items.push('得分趋势 <strong class="down">下降 ' + Math.abs(diff) + ' 分</strong>，建议回顾错题');
-                } else {
-                    items.push('得分保持稳定，尝试挑战更高难度');
-                }
-            }
-
-            // Build HTML
-            var html = '';
-            items.forEach(function (text) {
-                html +=
-                    '<div class="insight-item">' +
-                    '<div class="insight-dot"></div>' +
-                    '<div class="insight-text">' + text + '</div>' +
-                    '</div>';
-            });
-
-            if (html) {
-                container.innerHTML = html;
-            }
-        }
-
-        // ===== Scenario tab switching =====
-        document.addEventListener('DOMContentLoaded', function () {
-            var tabs = document.querySelectorAll('.scenario-tab');
-            tabs.forEach(function (tab) {
-                tab.addEventListener('click', function () {
-                    tabs.forEach(function (t) { t.classList.remove('active'); });
-                    tab.classList.add('active');
-
-                    var scenario = tab.getAttribute('data-scenario');
-                    document.querySelectorAll('.training-item').forEach(function (item) {
-                        if (scenario === 'all' || item.getAttribute('data-scenario') === scenario) {
-                            item.classList.remove('hidden');
-                        } else {
-                            item.classList.add('hidden');
-                        }
-                    });
-                });
-            });
-
-            document.getElementById('heroCtaBtn').addEventListener('click', function () {
-                window.location.href = '/setup/job_interview';
-            });
-
-            loadDashboard();
-        });
-
-        function escapeHtml(text) {
-            var div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        function selectScenario(scenarioId) {
-            if (scenarioId === 'ielts_speaking') {
-                window.location.href = '/ielts-chat';
-            } else {
-                window.location.href = '/setup/' + scenarioId;
-            }
-        }
-    </script>
-{% endblock %}
+</body>
+</html>
