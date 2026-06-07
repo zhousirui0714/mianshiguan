@@ -53,21 +53,21 @@ class DatabaseManager:
         """初始化数据库表"""
         conn = self._get_conn()
         try:
-            conn.executescript(CREATE_TABLES_SQL)
-            conn.commit()
-            # 迁移：添加 report_data 列（兼容旧数据库）
+            # [迁移优先] 先加列再建索引，避免 CREATE INDEX 引用不存在的列报错
             try:
                 conn.execute("ALTER TABLE conversations ADD COLUMN report_data TEXT DEFAULT '{}'")
                 conn.commit()
             except sqlite3.OperationalError:
-                pass  # 列已存在
-            # 迁移：questions 表新增字段
+                pass
             for col in ['company TEXT', 'position TEXT', 'source TEXT', 'year TEXT']:
                 try:
                     conn.execute(f"ALTER TABLE questions ADD COLUMN {col}")
                     conn.commit()
                 except sqlite3.OperationalError:
                     pass
+
+            conn.executescript(CREATE_TABLES_SQL)
+            conn.commit()
         finally:
             conn.close()
 
