@@ -58,12 +58,18 @@ CREATE TABLE IF NOT EXISTS questions (
     question_text TEXT NOT NULL,
     reference_answer TEXT DEFAULT '',
     tags TEXT DEFAULT '[]',
+    company TEXT DEFAULT '',
+    position TEXT DEFAULT '',
+    source TEXT DEFAULT '',
+    year TEXT DEFAULT '',
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_questions_scenario ON questions(scenario_id);
 CREATE INDEX IF NOT EXISTS idx_questions_category ON questions(category);
 CREATE INDEX IF NOT EXISTS idx_questions_difficulty ON questions(difficulty);
+CREATE INDEX IF NOT EXISTS idx_questions_company ON questions(company);
+CREATE INDEX IF NOT EXISTS idx_questions_position ON questions(position);
 
 -- 对话/会话表
 CREATE TABLE IF NOT EXISTS conversations (

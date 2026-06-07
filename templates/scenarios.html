@@ -94,6 +94,7 @@
             font-size: 13px;
             font-weight: 600;
             transition: all 0.2s;
+            cursor: pointer;
         }
         .scenario-card .btn-practice:hover {
             background: var(--blue-600);
@@ -157,7 +158,8 @@
 
             <div class="scenario-grid" id="scenarioGrid">
                 {% for s in scenarios %}
-                <div class="scenario-card" data-category="{{ s.category }}">
+                {% set scenario_url = '/ielts-chat' if s.name_en == 'IELTS Speaking' else '/setup/' + s.id %}
+                <div class="scenario-card" data-category="{{ s.category }}" onclick="window.location.href='{{ scenario_url }}'" style="cursor:pointer;">
                     <div class="scenario-icon">{{ s.icon }}</div>
                     <h2>{{ s.name }}</h2>
                     {% if s.name_en %}<div class="en-name">{{ s.name_en }}</div>{% endif %}
@@ -165,21 +167,12 @@
                     <div class="desc">{{ s.description }}</div>
                     <div class="card-footer">
                         <span class="category-tag">{{ s.category }}</span>
-                        {% if s.name_en == 'IELTS Speaking' %}
-                        <a href="/ielts-chat" class="btn-practice">
-                            开始模拟
+                        <span class="btn-practice" onclick="event.stopPropagation();window.location.href='{{ scenario_url }}'">
+                            {% if s.name_en == 'IELTS Speaking' %}开始练习{% elif s.category == '公职考试' %}开始面试{% else %}开始模拟{% endif %}
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
                             </svg>
-                        </a>
-                        {% else %}
-                        <a href="/setup/{{ s.id }}" class="btn-practice">
-                            开始模拟
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-                            </svg>
-                        </a>
-                        {% endif %}
+                        </span>
                     </div>
                 </div>
                 {% endfor %}

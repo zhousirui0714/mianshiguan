@@ -61,6 +61,13 @@ class DatabaseManager:
                 conn.commit()
             except sqlite3.OperationalError:
                 pass  # 列已存在
+            # 迁移：questions 表新增字段
+            for col in ['company TEXT', 'position TEXT', 'source TEXT', 'year TEXT']:
+                try:
+                    conn.execute(f"ALTER TABLE questions ADD COLUMN {col}")
+                    conn.commit()
+                except sqlite3.OperationalError:
+                    pass
         finally:
             conn.close()
 
@@ -136,7 +143,9 @@ class DatabaseManager:
     # ==================== 题库管理 ====================
 
     def add_question(self, scenario_id: str, category: str, difficulty: int,
-                     question_text: str, reference_answer: str, tags: List[str] = None) -> dict:
+                     question_text: str, reference_answer: str, tags: List[str] = None,
+                     company: str = "", position: str = "", source: str = "",
+                     year: str = "") -> dict:
         conn = self._get_conn()
         try:
             # 检查是否已存在相同问题
@@ -151,10 +160,12 @@ class DatabaseManager:
             now = datetime.now().isoformat()
             conn.execute(
                 "INSERT INTO questions (id, scenario_id, category, difficulty, "
-                "question_text, reference_answer, tags, created_at, updated_at) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "question_text, reference_answer, tags, company, position, "
+                "source, year, created_at, updated_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (qid, scenario_id, category, difficulty, question_text, reference_answer,
-                 json.dumps(tags or [], ensure_ascii=False), now, now)
+                 json.dumps(tags or [], ensure_ascii=False), company, position,
+                 source, year, now, now)
             )
             conn.commit()
             return {"success": True, "question_id": qid}
@@ -162,7 +173,8 @@ class DatabaseManager:
             conn.close()
 
     def get_questions(self, scenario_id: str = None, category: str = None,
-                      difficulty: int = None, keyword: str = None) -> List[dict]:
+                      difficulty: int = None, keyword: str = None,
+                      company: str = None, position: str = None) -> List[dict]:
         conn = self._get_conn()
         try:
             sql = "SELECT * FROM questions WHERE 1=1"
@@ -179,7 +191,13 @@ class DatabaseManager:
             if keyword:
                 sql += " AND (question_text LIKE ? OR reference_answer LIKE ?)"
                 params.extend([f"%{keyword}%", f"%{keyword}%"])
-            sql += " ORDER BY created_at DESC"
+            if company:
+                sql += " AND company LIKE ?"
+                params.append(f"%{company}%")
+            if position:
+                sql += " AND position LIKE ?"
+                params.append(f"%{position}%")
+            sql += " ORDER BY year DESC, created_at DESC"
             rows = conn.execute(sql, params).fetchall()
             # 解析 tags JSON
             for r in rows:
@@ -211,7 +229,8 @@ class DatabaseManager:
                 return {"success": False, "error": "题目不存在"}
 
             allowed = ["scenario_id", "category", "difficulty",
-                       "question_text", "reference_answer", "tags"]
+                       "question_text", "reference_answer", "tags",
+                       "company", "position", "source", "year"]
             updates = {}
             for k, v in kwargs.items():
                 if k in allowed:

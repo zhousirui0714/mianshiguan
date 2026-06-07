@@ -13,10 +13,13 @@ def get_questions():
         category = request.args.get('category')
         difficulty = request.args.get('difficulty', type=int)
         keyword = request.args.get('keyword')
+        company = request.args.get('company')
+        position = request.args.get('position')
 
         questions = deps.db.get_questions(
             scenario_id=scenario, category=category,
-            difficulty=difficulty, keyword=keyword
+            difficulty=difficulty, keyword=keyword,
+            company=company, position=position
         )
         return jsonify({'success': True, 'data': questions})
     except Exception as e:
@@ -46,7 +49,9 @@ def add_question():
         result = deps.db.add_question(
             scenario_id=data['scenario'], category=data['category'],
             difficulty=data['difficulty'], question_text=data['question_text'],
-            reference_answer=data['reference_answer'], tags=data.get('tags', [])
+            reference_answer=data['reference_answer'], tags=data.get('tags', []),
+            company=data.get('company', ''), position=data.get('position', ''),
+            source=data.get('source', ''), year=data.get('year', '')
         )
 
         if result['success']:

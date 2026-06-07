@@ -249,7 +249,6 @@
         }
 
         .answer-box {
-            background: var(--green-500);
             background: var(--gray-50);
             border-radius: 10px;
             padding: 16px;
@@ -258,7 +257,7 @@
         .answer-box .label {
             font-size: 12px;
             font-weight: 600;
-            color: var(--green-500);
+            color: var(--blue-500);
             margin-bottom: 8px;
         }
         .answer-box .content {
@@ -266,6 +265,66 @@
             color: var(--gray-600);
             line-height: 1.6;
             white-space: pre-wrap;
+        }
+
+        /* 题目详情 — 元数据样式 */
+        .detail-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .detail-meta .meta-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .meta-tag.company { background: #e0f2fe; color: #0369a1; }
+        .meta-tag.position { background: #ede9fe; color: #6d28d9; }
+        .meta-tag.source { background: #fef3c7; color: #92400e; }
+        .meta-tag.year { background: #d1fae5; color: #065f46; }
+        .meta-tag.difficulty-label { background: #fce7f3; color: #9d174d; }
+
+        .detail-section {
+            margin-bottom: 20px;
+        }
+        .detail-section .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gray-500);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .detail-section .section-title svg {
+            width: 16px;
+            height: 16px;
+        }
+        .detail-question {
+            font-size: 16px;
+            color: var(--gray-900);
+            line-height: 1.6;
+            font-weight: 500;
+            padding: 16px;
+            background: var(--gray-50);
+            border-radius: 10px;
+        }
+        .detail-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .detail-tags .q-label {
+            padding: 3px 10px;
+            background: var(--gray-50);
+            border-radius: 6px;
+            font-size: 12px;
+            color: var(--gray-500);
         }
 
         @media (max-width: 768px) {
@@ -496,6 +555,7 @@
                 '<div class="q-card-tags">' +
                 '<span class="q-tag scenario">' + (scenarios[q.scenario] || q.scenario) + '</span>' +
                 '<span class="q-tag category">' + q.category + '</span>' +
+                (q.company ? '<span class="q-tag" style="background:#e0f2fe;color:#0369a1;font-size:11px;">' + escapeHtml(q.company) + '</span>' : '') +
                 '</div>' +
                 '<div class="diff-stars">' +
                 Array.from({length: 5}, (_, i) =>
@@ -505,7 +565,9 @@
                 '</div>' +
                 '<div class="q-text">' + escapeHtml(q.question_text || '') + '</div>' +
                 '<div class="q-bottom">' +
-                (q.tags ? q.tags.map(t => '<span class="q-label">#' + t + '</span>').join('') : '') +
+                (q.company ? '<span class="q-label">' + escapeHtml(q.company) + '</span>' : '') +
+                (q.position ? '<span class="q-label">' + escapeHtml(q.position) + '</span>' : '') +
+                (q.year ? '<span class="q-label">' + q.year + '</span>' : '') +
                 '</div>' +
                 '</div>'
             ).join('');
@@ -549,40 +611,53 @@
                 .then(data => {
                     if (data.success) {
                         const q = data.data;
+                        const metaTags = [];
+                        if (q.company) metaTags.push('<span class="meta-tag company">\uD83C\uDFED ' + escapeHtml(q.company) + '</span>');
+                        if (q.position) metaTags.push('<span class="meta-tag position">\uD83D\uDCBC ' + escapeHtml(q.position) + '</span>');
+                        if (q.source) metaTags.push('<span class="meta-tag source">\uD83D\uDCC4 ' + escapeHtml(q.source) + '</span>');
+                        if (q.year) metaTags.push('<span class="meta-tag year">\uD83D\uDCC5 ' + q.year + '</span>');
+                        metaTags.push('<span class="meta-tag difficulty-label">' + '\u2B50'.repeat(q.difficulty) + ' ' + ['','简单','较易','中等','较难','困难'][q.difficulty] + '</span>');
+
                         document.getElementById('detailContent').innerHTML =
-                            '<div class="form-group">' +
-                            '<label class="form-label">场景</label>' +
+                            // Metadata badges
+                            '<div class="detail-meta">' + metaTags.join('') + '</div>' +
+
+                            // Scenario & Category
+                            '<div style="display:flex;gap:8px;margin-bottom:16px;">' +
                             '<span class="q-tag scenario">' + (scenarios[q.scenario] || q.scenario) + '</span>' +
-                            '</div>' +
-                            '<div class="form-group">' +
-                            '<label class="form-label">分类</label>' +
                             '<span class="q-tag category">' + q.category + '</span>' +
                             '</div>' +
-                            '<div class="form-group">' +
-                            '<label class="form-label">难度</label>' +
-                            '<div class="diff-stars">' +
-                            Array.from({length: 5}, (_, i) =>
-                                '<span class="diff-star ' + (i < q.difficulty ? 'filled' : '') + '">★</span>'
-                            ).join('') +
+
+                            // Question text
+                            '<div class="detail-section">' +
+                            '<div class="section-title">' +
+                            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' +
+                            '面试题目</div>' +
+                            '<div class="detail-question">' + escapeHtml(q.question_text) + '</div>' +
                             '</div>' +
-                            '</div>' +
-                            '<div class="form-group">' +
-                            '<label class="form-label">题目内容</label>' +
-                            '<textarea class="form-textarea" readonly>' + escapeHtml(q.question_text) + '</textarea>' +
-                            '</div>' +
-                            '<div class="form-group">' +
+
+                            // Reference answer
+                            '<div class="detail-section">' +
+                            '<div class="section-title">' +
+                            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>' +
+                            '参考答案与评分要点</div>' +
                             '<div class="answer-box">' +
-                            '<div class="label">参考答案</div>' +
                             '<div class="content">' + escapeHtml(q.reference_answer || '暂无参考答案') + '</div>' +
                             '</div>' +
                             '</div>' +
+
+                            // Tags
                             (q.tags && q.tags.length > 0 ?
-                                '<div class="form-group">' +
-                                '<label class="form-label">标签</label>' +
-                                '<div class="q-bottom">' +
-                                q.tags.map(t => '<span class="q-label">#' + t + '</span>').join('') +
+                                '<div class="detail-section">' +
+                                '<div class="section-title">' +
+                                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>' +
+                                '标签</div>' +
+                                '<div class="detail-tags">' +
+                                q.tags.map(t => '<span class="q-label">#' + escapeHtml(t) + '</span>').join('') +
                                 '</div></div>' : ''
                             ) +
+
+                            // Actions
                             '<div class="form-actions">' +
                             '<button class="btn btn-secondary" onclick="closeDetailModal()">关闭</button>' +
                             '<button class="btn btn-primary" onclick="startPractice(\'' + q.id + '\')">开始练习</button>' +
