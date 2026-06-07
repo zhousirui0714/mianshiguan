@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>场景中心 — 百工</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <style>
+        /* ================================================================
+           场景中心
+        ================================================================ */
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+        .scenario-card {
+            background: #fff;
+            border: 1px solid var(--gray-200);
+            border-radius: 20px;
+            padding: 32px;
+            transition: all 0.25s;
+            display: flex;
+            flex-direction: column;
+        }
+        .scenario-card:hover {
+            border-color: var(--blue-200);
+            box-shadow: 0 8px 30px -8px rgba(59,130,246,0.10);
+            transform: translateY(-3px);
+        }
+        .scenario-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: var(--blue-50);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        .scenario-card h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 4px;
+            letter-spacing: -0.02em;
+        }
+        .scenario-card .en-name {
+            font-size: 13px;
+            color: var(--gray-400);
+            font-weight: 400;
+            margin-bottom: 12px;
+        }
+        .scenario-card .tagline {
+            font-size: 14px;
+            color: var(--blue-600);
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        .scenario-card .desc {
+            font-size: 14px;
+            color: var(--gray-400);
+            line-height: 1.6;
+            flex: 1;
+            margin-bottom: 24px;
+        }
+        .scenario-card .card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 20px;
+            border-top: 1px solid var(--gray-100);
+        }
+        .scenario-card .category-tag {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--gray-400);
+            background: var(--gray-50);
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+        .scenario-card .btn-practice {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 20px;
+            background: var(--blue-500);
+            color: #fff;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .scenario-card .btn-practice:hover {
+            background: var(--blue-600);
+            transform: translateY(-1px);
+        }
+
+        /* filters */
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 8px 20px;
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--gray-500);
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-btn:hover {
+            border-color: var(--blue-200);
+            color: var(--blue-600);
+            background: var(--blue-50);
+        }
+        .filter-btn.active {
+            background: var(--blue-500);
+            color: #fff;
+            border-color: var(--blue-500);
+        }
+
+        @media (max-width: 1024px) {
+            .scenario-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 640px) {
+            .scenario-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    {% include 'components/nav.html' %}
+
+    <main>
+        <div class="container">
+            <div class="page-header">
+                <div class="section-label">选择场景</div>
+                <h1>场景中心</h1>
+                <p>选择一个场景，开始你的模拟面试。每个场景都有专属题库和评分标准。</p>
+            </div>
+
+            <div class="filter-bar" id="filterBar">
+                <button class="filter-btn active" data-category="all">全部</button>
+                {% for cat in categories %}
+                <button class="filter-btn" data-category="{{ cat }}">{{ cat }}</button>
+                {% endfor %}
+            </div>
+
+            <div class="scenario-grid" id="scenarioGrid">
+                {% for s in scenarios %}
+                <div class="scenario-card" data-category="{{ s.category }}">
+                    <div class="scenario-icon">{{ s.icon }}</div>
+                    <h2>{{ s.name }}</h2>
+                    {% if s.name_en %}<div class="en-name">{{ s.name_en }}</div>{% endif %}
+                    <div class="tagline">{{ s.tagline }}</div>
+                    <div class="desc">{{ s.description }}</div>
+                    <div class="card-footer">
+                        <span class="category-tag">{{ s.category }}</span>
+                        {% if s.name_en == 'IELTS Speaking' %}
+                        <a href="/ielts-chat" class="btn-practice">
+                            开始模拟
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                            </svg>
+                        </a>
+                        {% else %}
+                        <a href="/setup/{{ s.id }}" class="btn-practice">
+                            开始模拟
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                            </svg>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <a href="/" class="nav-logo">百<span>工</span></a>
+            <span class="copyright">AI 模拟面试平台</span>
+        </div>
+    </footer>
+
+    <script>
+        // 场景分类筛选
+        document.addEventListener('DOMContentLoaded', function() {
+            var filterBar = document.getElementById('filterBar');
+            var cards = document.querySelectorAll('.scenario-card');
+
+            filterBar.addEventListener('click', function(e) {
+                var btn = e.target.closest('.filter-btn');
+                if (!btn) return;
+
+                filterBar.querySelectorAll('.filter-btn').forEach(function(b) {
+                    b.classList.remove('active');
+                });
+                btn.classList.add('active');
+
+                var category = btn.getAttribute('data-category');
+                cards.forEach(function(card) {
+                    if (category === 'all' || card.getAttribute('data-category') === category) {
+                        card.style.display = '';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

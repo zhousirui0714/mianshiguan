@@ -3,180 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>注册 - 面试成长伴侣</title>
-    <link rel="stylesheet" href="/static/css/theme.css">
-    <link rel="stylesheet" href="/static/css/effects.css">
+    <title>注册 — 百工</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
-            --primary: #7DD3FC;
-            --secondary: #10B981;
-            --bg-dark: #0F172A;
-            --bg-card: #1E293B;
-            --text-primary: #F8FAFC;
-            --text-secondary: #94A3B8;
-            --border: #334155;
+            --blue-50: #f0f7ff;
+            --blue-100: #e0effe;
+            --blue-500: #3b82f6;
+            --blue-600: #2563eb;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-900: #111827;
         }
-        
         body {
-            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            background: var(--bg-dark);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--gray-50);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            -webkit-font-smoothing: antialiased;
         }
-        
-        .register-container {
+        .auth-wrap {
             width: 100%;
-            max-width: 420px;
-            padding: 20px;
+            max-width: 400px;
+            padding: 24px;
         }
-        
-        .register-card {
-            background: var(--bg-card);
-            border-radius: 16px;
-            padding: 50px 40px;
-            border: 1px solid var(--border);
-        }
-        
-        .logo {
+        .auth-header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 32px;
         }
-        
-        .logo-icon {
-            font-size: 3rem;
-            margin-bottom: 15px;
+        .auth-header .logo {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--gray-900);
+            letter-spacing: -0.03em;
+            margin-bottom: 8px;
         }
-        
-        .logo h1 {
-            font-size: 1.8rem;
-            margin-bottom: 5px;
+        .auth-header .logo span { color: var(--blue-500); }
+        .auth-header p {
+            font-size: 14px;
+            color: var(--gray-400);
         }
-        
-        .logo p {
-            color: var(--text-secondary);
+        .auth-card {
+            background: #fff;
+            border: 1px solid var(--gray-200);
+            border-radius: 20px;
+            padding: 36px 32px;
         }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
+        .form-group { margin-bottom: 18px; }
         .form-label {
             display: block;
-            margin-bottom: 8px;
+            font-size: 13px;
             font-weight: 600;
-            font-size: 0.95rem;
+            color: var(--gray-700);
+            margin-bottom: 8px;
         }
-        
         .form-input {
             width: 100%;
             padding: 12px 16px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--border);
+            border: 1px solid var(--gray-200);
             border-radius: 10px;
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s;
-        }
-        
-        .form-input:focus {
+            font-size: 15px;
+            font-family: inherit;
+            color: var(--gray-700);
+            background: #fff;
             outline: none;
-            border-color: var(--primary);
-            background: rgba(99, 102, 241, 0.1);
+            transition: border-color 0.2s;
         }
-        
-        .btn-register {
+        .form-input:focus { border-color: var(--blue-500); }
+        .form-input::placeholder { color: var(--gray-400); }
+        .btn-submit {
             width: 100%;
-            padding: 14px;
-            background: var(--primary);
+            padding: 13px;
+            background: var(--blue-500);
+            color: #fff;
             border: none;
             border-radius: 10px;
-            color: white;
-            font-size: 1.1rem;
+            font-size: 15px;
             font-weight: 600;
+            font-family: inherit;
             cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 10px;
+            transition: all 0.2s;
+            margin-top: 4px;
         }
-        
-        .btn-register:hover {
-            background: #38BDF8;
-            transform: translateY(-2px);
+        .btn-submit:hover {
+            background: var(--blue-600);
+            transform: translateY(-1px);
         }
-        
-        .login-link {
+        .auth-footer {
             text-align: center;
-            margin-top: 30px;
-            color: var(--text-secondary);
+            margin-top: 24px;
+            font-size: 14px;
+            color: var(--gray-400);
         }
-        
-        .login-link a {
-            color: var(--primary);
-            text-decoration: none;
+        .auth-footer a {
+            color: var(--blue-500);
             font-weight: 600;
+            text-decoration: none;
         }
-        
-        .login-link a:hover {
-            text-decoration: underline;
-        }
+        .auth-footer a:hover { color: var(--blue-600); }
     </style>
 </head>
 <body>
-<!-- 极光背景 -->
-<div class="aurora-bg">
-  <div class="aurora-layer"></div>
-  <div class="aurora-layer"></div>
-  <div class="aurora-layer"></div>
-  <div class="aurora-layer"></div>
-</div>
-    <div class="register-container">
-        <div class="register-card">
-            <div class="logo">
-                <div class="logo-icon">📚</div>
-                <h1>面试成长伴侣</h1>
-                <p>开启你的面试成长之旅</p>
-            </div>
-            
+    <div class="auth-wrap">
+        <div class="auth-header">
+            <div class="logo">百<span>工</span></div>
+            <p>练一次，胜过背十遍</p>
+        </div>
+        <div class="auth-card">
             <form onsubmit="handleRegister(event)">
                 <div class="form-group">
                     <label class="form-label">姓名</label>
                     <input type="text" class="form-input" placeholder="请输入姓名" required>
                 </div>
-                
                 <div class="form-group">
                     <label class="form-label">邮箱</label>
                     <input type="email" class="form-input" placeholder="请输入邮箱" required>
                 </div>
-                
                 <div class="form-group">
                     <label class="form-label">密码</label>
                     <input type="password" class="form-input" placeholder="请设置密码（至少6位）" required minlength="6">
                 </div>
-                
                 <div class="form-group">
                     <label class="form-label">目标岗位</label>
                     <input type="text" class="form-input" placeholder="例如：前端工程师">
                 </div>
-                
-                <button type="submit" class="btn-register">立即注册</button>
+                <button type="submit" class="btn-submit">立即注册</button>
             </form>
-            
-            <div class="login-link">
+            <div class="auth-footer">
                 已有账号？<a href="/auth/login">立即登录</a>
             </div>
         </div>
     </div>
-    
     <script>
         function handleRegister(event) {
             event.preventDefault();
             alert('注册功能开发中，请使用游客模式体验');
-            window.location.href = '/dashboard';
+            window.location.href = '/scenarios';
         }
     </script>
-    <script src="/static/js/effects.js"></script>
 </body>
 </html>

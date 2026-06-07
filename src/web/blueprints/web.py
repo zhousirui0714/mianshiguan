@@ -18,11 +18,10 @@ _HELP_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke=
 
 SIDEBAR_ITEMS = [
     {'id': 'home',      'label': '首页',       'icon': _HOME_SVG, 'url': '/'},
-    {'id': 'questions', 'label': '题库中心',   'icon': _DOC_SVG, 'url': '/question-bank'},
-    {'id': 'learning',  'label': '学习计划',   'icon': _CLOCK_SVG, 'url': '/learning-plan'},
+    {'id': 'scenarios', 'label': '场景中心',   'icon': _DOC_SVG, 'url': '/scenarios'},
+    {'id': 'practice',  'label': '模拟面试',   'icon': _EDIT_SVG, 'url': '/scenarios'},
+    {'id': 'questions', 'label': '真题题库',   'icon': _DOC_SVG, 'url': '/question-bank'},
     {'id': 'growth',    'label': '成长中心',   'icon': _TREND_SVG, 'url': '/growth'},
-    {'id': 'mock',      'label': '模拟练习',   'icon': _EDIT_SVG, 'url': '/mock-exam'},
-    {'id': 'badges',    'label': '成就徽章',   'icon': _STAR_SVG, 'url': '/badges'},
 ]
 
 SIDEBAR_EXTRA = [
@@ -57,6 +56,17 @@ def badges_page():
 def learning_plan_page():
     return render_template('learning_plan.html',
                            active_page='learning', sidebar_items=SIDEBAR_ITEMS)
+
+
+@web_bp.route('/scenarios')
+def scenarios_page():
+    raw = deps.scenario_manager.scenarios
+    scenarios = []
+    for sid, data in raw.items():
+        data['id'] = sid
+        scenarios.append(data)
+    categories = sorted(set(s.get('category', '') for s in scenarios))
+    return render_template('scenarios.html', scenarios=scenarios, categories=categories)
 
 
 @web_bp.route('/growth')

@@ -3,419 +3,273 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>个人中心 - 面试成长伴侣</title>
-    <link rel="stylesheet" href="/static/css/theme.css">
-    <link rel="stylesheet" href="/static/css/effects.css">
+    <title>个人中心 — 百工</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        :root {
-            --primary: #7DD3FC;
-            --secondary: #10B981;
-            --accent: #F59E0B;
-            --bg-dark: #0F172A;
-            --bg-card: #1E293B;
-            --text-primary: #F8FAFC;
-            --text-secondary: #94A3B8;
-            --border: #334155;
-        }
-        
-        body {
-            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            background: var(--bg-dark);
-            min-height: 100vh;
-            color: var(--text-primary);
-        }
-        
-        .nav-bar {
+        .profile-header {
+            background: #fff;
+            border: 1px solid var(--gray-200);
+            border-radius: 20px;
+            padding: 36px;
+            margin-bottom: 32px;
             display: flex;
-            justify-content: space-between;
+            gap: 36px;
             align-items: center;
-            padding: 20px 40px;
-            background: var(--bg-card);
-            border-bottom: 1px solid var(--border);
         }
-        
-        .logo {
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: var(--primary);
+        .avatar {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            background: var(--blue-50);
+            color: var(--blue-500);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .profile-info { flex: 1; }
+        .profile-info h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 4px;
+        }
+        .profile-info .role {
+            font-size: 14px;
+            color: var(--gray-400);
+            margin-bottom: 20px;
+        }
+        .profile-stats {
+            display: flex;
+            gap: 36px;
+        }
+        .profile-stats .stat {
+            text-align: center;
+        }
+        .profile-stats .stat .val {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--blue-500);
+        }
+        .profile-stats .stat .lbl {
+            font-size: 12px;
+            color: var(--gray-400);
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        .section-card {
+            background: #fff;
+            border: 1px solid var(--gray-200);
+            border-radius: 16px;
+            padding: 28px;
+        }
+        .section-card .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-        
-        .nav-links {
-            display: flex;
-            gap: 20px;
-        }
-        
-        .nav-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-        
-        .nav-links a:hover, .nav-links a.active {
-            color: var(--primary);
-        }
-        
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 40px;
-        }
-        
-        .profile-header {
-            background: var(--bg-card);
-            border-radius: 16px;
-            padding: 40px;
-            border: 1px solid var(--border);
-            margin-bottom: 30px;
-            display: flex;
-            gap: 40px;
-            align-items: center;
-        }
-        
-        .avatar-section {
-            flex-shrink: 0;
-        }
-        
-        .avatar {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            color: white;
-            font-weight: bold;
-        }
-        
-        .profile-info {
-            flex: 1;
-        }
-        
-        .profile-info h1 {
-            font-size: 1.8rem;
-            margin-bottom: 10px;
-        }
-        
-        .profile-info .role {
-            color: var(--text-secondary);
-            margin-bottom: 20px;
-        }
-        
-        .stats-row {
-            display: flex;
-            gap: 40px;
-        }
-        
-        .stat-item {
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--primary);
-        }
-        
-        .stat-label {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-        
-        .content-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-        }
-        
-        .card {
-            background: var(--bg-card);
-            border-radius: 12px;
-            padding: 30px;
-            border: 1px solid var(--border);
-        }
-        
-        .card-title {
-            font-size: 1.2rem;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .info-list {
-            list-style: none;
-        }
-        
+
+        .info-list { list-style: none; }
         .info-item {
-            padding: 15px 0;
-            border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--gray-100);
         }
-        
-        .info-item:last-child {
-            border-bottom: none;
-        }
-        
-        .info-label {
-            color: var(--text-secondary);
-        }
-        
-        .info-value {
-            font-weight: 600;
-        }
-        
-        .ability-list {
-            list-style: none;
-        }
-        
-        .ability-item {
-            margin-bottom: 20px;
-        }
-        
-        .ability-item:last-child {
-            margin-bottom: 0;
-        }
-        
-        .ability-header {
+        .info-item:last-child { border-bottom: none; }
+        .info-item .label { color: var(--gray-400); font-size: 14px; }
+        .info-item .value { color: var(--gray-700); font-size: 14px; font-weight: 500; }
+
+        .skill-item { margin-bottom: 18px; }
+        .skill-item:last-child { margin-bottom: 0; }
+        .skill-header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
+            font-size: 13px;
         }
-        
-        .ability-name {
-            font-weight: 600;
-        }
-        
-        .ability-score {
-            color: var(--primary);
-        }
-        
-        .ability-bar {
+        .skill-header .name { color: var(--gray-600); font-weight: 500; }
+        .skill-header .score { color: var(--blue-500); font-weight: 600; }
+        .skill-bar {
             height: 8px;
-            background: rgba(255,255,255,0.1);
+            background: var(--gray-100);
             border-radius: 4px;
             overflow: hidden;
         }
-        
-        .ability-fill {
+        .skill-fill {
             height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            background: var(--blue-500);
             border-radius: 4px;
             transition: width 0.5s ease;
         }
-        
-        .settings-list {
-            list-style: none;
-        }
-        
+
         .settings-item {
-            padding: 15px 0;
-            border-bottom: 1px solid var(--border);
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--gray-100);
         }
-        
-        .settings-item:last-child {
-            border-bottom: none;
-        }
-        
-        .settings-info {
+        .settings-item:last-child { border-bottom: none; }
+        .settings-left {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
         }
-        
         .settings-icon {
-            width: 40px;
-            height: 40px;
+            width: 36px; height: 36px;
             border-radius: 10px;
-            background: rgba(255,255,255,0.05);
+            background: var(--gray-50);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
+            font-size: 16px;
         }
-        
-        .settings-text h4 {
-            font-size: 1rem;
-            margin-bottom: 3px;
-        }
-        
-        .settings-text p {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-        
+        .settings-text h4 { font-size: 14px; font-weight: 500; color: var(--gray-700); }
+        .settings-text p { font-size: 12px; color: var(--gray-400); }
         .settings-link {
-            color: var(--text-secondary);
+            font-size: 13px;
+            color: var(--gray-400);
             text-decoration: none;
-            font-size: 0.9rem;
         }
-        
-        .settings-link:hover {
-            color: var(--primary);
-        }
-        
+        .settings-link:hover { color: var(--blue-500); }
+
         .btn-logout {
             width: 100%;
-            padding: 14px;
+            padding: 12px;
             background: transparent;
-            border: 1px solid #EF4444;
-            color: #EF4444;
+            border: 1px solid var(--red-500, #ef4444);
+            color: var(--red-500, #ef4444);
             border-radius: 10px;
-            font-size: 1rem;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s;
             margin-top: 20px;
+            font-family: inherit;
         }
-        
         .btn-logout:hover {
-            background: #EF4444;
-            color: white;
+            background: #fef2f2;
         }
-        
+
+        .badge-display {
+            text-align: center;
+            padding: 20px 0;
+        }
+        .badge-display .big-icon { font-size: 48px; margin-bottom: 12px; }
+        .badge-display p { color: var(--gray-400); font-size: 14px; margin-bottom: 16px; }
+
         @media (max-width: 768px) {
-            .container { padding: 20px; }
             .profile-header { flex-direction: column; text-align: center; }
-            .stats-row { justify-content: center; }
+            .profile-stats { justify-content: center; }
             .content-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-<!-- 极光背景 -->
-<div class="aurora-bg">
-  <div class="aurora-layer"></div>
-  <div class="aurora-layer"></div>
-  <div class="aurora-layer"></div>
-  <div class="aurora-layer"></div>
-</div>
-    <nav class="nav-bar">
-        <div class="logo">
-            <span>📚</span>
-            <span>面试成长伴侣</span>
-        </div>
-        <div class="nav-links">
-            <a href="/dashboard">仪表盘</a>
-            <a href="/interviews">面试</a>
-            <a href="/plan">学习计划</a>
-            <a href="/questions">问题库</a>
-            <a href="/profile" class="active">个人中心</a>
-        </div>
-    </nav>
-    
-    <div class="container">
-        <div class="profile-header">
-            <div class="avatar-section">
-                <div class="avatar">{{ user.name.0|upper if user.name else 'U' }}</div>
+    {% include 'components/nav.html' %}
+
+    <main>
+        <div class="container">
+            <div class="page-header">
+                <div class="section-label">个人</div>
+                <h1>个人中心</h1>
             </div>
-            <div class="profile-info">
-                <h1>{{ user.name if user.name else '游客用户' }}</h1>
-                <p class="role">{{ user.current_position if user.current_position else '未设置目标岗位' }}</p>
-                <div class="stats-row">
-                    <div class="stat-item">
-                        <div class="stat-value">{{ user.interview_count if user.interview_count else 0 }}</div>
-                        <div class="stat-label">面试次数</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">{{ user.practice_count if user.practice_count else 0 }}</div>
-                        <div class="stat-label">练习次数</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">{{ user.streak_days if user.streak_days else 0 }}</div>
-                        <div class="stat-label">连续天数</div>
+
+            <div class="profile-header">
+                <div class="avatar">{{ user.name[0] | upper if user.name else 'U' }}</div>
+                <div class="profile-info">
+                    <h1>{{ user.name if user.name else '游客用户' }}</h1>
+                    <div class="role">{{ user.current_position if user.current_position else '未设置目标岗位' }}</div>
+                    <div class="profile-stats">
+                        <div class="stat">
+                            <div class="val">{{ user.interview_count if user.interview_count else 0 }}</div>
+                            <div class="lbl">面试次数</div>
+                        </div>
+                        <div class="stat">
+                            <div class="val">{{ user.practice_count if user.practice_count else 0 }}</div>
+                            <div class="lbl">练习次数</div>
+                        </div>
+                        <div class="stat">
+                            <div class="val">{{ user.streak_days if user.streak_days else 0 }}</div>
+                            <div class="lbl">连续天数</div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="content-grid">
-            <div class="card">
-                <h3 class="card-title">
-                    <span>👤</span> 基本信息
-                </h3>
-                <ul class="info-list">
-                    <li class="info-item">
-                        <span class="info-label">邮箱</span>
-                        <span class="info-value">{{ user.email if user.email else '未设置' }}</span>
-                    </li>
-                    <li class="info-item">
-                        <span class="info-label">目标岗位</span>
-                        <span class="info-value">{{ user.current_position if user.current_position else '未设置' }}</span>
-                    </li>
-                    <li class="info-item">
-                        <span class="info-label">工作年限</span>
-                        <span class="info-value">{{ user.experience_years if user.experience_years else 0 }} 年</span>
-                    </li>
-                    <li class="info-item">
-                        <span class="info-label">注册时间</span>
-                        <span class="info-value">{{ user.created_at[:10] if user.created_at else '今天' }}</span>
-                    </li>
-                </ul>
-            </div>
-            
-            <div class="card">
-                <h3 class="card-title">
-                    <span>📊</span> 能力评估
-                </h3>
-                <ul class="ability-list">
-                    <li class="ability-item">
-                        <div class="ability-header">
-                            <span class="ability-name">技术能力</span>
-                            <span class="ability-score">{{ user.skills.technical if user.skills and user.skills.technical else 0 }}%</span>
+
+            <div class="content-grid">
+                <div class="section-card">
+                    <div class="card-title">基本信息</div>
+                    <ul class="info-list">
+                        <li class="info-item">
+                            <span class="label">邮箱</span>
+                            <span class="value">{{ user.email if user.email else '未设置' }}</span>
+                        </li>
+                        <li class="info-item">
+                            <span class="label">目标岗位</span>
+                            <span class="value">{{ user.current_position if user.current_position else '未设置' }}</span>
+                        </li>
+                        <li class="info-item">
+                            <span class="label">工作年限</span>
+                            <span class="value">{{ user.experience_years if user.experience_years else 0 }} 年</span>
+                        </li>
+                        <li class="info-item">
+                            <span class="label">注册时间</span>
+                            <span class="value">{{ user.created_at[:10] if user.created_at else '今天' }}</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="section-card">
+                    <div class="card-title">能力评估</div>
+                    <div class="skill-item">
+                        <div class="skill-header">
+                            <span class="name">技术能力</span>
+                            <span class="score">{{ user.skills.technical if user.skills and user.skills.technical else 0 }}%</span>
                         </div>
-                        <div class="ability-bar">
-                            <div class="ability-fill" style="width: {{ user.skills.technical if user.skills and user.skills.technical else 0 }}%"></div>
+                        <div class="skill-bar"><div class="skill-fill" style="width:{{ user.skills.technical if user.skills and user.skills.technical else 0 }}%"></div></div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-header">
+                            <span class="name">沟通表达</span>
+                            <span class="score">{{ user.skills.communication if user.skills and user.skills.communication else 0 }}%</span>
                         </div>
-                    </li>
-                    <li class="ability-item">
-                        <div class="ability-header">
-                            <span class="ability-name">沟通表达</span>
-                            <span class="ability-score">{{ user.skills.communication if user.skills and user.skills.communication else 0 }}%</span>
+                        <div class="skill-bar"><div class="skill-fill" style="width:{{ user.skills.communication if user.skills and user.skills.communication else 0 }}%"></div></div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-header">
+                            <span class="name">项目经验</span>
+                            <span class="score">{{ user.skills.projects if user.skills and user.skills.projects else 0 }}%</span>
                         </div>
-                        <div class="ability-bar">
-                            <div class="ability-fill" style="width: {{ user.skills.communication if user.skills and user.skills.communication else 0 }}%"></div>
+                        <div class="skill-bar"><div class="skill-fill" style="width:{{ user.skills.projects if user.skills and user.skills.projects else 0 }}%"></div></div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-header">
+                            <span class="name">应变能力</span>
+                            <span class="score">{{ user.skills.adaptation if user.skills and user.skills.adaptation else 0 }}%</span>
                         </div>
-                    </li>
-                    <li class="ability-item">
-                        <div class="ability-header">
-                            <span class="ability-name">项目经验</span>
-                            <span class="ability-score">{{ user.skills.projects if user.skills and user.skills.projects else 0 }}%</span>
-                        </div>
-                        <div class="ability-bar">
-                            <div class="ability-fill" style="width: {{ user.skills.projects if user.skills and user.skills.projects else 0 }}%"></div>
-                        </div>
-                    </li>
-                    <li class="ability-item">
-                        <div class="ability-header">
-                            <span class="ability-name">应变能力</span>
-                            <span class="ability-score">{{ user.skills.adaptation if user.skills and user.skills.adaptation else 0 }}%</span>
-                        </div>
-                        <div class="ability-bar">
-                            <div class="ability-fill" style="width: {{ user.skills.adaptation if user.skills and user.skills.adaptation else 0 }}%"></div>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-            
-            <div class="card">
-                <h3 class="card-title">
-                    <span>⚙️</span> 设置
-                </h3>
-                <ul class="settings-list">
-                    <li class="settings-item">
-                        <div class="settings-info">
+                        <div class="skill-bar"><div class="skill-fill" style="width:{{ user.skills.adaptation if user.skills and user.skills.adaptation else 0 }}%"></div></div>
+                    </div>
+                </div>
+
+                <div class="section-card">
+                    <div class="card-title">设置</div>
+                    <div class="settings-item">
+                        <div class="settings-left">
                             <div class="settings-icon">🔔</div>
                             <div class="settings-text">
                                 <h4>通知设置</h4>
@@ -423,9 +277,9 @@
                             </div>
                         </div>
                         <a href="#" class="settings-link">设置 →</a>
-                    </li>
-                    <li class="settings-item">
-                        <div class="settings-info">
+                    </div>
+                    <div class="settings-item">
+                        <div class="settings-left">
                             <div class="settings-icon">🔐</div>
                             <div class="settings-text">
                                 <h4>账号安全</h4>
@@ -433,9 +287,9 @@
                             </div>
                         </div>
                         <a href="#" class="settings-link">设置 →</a>
-                    </li>
-                    <li class="settings-item">
-                        <div class="settings-info">
+                    </div>
+                    <div class="settings-item">
+                        <div class="settings-left">
                             <div class="settings-icon">💾</div>
                             <div class="settings-text">
                                 <h4>数据导出</h4>
@@ -443,28 +297,29 @@
                             </div>
                         </div>
                         <a href="#" class="settings-link">导出 →</a>
-                    </li>
-                </ul>
-                <button class="btn-logout" onclick="handleLogout()">退出登录</button>
-            </div>
-            
-            <div class="card">
-                <h3 class="card-title">
-                    <span>🏆</span> 成就徽章
-                </h3>
-                <div style="text-align: center; padding: 20px;">
-                    <div style="font-size: 4rem; margin-bottom: 15px;">🎖️</div>
-                    <p style="color: var(--text-secondary); margin-bottom: 20px;">
-                        已获得 {{ user.badge_count if user.badge_count else 0 }} 个徽章
-                    </p>
-                    <a href="/badges" class="btn" style="background: var(--primary); color: white; padding: 12px 28px; border-radius: 8px; text-decoration: none; display: inline-block;">
-                        查看全部徽章
-                    </a>
+                    </div>
+                    <button class="btn-logout" onclick="handleLogout()">退出登录</button>
+                </div>
+
+                <div class="section-card">
+                    <div class="card-title">成就徽章</div>
+                    <div class="badge-display">
+                        <div class="big-icon">🏆</div>
+                        <p>已获得 {{ user.badge_count if user.badge_count else 0 }} 个徽章</p>
+                        <a href="/badges" class="btn btn-primary">查看全部徽章</a>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <a href="/" class="nav-logo">百<span>工</span></a>
+            <span class="copyright">AI 模拟面试平台</span>
+        </div>
+    </footer>
+
     <script>
         function handleLogout() {
             if (confirm('确定要退出登录吗？')) {
@@ -472,6 +327,5 @@
             }
         }
     </script>
-    <script src="/static/js/effects.js"></script>
 </body>
 </html>

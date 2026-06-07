@@ -3,200 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>登录 - 面试成长伴侣</title>
-    <link rel="stylesheet" href="/static/css/theme.css">
-    <link rel="stylesheet" href="/static/css/effects.css">
+    <title>登录 — 百工</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
-            --primary: #7DD3FC;
-            --secondary: #10B981;
-            --bg-dark: #0F172A;
-            --bg-card: #1E293B;
-            --text-primary: #F8FAFC;
-            --text-secondary: #94A3B8;
-            --border: #334155;
+            --blue-50: #f0f7ff;
+            --blue-100: #e0effe;
+            --blue-500: #3b82f6;
+            --blue-600: #2563eb;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-900: #111827;
         }
-        
         body {
-            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            background: var(--bg-dark);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--gray-50);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            -webkit-font-smoothing: antialiased;
         }
-        
-        .login-container {
+        .auth-wrap {
             width: 100%;
-            max-width: 420px;
-            padding: 20px;
+            max-width: 400px;
+            padding: 24px;
         }
-        
-        .login-card {
-            background: var(--bg-card);
-            border-radius: 16px;
-            padding: 50px 40px;
-            border: 1px solid var(--border);
-        }
-        
-        .logo {
+        .auth-header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 32px;
         }
-        
-        .logo-icon {
-            font-size: 3rem;
-            margin-bottom: 15px;
+        .auth-header .logo {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--gray-900);
+            letter-spacing: -0.03em;
+            margin-bottom: 8px;
         }
-        
-        .logo h1 {
-            font-size: 1.8rem;
-            margin-bottom: 5px;
+        .auth-header .logo span { color: var(--blue-500); }
+        .auth-header p {
+            font-size: 14px;
+            color: var(--gray-400);
         }
-        
-        .logo p {
-            color: var(--text-secondary);
+        .auth-card {
+            background: #fff;
+            border: 1px solid var(--gray-200);
+            border-radius: 20px;
+            padding: 36px 32px;
         }
-        
-        .form-group {
-            margin-bottom: 25px;
-        }
-        
+        .form-group { margin-bottom: 20px; }
         .form-label {
             display: block;
-            margin-bottom: 10px;
+            font-size: 13px;
             font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 8px;
         }
-        
         .form-input {
             width: 100%;
-            padding: 14px 16px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--border);
+            padding: 12px 16px;
+            border: 1px solid var(--gray-200);
             border-radius: 10px;
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s;
-        }
-        
-        .form-input:focus {
+            font-size: 15px;
+            font-family: inherit;
+            color: var(--gray-700);
+            background: #fff;
             outline: none;
-            border-color: var(--primary);
-            background: rgba(99, 102, 241, 0.1);
+            transition: border-color 0.2s;
         }
-        
-        .form-input::placeholder {
-            color: var(--text-secondary);
-        }
-        
-        .btn-login {
+        .form-input:focus { border-color: var(--blue-500); }
+        .form-input::placeholder { color: var(--gray-400); }
+        .btn-submit {
             width: 100%;
-            padding: 14px;
-            background: var(--primary);
+            padding: 13px;
+            background: var(--blue-500);
+            color: #fff;
             border: none;
             border-radius: 10px;
-            color: white;
-            font-size: 1.1rem;
+            font-size: 15px;
             font-weight: 600;
+            font-family: inherit;
             cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 10px;
+            transition: all 0.2s;
+            margin-top: 4px;
         }
-        
-        .btn-login:hover {
-            background: #38BDF8;
-            transform: translateY(-2px);
+        .btn-submit:hover {
+            background: var(--blue-600);
+            transform: translateY(-1px);
         }
-        
-        .divider {
+        .auth-footer {
             text-align: center;
-            margin: 30px 0;
-            color: var(--text-secondary);
-            position: relative;
+            margin-top: 24px;
+            font-size: 14px;
+            color: var(--gray-400);
         }
-        
-        .divider::before, .divider::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            width: 45%;
-            height: 1px;
-            background: var(--border);
-        }
-        
-        .divider::before { left: 0; }
-        .divider::after { right: 0; }
-        
-        .register-link {
-            text-align: center;
-            margin-top: 30px;
-            color: var(--text-secondary);
-        }
-        
-        .register-link a {
-            color: var(--primary);
-            text-decoration: none;
+        .auth-footer a {
+            color: var(--blue-500);
             font-weight: 600;
+            text-decoration: none;
         }
-        
-        .register-link a:hover {
-            text-decoration: underline;
+        .auth-footer a:hover { color: var(--blue-600); }
+        .guest-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 13px;
+            color: var(--gray-400);
+            text-decoration: none;
         }
+        .guest-link:hover { color: var(--gray-500); }
     </style>
 </head>
 <body>
-<!-- 极光背景 -->
-<div class="aurora-bg">
-  <div class="aurora-layer"></div>
-  <div class="aurora-layer"></div>
-  <div class="aurora-layer"></div>
-  <div class="aurora-layer"></div>
-</div>
-    <div class="login-container">
-        <div class="login-card">
-            <div class="logo">
-                <div class="logo-icon">📚</div>
-                <h1>面试成长伴侣</h1>
-                <p>让每一次面试都成为成长的阶梯</p>
-            </div>
-            
+    <div class="auth-wrap">
+        <div class="auth-header">
+            <div class="logo">百<span>工</span></div>
+            <p>练一次，胜过背十遍</p>
+        </div>
+        <div class="auth-card">
             <form onsubmit="handleLogin(event)">
                 <div class="form-group">
                     <label class="form-label">邮箱</label>
                     <input type="email" class="form-input" placeholder="请输入邮箱" required>
                 </div>
-                
                 <div class="form-group">
                     <label class="form-label">密码</label>
                     <input type="password" class="form-input" placeholder="请输入密码" required>
                 </div>
-                
-                <button type="submit" class="btn-login">登录</button>
+                <button type="submit" class="btn-submit">登录</button>
             </form>
-            
-            <div class="divider">或</div>
-            
-            <div class="register-link">
+            <div class="auth-footer">
                 还没有账号？<a href="/auth/register">立即注册</a>
             </div>
-            
-            <div style="text-align: center; margin-top: 30px;">
-                <a href="/dashboard" style="color: var(--text-secondary); text-decoration: none;">
-                    游客模式体验 →
-                </a>
-            </div>
+            <a href="/scenarios" class="guest-link">游客模式体验 →</a>
         </div>
     </div>
-    
     <script>
         function handleLogin(event) {
             event.preventDefault();
             alert('登录功能开发中，请使用游客模式体验');
-            window.location.href = '/dashboard';
+            window.location.href = '/scenarios';
         }
     </script>
-    <script src="/static/js/effects.js"></script>
 </body>
 </html>
