@@ -99,7 +99,7 @@ class LLMToolMixin:
             messages.append({"role": "user", "content": f"{prompt}\n\n{user_input}"})
 
             payload = {
-                "model": "deepseek-chat",
+                "model": "xopqwen36v35b",
                 "messages": messages,
                 "temperature": temperature,
                 "max_tokens": max_tokens,

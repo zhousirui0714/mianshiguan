@@ -16,11 +16,13 @@ def get_questions():
         company = request.args.get('company')
         position = request.args.get('position')
         year = request.args.get('year')
+        source_type = request.args.get('source_type')
 
         questions = deps.db.get_questions(
             scenario_id=scenario, category=category,
             difficulty=difficulty, keyword=keyword,
-            company=company, position=position, year=year
+            company=company, position=position,
+            year=year, source_type=source_type
         )
         return jsonify({'success': True, 'data': questions})
     except Exception as e:
@@ -52,7 +54,8 @@ def add_question():
             difficulty=data['difficulty'], question_text=data['question_text'],
             reference_answer=data['reference_answer'], tags=data.get('tags', []),
             company=data.get('company', ''), position=data.get('position', ''),
-            source=data.get('source', ''), year=data.get('year', '')
+            source=data.get('source', ''), source_type=data.get('source_type', 'ai_generated'),
+            year=data.get('year', '')
         )
 
         if result['success']:
@@ -123,6 +126,11 @@ def get_question_years():
         return jsonify({'success': True, 'data': years})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@questions_bp.route('/questions/source_types')
+def get_source_types():
+    return jsonify({'success': True, 'data': ['real_interview', 'open_source', 'ai_generated']})
 
 
 @questions_bp.route('/questions/tags')

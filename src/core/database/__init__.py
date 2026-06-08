@@ -59,7 +59,8 @@ class DatabaseManager:
                 conn.commit()
             except sqlite3.OperationalError:
                 pass
-            for col in ['company TEXT', 'position TEXT', 'source TEXT', 'year TEXT']:
+            for col in ['company TEXT', 'position TEXT', 'source TEXT', 'year TEXT',
+                         "source_type TEXT DEFAULT 'ai_generated'"]:
                 try:
                     conn.execute(f"ALTER TABLE questions ADD COLUMN {col}")
                     conn.commit()
@@ -145,7 +146,7 @@ class DatabaseManager:
     def add_question(self, scenario_id: str, category: str, difficulty: int,
                      question_text: str, reference_answer: str, tags: List[str] = None,
                      company: str = "", position: str = "", source: str = "",
-                     year: str = "") -> dict:
+                     year: str = "", source_type: str = "ai_generated") -> dict:
         conn = self._get_conn()
         try:
             # 检查是否已存在相同问题
@@ -161,11 +162,11 @@ class DatabaseManager:
             conn.execute(
                 "INSERT INTO questions (id, scenario_id, category, difficulty, "
                 "question_text, reference_answer, tags, company, position, "
-                "source, year, created_at, updated_at) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "source, source_type, year, created_at, updated_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (qid, scenario_id, category, difficulty, question_text, reference_answer,
                  json.dumps(tags or [], ensure_ascii=False), company, position,
-                 source, year, now, now)
+                 source, source_type, year, now, now)
             )
             conn.commit()
             return {"success": True, "question_id": qid}
@@ -175,7 +176,7 @@ class DatabaseManager:
     def get_questions(self, scenario_id: str = None, category: str = None,
                       difficulty: int = None, keyword: str = None,
                       company: str = None, position: str = None,
-                      year: str = None) -> List[dict]:
+                      year: str = None, source_type: str = None) -> List[dict]:
         conn = self._get_conn()
         try:
             sql = "SELECT * FROM questions WHERE 1=1"
@@ -201,6 +202,9 @@ class DatabaseManager:
             if year:
                 sql += " AND year = ?"
                 params.append(year)
+            if source_type:
+                sql += " AND source_type = ?"
+                params.append(source_type)
             sql += " ORDER BY year DESC, created_at DESC"
             rows = conn.execute(sql, params).fetchall()
             # 解析 tags JSON

@@ -1,0 +1,1015 @@
+/* ================================================================
+   百工模拟考场 — 统一面试 UI
+   所有面试场景共用此设计系统
+   ================================================================ */
+
+/* ================================================================
+   三栏布局
+   ================================================================ */
+.interview-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr 280px;
+    min-height: calc(100vh - 64px);
+    max-width: 1440px;
+    margin: 0 auto;
+    background: #F8FAFC;
+}
+
+.interview-left {
+    border-right: 1px solid #E5E7EB;
+    background: #F8FAFC;
+    padding: 24px 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.interview-center {
+    background: #FFFFFF;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.interview-right {
+    border-left: 1px solid #E5E7EB;
+    background: #F8FAFC;
+    padding: 24px 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* ================================================================
+   卡片组件
+   ================================================================ */
+.iv-card {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.iv-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #F1F5F9;
+}
+
+.iv-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1E293B;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ================================================================
+   考官信息 — 左侧
+   ================================================================ */
+.iv-examiner-section {
+    text-align: center;
+    padding: 16px;
+}
+
+.iv-examiner-section .examiner-container {
+    --examiner-width: 100%;
+    width: 100% !important;
+    margin: 0 auto;
+}
+
+.iv-examiner-section #examiner-container .examiner-glass {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+}
+
+.iv-examiner-section #examiner-container .examiner-glass::before {
+    display: none !important;
+}
+
+.iv-examiner-section #examiner-container .examiner-character {
+    max-height: 160px;
+}
+
+.iv-examiner-section #examiner-container .examiner-image img {
+    object-fit: contain;
+    max-height: 140px;
+}
+
+.iv-examiner-section #examiner-container .examiner-info .name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1E293B;
+}
+
+.iv-examiner-section #examiner-container .examiner-info .title {
+    font-size: 13px;
+    color: #64748B;
+    margin-top: 2px;
+}
+
+.iv-examiner-section #examiner-container .examiner-info .status {
+    display: none;
+}
+
+.iv-examiner-section .examiner-avatar-fallback {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3B82F6, #60A5FA);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin: 0 auto 12px;
+}
+
+.iv-examiner-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1E293B;
+    margin-bottom: 2px;
+}
+
+.iv-examiner-title {
+    font-size: 13px;
+    color: #64748B;
+}
+
+/* ================================================================
+   信息行（左侧详情区）
+   ================================================================ */
+.iv-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    font-size: 13px;
+}
+
+.iv-info-row + .iv-info-row {
+    border-top: 1px solid #F1F5F9;
+}
+
+.iv-info-row .label {
+    color: #64748B;
+}
+
+.iv-info-row .value {
+    color: #1E293B;
+    font-weight: 600;
+}
+
+/* ================================================================
+   进度条
+   ================================================================ */
+.iv-progress-bar {
+    width: 100%;
+    height: 6px;
+    background: #F1F5F9;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.iv-progress-bar .fill {
+    height: 100%;
+    background: #3B82F6;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+
+.iv-progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #94A3B8;
+    margin-bottom: 4px;
+}
+
+/* ================================================================
+   顶部栏 — 中间区域
+   ================================================================ */
+.iv-chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    border-bottom: 1px solid #F1F5F9;
+    flex-shrink: 0;
+    background: #FFFFFF;
+}
+
+.iv-chat-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.iv-chat-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1E293B;
+}
+
+.iv-chat-badge {
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #EFF6FF;
+    color: #3B82F6;
+    border: 1px solid #DBEAFE;
+}
+
+.iv-chat-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ================================================================
+   消息区域
+   ================================================================ */
+.iv-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.iv-msg {
+    display: flex;
+    gap: 12px;
+    animation: ivFadeIn 0.3s ease-out;
+}
+
+@keyframes ivFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.iv-msg.assistant {
+    flex-direction: row;
+}
+
+.iv-msg.user {
+    flex-direction: row-reverse;
+}
+
+.iv-msg-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.iv-msg.assistant .iv-msg-avatar {
+    background: linear-gradient(135deg, #3B82F6, #60A5FA);
+}
+
+.iv-msg.user .iv-msg-avatar {
+    background: #F1F5F9;
+    border: 1px solid #E5E7EB;
+}
+
+.iv-msg-bubble {
+    max-width: 70%;
+    padding: 14px 18px;
+    border-radius: 14px;
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+.iv-msg.assistant .iv-msg-bubble {
+    background: #F8FAFC;
+    border: 1px solid #E5E7EB;
+    border-radius: 0 14px 14px 14px;
+    color: #1E293B;
+}
+
+.iv-msg.user .iv-msg-bubble {
+    background: #3B82F6;
+    color: #FFFFFF;
+    border-radius: 14px 0 14px 14px;
+}
+
+.iv-msg-bubble p {
+    margin: 0;
+    white-space: pre-wrap;
+}
+
+/* ================================================================
+   输入区域
+   ================================================================ */
+.iv-input-area {
+    padding: 16px 24px;
+    border-top: 1px solid #F1F5F9;
+    background: #FFFFFF;
+    flex-shrink: 0;
+}
+
+.iv-input-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.iv-input {
+    flex: 1;
+    min-height: 52px;
+    max-height: 150px;
+    padding: 14px 18px;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: none;
+    background: #F8FAFC;
+    color: #1E293B;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.iv-input:focus {
+    border-color: #3B82F6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.iv-input::placeholder {
+    color: #94A3B8;
+}
+
+/* ================================================================
+   按钮系统
+   ================================================================ */
+.iv-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 22px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.iv-btn-primary {
+    background: #3B82F6;
+    color: #FFFFFF;
+}
+
+.iv-btn-primary:hover {
+    background: #2563EB;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    transform: translateY(-1px);
+}
+
+.iv-btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.iv-btn-secondary {
+    background: #FFFFFF;
+    color: #64748B;
+    border: 1px solid #E5E7EB;
+}
+
+.iv-btn-secondary:hover {
+    background: #F8FAFC;
+    border-color: #CBD5E1;
+}
+
+.iv-btn-danger {
+    background: #FEF2F2;
+    color: #EF4444;
+    border: 1px solid #FECACA;
+}
+
+.iv-btn-danger:hover {
+    background: #FEE2E2;
+}
+
+.iv-btn-ghost {
+    background: transparent;
+    color: #64748B;
+}
+
+.iv-btn-ghost:hover {
+    background: #F1F5F9;
+}
+
+.iv-btn-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    padding: 0;
+    font-size: 1.1rem;
+}
+
+.iv-btn-send {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #3B82F6;
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.iv-btn-send:hover:not(:disabled) {
+    background: #2563EB;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.iv-btn-send:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ================================================================
+   右侧 — 评分区域
+   ================================================================ */
+.iv-score-display {
+    text-align: center;
+    padding: 16px;
+}
+
+.iv-score-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #3B82F6;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.iv-score-label {
+    font-size: 13px;
+    color: #64748B;
+}
+
+.iv-score-empty {
+    text-align: center;
+    padding: 24px 16px;
+    color: #94A3B8;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+/* 维度评分 */
+.iv-dimension {
+    margin-bottom: 14px;
+}
+
+.iv-dimension:last-child {
+    margin-bottom: 0;
+}
+
+.iv-dimension-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.iv-dimension-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1E293B;
+}
+
+.iv-dimension-score {
+    font-size: 13px;
+    font-weight: 600;
+    color: #3B82F6;
+}
+
+.iv-dimension-bar {
+    height: 6px;
+    background: #F1F5F9;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.iv-dimension-bar .fill {
+    height: 100%;
+    background: #3B82F6;
+    border-radius: 3px;
+    transition: width 0.5s ease-out;
+}
+
+/* ================================================================
+   状态标签
+   ================================================================ */
+.iv-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.iv-badge-blue {
+    background: #EFF6FF;
+    color: #3B82F6;
+    border: 1px solid #DBEAFE;
+}
+
+.iv-badge-green {
+    background: #F0FDF4;
+    color: #16A34A;
+    border: 1px solid #BBF7D0;
+}
+
+.iv-badge-amber {
+    background: #FFFBEB;
+    color: #D97706;
+    border: 1px solid #FDE68A;
+}
+
+.iv-badge-red {
+    background: #FEF2F2;
+    color: #DC2626;
+    border: 1px solid #FECACA;
+}
+
+.iv-badge-gray {
+    background: #F1F5F9;
+    color: #64748B;
+    border: 1px solid #E2E8F0;
+}
+
+/* ================================================================
+   打字指示器
+   ================================================================ */
+.iv-typing {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 14px 18px;
+    background: #F8FAFC;
+    border: 1px solid #E5E7EB;
+    border-radius: 0 14px 14px 14px;
+    width: fit-content;
+}
+
+.iv-typing-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #94A3B8;
+    animation: ivTypingBounce 1.4s infinite ease-in-out;
+}
+
+.iv-typing-dot:nth-child(1) { animation-delay: 0s; }
+.iv-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.iv-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes ivTypingBounce {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+    40% { transform: scale(1); opacity: 1; }
+}
+
+/* ================================================================
+   打字机光标
+   ================================================================ */
+.iv-typewriter {
+    overflow: hidden;
+    border-right: 2px solid #3B82F6;
+    animation: ivCursor 0.7s step-end infinite;
+}
+
+@keyframes ivCursor {
+    from, to { border-color: transparent; }
+    50% { border-color: #3B82F6; }
+}
+
+/* ================================================================
+   模态框
+   ================================================================ */
+.iv-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    animation: ivFadeIn 0.2s ease-out;
+}
+
+.iv-modal {
+    background: #FFFFFF;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.2);
+    animation: ivSlideUp 0.25s ease-out;
+}
+
+@keyframes ivSlideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.iv-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid #F1F5F9;
+    position: sticky;
+    top: 0;
+    background: #FFFFFF;
+}
+
+.iv-modal-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1E293B;
+}
+
+.iv-modal-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: #F1F5F9;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #64748B;
+    transition: background 0.2s;
+}
+
+.iv-modal-close:hover { background: #E2E8F0; }
+
+.iv-modal-body {
+    padding: 24px;
+}
+
+.iv-modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #F1F5F9;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* ================================================================
+   报告内容
+   ================================================================ */
+.iv-report-score {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.iv-report-score .score-num {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: #3B82F6;
+    margin-bottom: 4px;
+}
+
+.iv-report-score .score-label {
+    font-size: 14px;
+    color: #64748B;
+}
+
+.iv-report-section {
+    margin-bottom: 20px;
+}
+
+.iv-report-section .section-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1E293B;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.iv-report-item {
+    padding: 10px 14px;
+    background: #F8FAFC;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    font-size: 14px;
+    color: #475569;
+    line-height: 1.5;
+}
+
+.iv-report-dims {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.iv-report-dim {
+    background: #F8FAFC;
+    border-radius: 10px;
+    padding: 14px;
+}
+
+.iv-report-dim .dim-name {
+    font-size: 13px;
+    color: #64748B;
+    margin-bottom: 8px;
+}
+
+.iv-report-dim .dim-bar {
+    height: 6px;
+    background: #E2E8F0;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.iv-report-dim .dim-bar .fill {
+    height: 100%;
+    background: #3B82F6;
+    border-radius: 3px;
+}
+
+.iv-report-dim .dim-score {
+    font-size: 14px;
+    font-weight: 600;
+    color: #3B82F6;
+}
+
+.iv-report-comment {
+    background: #F8FAFC;
+    border-radius: 10px;
+    padding: 16px;
+    font-size: 14px;
+    color: #475569;
+    line-height: 1.6;
+}
+
+/* ================================================================
+   麦克风按钮 (IELTS)
+   ================================================================ */
+.iv-mic-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 2px solid #E5E7EB;
+    background: #FFFFFF;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+    flex-shrink: 0;
+}
+
+.iv-mic-btn:hover {
+    border-color: #3B82F6;
+    background: #EFF6FF;
+    transform: scale(1.05);
+}
+
+.iv-mic-btn:active { transform: scale(0.95); }
+.iv-mic-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+
+.iv-mic-btn .mic-icon {
+    font-size: 1.3rem;
+    color: #64748B;
+    transition: color 0.25s;
+}
+
+.iv-mic-btn.recording {
+    border-color: #EF4444;
+    background: #FEF2F2;
+}
+
+.iv-mic-btn.recording .mic-icon { color: #EF4444; }
+
+.iv-mic-btn.thinking {
+    border-color: #F59E0B;
+    background: #FFFBEB;
+}
+
+.iv-mic-btn.thinking .mic-icon { color: #F59E0B; }
+
+.iv-mic-label {
+    font-size: 12px;
+    color: #94A3B8;
+    text-align: center;
+    margin-top: 4px;
+}
+
+/* 波形 */
+.iv-waveform {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    height: 28px;
+}
+
+.iv-waveform .bar {
+    width: 3px;
+    border-radius: 2px;
+    background: #3B82F6;
+    height: 3px;
+    transition: height 0.08s ease;
+}
+
+.iv-waveform.idle .bar { height: 3px !important; }
+
+/* Question card (IELTS) */
+.iv-question-card {
+    background: #F8FAFC;
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
+    padding: 18px 22px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.iv-question-card .q-number {
+    font-size: 13px;
+    font-weight: 600;
+    color: #3B82F6;
+    background: #EFF6FF;
+    padding: 3px 10px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.iv-question-card .q-text {
+    font-size: 15px;
+    line-height: 1.5;
+    color: #1E293B;
+    font-weight: 500;
+}
+
+.iv-question-card .q-text.typing {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.iv-question-card .q-text.typing span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #94A3B8;
+    animation: ivDotBounce 1.4s infinite ease-in-out;
+}
+
+.iv-question-card .q-text.typing span:nth-child(2) { animation-delay: 0.2s; }
+.iv-question-card .q-text.typing span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes ivDotBounce {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+}
+
+/* Conversation log */
+.iv-conv-log {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 12px 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.iv-conv-msg {
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.6;
+    animation: ivFadeIn 0.3s ease-out;
+}
+
+.iv-conv-msg.examiner {
+    background: #F8FAFC;
+    border-left: 3px solid #3B82F6;
+    align-self: flex-start;
+    max-width: 85%;
+}
+
+.iv-conv-msg.user {
+    background: #F0FDF4;
+    border-right: 3px solid #10B981;
+    align-self: flex-end;
+    max-width: 85%;
+}
+
+.iv-conv-msg .role-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #94A3B8;
+    margin-bottom: 3px;
+}
+
+.iv-conv-msg.examiner .role-label { color: #3B82F6; }
+.iv-conv-msg.user .role-label { color: #10B981; }
+
+/* IELTS controls row */
+.iv-controls-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+/* ================================================================
+   响应式
+   ================================================================ */
+@media (max-width: 1200px) {
+    .interview-layout {
+        grid-template-columns: 240px 1fr 240px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .interview-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr auto;
+        min-height: calc(100vh - 56px);
+    }
+    .interview-left {
+        border-right: none;
+        border-bottom: 1px solid #E5E7EB;
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding: 16px 16px;
+    }
+    .interview-left .iv-card {
+        flex: 1;
+        min-width: 150px;
+    }
+    .interview-right {
+        border-left: none;
+        border-top: 1px solid #E5E7EB;
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding: 16px 16px;
+    }
+    .interview-right .iv-card {
+        flex: 1;
+        min-width: 150px;
+    }
+    .interview-center {
+        min-height: 50vh;
+    }
+}
+
+@media (max-width: 600px) {
+    .iv-messages { padding: 16px; }
+    .iv-msg-bubble { max-width: 85%; }
+    .iv-input-area { padding: 12px 16px; }
+    .iv-chat-header { padding: 12px 16px; }
+    .iv-report-dims { grid-template-columns: 1fr; }
+    .interview-left,
+    .interview-right {
+        flex-direction: column;
+    }
+    .interview-left .iv-card,
+    .interview-right .iv-card {
+        width: 100%;
+    }
+}

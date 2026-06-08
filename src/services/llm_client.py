@@ -166,7 +166,7 @@ class LLMClient:
         """
         
         payload = {
-            "model": "deepseek-chat",
+            "model": "xopqwen36v35b",
             "messages": [
                 {
                     "role": "system",
@@ -325,7 +325,7 @@ class LLMClient:
         }
         
         payload = {
-            "model": "deepseek-chat",
+            "model": "xopqwen36v35b",
             "messages": messages,
             "temperature": 0.7,
             "max_tokens": 1000
@@ -407,7 +407,7 @@ class LLMClient:
         }
         
         payload = {
-            "model": "deepseek-chat",
+            "model": "xopqwen36v35b",
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"对话历史：\n{conversation_text}"}
@@ -519,7 +519,7 @@ class LLMClient:
         }
 
         payload = {
-            "model": "deepseek-chat",
+            "model": "xopqwen36v35b",
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
@@ -629,7 +629,7 @@ class LLMClient:
         }
 
         payload = {
-            "model": "deepseek-chat",
+            "model": "xopqwen36v35b",
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"请为以下{skill_name}模拟面试生成评估报告：\n\n{qa_text}"}
@@ -752,7 +752,7 @@ class LLMClient:
         }
 
         payload = {
-            "model": "deepseek-chat",
+            "model": "xopqwen36v35b",
             "messages": messages,
             "temperature": 0.7,
             "max_tokens": 1200

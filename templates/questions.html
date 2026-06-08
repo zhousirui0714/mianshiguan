@@ -381,6 +381,12 @@
                     <select class="filter-select" id="yearFilter" onchange="onFilterChange()">
                         <option value="">全部年份</option>
                     </select>
+                    <select class="filter-select" id="sourceTypeFilter" onchange="onFilterChange()">
+                        <option value="">全部来源</option>
+                        <option value="real_interview">面经</option>
+                        <option value="open_source">开源资料</option>
+                        <option value="ai_generated">AI 整理</option>
+                    </select>
                     <div class="diff-stars" id="difficultySelector">
                         <span class="diff-star" data-value="1" onclick="toggleDifficulty(1)">★</span>
                         <span class="diff-star" data-value="2" onclick="toggleDifficulty(2)">★</span>
@@ -466,6 +472,14 @@
                 <div class="form-group">
                     <label class="form-label">参考答案</label>
                     <textarea class="form-textarea" id="addReferenceAnswer" placeholder="请输入参考答案或评分要点..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">来源类型</label>
+                    <select class="form-select" id="addSourceType">
+                        <option value="ai_generated">AI 整理</option>
+                        <option value="real_interview">面经</option>
+                        <option value="open_source">开源资料</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label class="form-label">标签（逗号分隔）</label>
@@ -565,6 +579,7 @@
             const company = document.getElementById('companyFilter').value;
             const position = document.getElementById('positionFilter').value;
             const year = document.getElementById('yearFilter').value;
+            const sourceType = document.getElementById('sourceTypeFilter').value;
             const keyword = document.getElementById('searchInput').value;
 
             let url = '/api/questions';
@@ -574,6 +589,7 @@
             if (company) params.push('company=' + encodeURIComponent(company));
             if (position) params.push('position=' + encodeURIComponent(position));
             if (year) params.push('year=' + encodeURIComponent(year));
+            if (sourceType) params.push('source_type=' + encodeURIComponent(sourceType));
             if (selectedDifficulty) params.push('difficulty=' + selectedDifficulty);
             if (keyword) params.push('keyword=' + encodeURIComponent(keyword));
             if (params.length > 0) url += '?' + params.join('&');
@@ -618,6 +634,7 @@
                 (q.company ? '<span class="q-label">' + escapeHtml(q.company) + '</span>' : '') +
                 (q.position ? '<span class="q-label">' + escapeHtml(q.position) + '</span>' : '') +
                 (q.year ? '<span class="q-label">' + q.year + '</span>' : '') +
+                (q.source_type ? '<span class="q-label" style="background:' + (q.source_type === 'real_interview' ? '#fef3c7;color:#92400e' : q.source_type === 'open_source' ? '#ede9fe;color:#6d28d9' : '#d1fae5;color:#065f46') + '">' + ({'real_interview':'面经','open_source':'开源','ai_generated':'AI'}[q.source_type] || q.source_type) + '</span>' : '') +
                 '</div>' +
                 '</div>'
             ).join('');
@@ -666,6 +683,7 @@
                         if (q.position) metaTags.push('<span class="meta-tag position">\uD83D\uDCBC ' + escapeHtml(q.position) + '</span>');
                         if (q.source) metaTags.push('<span class="meta-tag source">\uD83D\uDCC4 ' + escapeHtml(q.source) + '</span>');
                         if (q.year) metaTags.push('<span class="meta-tag year">\uD83D\uDCC5 ' + q.year + '</span>');
+                        if (q.source_type) metaTags.push('<span class="meta-tag year">\uD83D\uDCC4 ' + ({'real_interview':'面经','open_source':'开源资料','ai_generated':'AI整理'}[q.source_type] || q.source_type) + '</span>');
                         metaTags.push('<span class="meta-tag difficulty-label">' + '\u2B50'.repeat(q.difficulty) + ' ' + ['','简单','较易','中等','较难','困难'][q.difficulty] + '</span>');
 
                         document.getElementById('detailContent').innerHTML =
@@ -742,12 +760,14 @@
             if (!questionText) { alert('请输入题目内容'); return; }
             if (!referenceAnswer) { alert('请输入参考答案'); return; }
             const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(t => t) : [];
+            const sourceType = document.getElementById('addSourceType').value;
             fetch('/api/questions', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     scenario, category, difficulty: addDifficulty,
-                    question_text: questionText, reference_answer: referenceAnswer, tags
+                    question_text: questionText, reference_answer: referenceAnswer, tags,
+                    source_type: sourceType
                 })
             })
             .then(res => res.json())

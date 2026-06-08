@@ -61,6 +61,7 @@ CREATE TABLE IF NOT EXISTS questions (
     company TEXT DEFAULT '',
     position TEXT DEFAULT '',
     source TEXT DEFAULT '',
+    source_type TEXT DEFAULT 'ai_generated',
     year TEXT DEFAULT '',
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
