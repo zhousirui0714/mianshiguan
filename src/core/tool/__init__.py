@@ -85,7 +85,7 @@ class LLMToolMixin:
             解析后的 JSON 字典，失败返回 None
         """
         try:
-            from src.services.llm_client import LLMClient
+            from src.services.llm_client import LLMClient, LLM_MODEL
             llm = LLMClient()
 
             headers = {
@@ -99,7 +99,7 @@ class LLMToolMixin:
             messages.append({"role": "user", "content": f"{prompt}\n\n{user_input}"})
 
             payload = {
-                "model": "xopqwen36v35b",
+                "model": LLM_MODEL,
                 "messages": messages,
                 "temperature": temperature,
                 "max_tokens": max_tokens,

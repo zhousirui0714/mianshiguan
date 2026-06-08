@@ -43,6 +43,26 @@
             scrollbar-width: thin;
         }
 
+        /* Scenario info card */
+        .iv-scenario-info {
+            padding: 4px 0;
+        }
+        .iv-scenario-info .iv-info-row {
+            margin-bottom: 14px;
+        }
+        .iv-scenario-info .iv-info-row:last-of-type {
+            margin-bottom: 16px;
+        }
+        .iv-info-note {
+            font-size: 12px;
+            color: #94A3B8;
+            line-height: 1.5;
+            padding: 10px 12px;
+            background: rgba(59, 130, 246, 0.04);
+            border-radius: 8px;
+            border: 1px solid rgba(59, 130, 246, 0.08);
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .interview-right .iv-card {
@@ -68,8 +88,8 @@
                 <div class="iv-card-title">&#128203; 面试信息</div>
             </div>
             <div class="iv-info-row">
-                <span class="label">轮次</span>
-                <span class="value" id="roundInfo">第 1/5 轮</span>
+                <span class="label">进度</span>
+                <span class="value" id="roundInfo">面试进行中</span>
             </div>
             <div class="iv-info-row">
                 <span class="label">考官</span>
@@ -189,22 +209,22 @@
             </div>
         </div>
 
-        <!-- Progress -->
+        <!-- Scenario Info -->
         <div class="iv-card">
             <div class="iv-card-header">
-                <div class="iv-card-title">&#128197; 面试进度</div>
+                <div class="iv-card-title">&#128203; 场景信息</div>
             </div>
-            <div>
-                <div class="iv-progress-label">
-                    <span id="progressRoundLabel">第 1 轮</span>
-                    <span id="progressRoundCount">1 / 5</span>
+            <div class="iv-scenario-info">
+                <div class="iv-info-row">
+                    <span class="label">面试形式</span>
+                    <span class="value" id="scenarioFormat">--</span>
                 </div>
-                <div class="iv-progress-bar">
-                    <div class="fill" id="progressBarFill" style="width:20%"></div>
+                <div class="iv-info-row">
+                    <span class="label">考察重点</span>
+                    <span class="value" id="scenarioFocus">--</span>
                 </div>
-                <div style="margin-top:12px;display:flex;gap:8px;justify-content:center;">
-                    <button class="iv-btn iv-btn-secondary" id="finishBtnSide">结束面试</button>
-                    <button class="iv-btn iv-btn-primary" id="nextBtn" style="display:none;">下一轮 &#8594;</button>
+                <div class="iv-info-note">
+                    问题数量和追问深度将根据你的回答实时调整
                 </div>
             </div>
         </div>
@@ -248,12 +268,7 @@
     const roundInfo = document.getElementById('roundInfo');
     const examinerSideName = document.getElementById('examinerSideName');
     const finishBtn = document.getElementById('finishBtn');
-    const finishBtnSide = document.getElementById('finishBtnSide');
     const reportModal = document.getElementById('reportModal');
-    const reportContent = document.getElementById('reportContent');
-    const progressRoundLabel = document.getElementById('progressRoundLabel');
-    const progressRoundCount = document.getElementById('progressRoundCount');
-    const progressBarFill = document.getElementById('progressBarFill');
 
     // ================================================================
     // Scenario config
@@ -276,6 +291,34 @@
         'ielts_speaking': '雅思口语'
     };
 
+    // Scenario info data
+    const scenarioInfo = {
+        'job_interview': {
+            format: '技术面试 + 项目深挖 + 情景问题',
+            focus: '专业技能、项目经验、解决问题能力、团队协作'
+        },
+        'teacher_cert': {
+            format: '结构化问答 + 情景模拟 + 深度追问',
+            focus: '教育理念、课堂管理、教学设计、应变能力'
+        },
+        'civil_service': {
+            format: '结构化面试 + 时政分析 + 情景应变',
+            focus: '政策理解、综合分析、组织协调、应急处理'
+        },
+        'graduate_school': {
+            format: '英语问答 + 专业课问答 + 综合素质考察',
+            focus: '专业基础、科研潜力、项目经历、学术视野'
+        },
+        'mba_interview': {
+            format: '背景评估 + 管理能力 + 领导力追问',
+            focus: '管理经验、战略思维、领导潜力、职业规划'
+        },
+        'ielts_speaking': {
+            format: 'Part 1/2/3 渐进式口语测试',
+            focus: 'Fluency & Coherence, Lexical Resource, Grammatical Range & Accuracy, Pronunciation'
+        }
+    };
+
     const EXPR_MAP = {
         'idle':          'neutral',
         'greeting':      'smile',
@@ -292,6 +335,13 @@
         document.getElementById('scenarioBadge').textContent =
             scenarioLabels[scenarioId] || scenarioId;
 
+        // Populate scenario info
+        const info = scenarioInfo[scenarioId];
+        if (info) {
+            document.getElementById('scenarioFormat').textContent = info.format;
+            document.getElementById('scenarioFocus').textContent = info.focus;
+        }
+
         messageInput.addEventListener('input', () => {
             sendBtn.disabled = !messageInput.value.trim();
         });
@@ -303,15 +353,6 @@
                 updateVideoUI(state);
             }
         });
-
-        // Side finish button
-        if (finishBtnSide) {
-            finishBtnSide.addEventListener('click', () => {
-                if (confirm('确定要结束本次面试吗？')) {
-                    finishInterview();
-                }
-            });
-        }
 
         startInterview();
     });
@@ -441,7 +482,7 @@
                     }, 2000);
                 }, 500);
 
-                updateRoundInfo(1, maxRounds);
+                updateRoundInfo(1);
                 addMessage('assistant', result.welcome_message);
             }
         } catch (error) {
@@ -531,13 +572,7 @@
     // UI helpers
     // ================================================================
     function updateRoundInfo(round, total) {
-        roundInfo.textContent = '第 ' + round + '/' + total + ' 轮';
-        if (progressRoundLabel) progressRoundLabel.textContent = '第 ' + round + ' 轮';
-        if (progressRoundCount) progressRoundCount.textContent = round + ' / ' + total;
-        if (progressBarFill) {
-            var pct = Math.round((round / total) * 100);
-            progressBarFill.style.width = pct + '%';
-        }
+        roundInfo.textContent = '已进行 ' + round + ' 轮';
     }
 
     async function typewriterMessage(role, content) {
@@ -721,7 +756,7 @@
         messagesContainer.innerHTML = '';
         try { Examiner.destroy(); } catch(e) {}
         currentRound = 1;
-        updateRoundInfo(1, maxRounds || 5);
+        updateRoundInfo(1);
         conversationId = null;
         initDigitalExaminer();
         startInterview();

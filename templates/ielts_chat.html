@@ -201,6 +201,26 @@
             transition: width 0.5s ease;
         }
 
+        /* Scenario info card */
+        .iv-scenario-info {
+            padding: 4px 0;
+        }
+        .iv-scenario-info .iv-info-row {
+            margin-bottom: 14px;
+        }
+        .iv-scenario-info .iv-info-row:last-of-type {
+            margin-bottom: 16px;
+        }
+        .iv-info-note {
+            font-size: 12px;
+            color: #94A3B8;
+            line-height: 1.5;
+            padding: 10px 12px;
+            background: rgba(59, 130, 246, 0.04);
+            border-radius: 8px;
+            border: 1px solid rgba(59, 130, 246, 0.08);
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .interview-layout {
@@ -406,21 +426,19 @@
 
         <div class="iv-card">
             <div class="iv-card-header">
-                <div class="iv-card-title">&#128197; 面试进度</div>
+                <div class="iv-card-title">&#128203; 场景信息</div>
             </div>
-            <div>
-                <div class="iv-progress-label">
-                    <span>Part</span>
-                    <span id="rightPartLabel">Part 1</span>
+            <div class="iv-scenario-info">
+                <div class="iv-info-row">
+                    <span class="label">面试形式</span>
+                    <span class="value" id="scenarioFormat">Part 1/2/3 渐进式口语测试</span>
                 </div>
-                <div style="margin-top:8px;">
-                    <div class="iv-progress-label">
-                        <span>Questions</span>
-                        <span id="rightQuestionCount">1 / 12</span>
-                    </div>
-                    <div class="progress-thin">
-                        <div class="fill" id="progressFill" style="width:0%"></div>
-                    </div>
+                <div class="iv-info-row">
+                    <span class="label">考察重点</span>
+                    <span class="value" id="scenarioFocus">Fluency & Coherence, Lexical Resource, Grammatical Range & Accuracy, Pronunciation</span>
+                </div>
+                <div class="iv-info-note">
+                    Question count and follow-up depth will be adjusted dynamically based on your responses.
                 </div>
             </div>
         </div>
@@ -508,7 +526,6 @@
     const micLabel = document.getElementById('micLabel');
     const questionNum = document.getElementById('questionNum');
     const totalQuestions = document.getElementById('totalQuestions');
-    const progressFill = document.getElementById('progressFill');
     const infoProgressFill = document.getElementById('infoProgressFill');
     const progressPercent = document.getElementById('progressPercent');
     const infoQuestionLabel = document.getElementById('infoQuestionLabel');

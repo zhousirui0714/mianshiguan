@@ -188,13 +188,13 @@ GRADE_CONFIG = {
 KEEP_GRADES = ["S", "A"]
 
 # ================================================================
-# LLM 配置（复用项目已有的 iFlyTek Qwen API）
+# LLM 配置（DeepSeek API）
 # ================================================================
 
 LLM_CONFIG = {
-    "api_url": "https://maas-api.cn-huabei-1.xf-yun.com/v2/chat/completions",
-    "api_key": "6ad85b0f2b80ff7716b726b03010b5f5:NmViMmJmOWU1MTM5OTJlNmMyNDc5ZGQ2",
-    "model": "xopqwen36v35b",
+    "api_url": os.getenv("DEEPSEEK_API_URL", "https://api.deepseek.com/v1/chat/completions"),
+    "api_key": os.getenv("DEEPSEEK_API_KEY", "sk-c8a45a4ac3574f3ca4d8a53775292339"),
+    "model": os.getenv("DEEPSEEK_MODEL", "deepseek-chat"),
     "timeout": 60,
     "max_retries": 3,
 }

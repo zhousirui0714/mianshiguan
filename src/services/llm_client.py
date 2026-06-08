@@ -9,9 +9,10 @@ from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_excep
 # 加载环境变量
 load_dotenv()
 
-# DeepSeek API配置
+# LLM API配置
 LLM_API_URL = os.getenv("DEEPSEEK_API_URL", "https://api.deepseek.com/v1/chat/completions")
 LLM_API_KEY = os.getenv("DEEPSEEK_API_KEY", "your-api-key")
+LLM_MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
 
 # Timeout配置 - 选择依据：
 # 1. 大模型生成3条追问通常需要5-15秒
@@ -166,7 +167,7 @@ class LLMClient:
         """
         
         payload = {
-            "model": "xopqwen36v35b",
+            "model": LLM_MODEL,
             "messages": [
                 {
                     "role": "system",
@@ -325,7 +326,7 @@ class LLMClient:
         }
         
         payload = {
-            "model": "xopqwen36v35b",
+            "model": LLM_MODEL,
             "messages": messages,
             "temperature": 0.7,
             "max_tokens": 1000
@@ -407,7 +408,7 @@ class LLMClient:
         }
         
         payload = {
-            "model": "xopqwen36v35b",
+            "model": LLM_MODEL,
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"对话历史：\n{conversation_text}"}
@@ -519,7 +520,7 @@ class LLMClient:
         }
 
         payload = {
-            "model": "xopqwen36v35b",
+            "model": LLM_MODEL,
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
@@ -629,7 +630,7 @@ class LLMClient:
         }
 
         payload = {
-            "model": "xopqwen36v35b",
+            "model": LLM_MODEL,
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"请为以下{skill_name}模拟面试生成评估报告：\n\n{qa_text}"}
@@ -752,7 +753,7 @@ class LLMClient:
         }
 
         payload = {
-            "model": "xopqwen36v35b",
+            "model": LLM_MODEL,
             "messages": messages,
             "temperature": 0.7,
             "max_tokens": 1200
