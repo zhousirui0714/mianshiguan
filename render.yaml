@@ -8,6 +8,8 @@ services:
     name: interview-companion
     runtime: python
     region: singapore  # 新加坡节点，亚洲访问延迟较低
+    branch: main  # 监听 main 分支的推送
+    autoDeploy: true  # 推送后自动部署
 
     # --- 构建命令 ---
     buildCommand: pip install -r requirements.txt
