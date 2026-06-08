@@ -3,12 +3,10 @@
 /* ---- 容器 ---- */
 .examiner-container {
   --examiner-width: min(360px, 28vw);
-  --examiner-bg: rgba(15, 23, 42, 0.55);
-  --examiner-border: rgba(255, 255, 255, 0.08);
-  --examiner-glow: rgba(96, 165, 250, 0.15);
-  --examiner-text: #F1F5F9;
-  --examiner-text-sec: #94A3B8;
-  --examiner-accent: #60A5FA;
+  --examiner-border: #E5E7EB;
+  --examiner-text: #1E293B;
+  --examiner-text-sec: #64748B;
+  --examiner-accent: #3B82F6;
 
   width: var(--examiner-width);
   flex-shrink: 0;
@@ -17,9 +15,6 @@
 
 /* 玻璃态背景 */
 .examiner-glass {
-  background: var(--examiner-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--examiner-border);
   border-radius: 20px;
   padding: 24px 20px 20px;
@@ -27,58 +22,8 @@
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
   position: relative;
   overflow: hidden;
-  transition: border-color 0.4s ease, box-shadow 0.4s ease;
-}
-
-/* 光泽 overlay */
-.examiner-glass::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(
-    ellipse at 30% 20%,
-    rgba(255, 255, 255, 0.03) 0%,
-    transparent 60%
-  );
-  pointer-events: none;
-}
-
-/* 表情联动发光边框 */
-.examiner-glass.state-smile {
-  border-color: rgba(16, 185, 129, 0.3);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 24px rgba(16, 185, 129, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
-}
-.examiner-glass.state-thinking {
-  border-color: rgba(245, 158, 11, 0.3);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 24px rgba(245, 158, 11, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
-}
-.examiner-glass.state-encouraging {
-  border-color: rgba(96, 165, 250, 0.3);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 24px rgba(96, 165, 250, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
-}
-.examiner-glass.state-ending {
-  border-color: rgba(139, 92, 246, 0.3);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 24px rgba(139, 92, 246, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 /* ---- 立绘区域 ---- */
@@ -192,10 +137,9 @@
   border-radius: 10px;
   font-size: 0.7rem;
   font-weight: 600;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #64748B;
+  background: #F1F5F9;
+  border: 1px solid #E5E7EB;
   z-index: 3;
   opacity: 0.7;
   transition: opacity 0.3s ease;
@@ -226,16 +170,16 @@
   padding: 5px 14px;
   border-radius: 12px;
   font-size: 0.78rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #F1F5F9;
+  border: 1px solid #E5E7EB;
   color: var(--examiner-text-sec);
   display: inline-block;
   transition: all 0.3s ease;
 }
-.examiner-info .status.smile { color: #10B981; border-color: rgba(16, 185, 129, 0.2); background: rgba(16, 185, 129, 0.08); }
-.examiner-info .status.thinking { color: #F59E0B; border-color: rgba(245, 158, 11, 0.2); background: rgba(245, 158, 11, 0.08); }
-.examiner-info .status.encouraging { color: #7DD3FC; border-color: rgba(125, 211, 252, 0.2); background: rgba(125, 211, 252, 0.08); }
-.examiner-info .status.ending { color: #7DD3FC; border-color: rgba(125, 211, 252, 0.2); background: rgba(125, 211, 252, 0.08); }
+.examiner-info .status.smile { color: #16A34A; border-color: #BBF7D0; background: #F0FDF4; }
+.examiner-info .status.thinking { color: #D97706; border-color: #FDE68A; background: #FFFBEB; }
+.examiner-info .status.encouraging { color: #3B82F6; border-color: #DBEAFE; background: #EFF6FF; }
+.examiner-info .status.ending { color: #3B82F6; border-color: #DBEAFE; background: #EFF6FF; }
 
 /* ========================================
    CSS 占位考官（无图片时的后备方案）
