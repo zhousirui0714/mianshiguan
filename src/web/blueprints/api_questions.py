@@ -15,11 +15,12 @@ def get_questions():
         keyword = request.args.get('keyword')
         company = request.args.get('company')
         position = request.args.get('position')
+        year = request.args.get('year')
 
         questions = deps.db.get_questions(
             scenario_id=scenario, category=category,
             difficulty=difficulty, keyword=keyword,
-            company=company, position=position
+            company=company, position=position, year=year
         )
         return jsonify({'success': True, 'data': questions})
     except Exception as e:
@@ -90,6 +91,36 @@ def get_question_categories():
         scenario = request.args.get('scenario')
         categories = deps.db.get_categories(scenario_id=scenario)
         return jsonify({'success': True, 'data': categories})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@questions_bp.route('/questions/companies')
+def get_question_companies():
+    try:
+        scenario = request.args.get('scenario')
+        companies = deps.db.get_companies(scenario_id=scenario)
+        return jsonify({'success': True, 'data': companies})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@questions_bp.route('/questions/positions')
+def get_question_positions():
+    try:
+        scenario = request.args.get('scenario')
+        positions = deps.db.get_positions(scenario_id=scenario)
+        return jsonify({'success': True, 'data': positions})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@questions_bp.route('/questions/years')
+def get_question_years():
+    try:
+        scenario = request.args.get('scenario')
+        years = deps.db.get_years(scenario_id=scenario)
+        return jsonify({'success': True, 'data': years})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 

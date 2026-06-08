@@ -22,19 +22,27 @@ class Importer:
         count_skipped = 0
         errors = []
 
+        def _sanitize(val, default=""):
+            """清洗字段值：None 字符串和 NoneType -> 默认值"""
+            if val is None:
+                return default
+            if isinstance(val, str) and val.lower() in ("none", "null", "n/a"):
+                return default
+            return val
+
         for q in questions:
             try:
                 result = self.db.add_question(
                     scenario_id=scenario,
-                    category=q.get("category", "计算机基础"),
-                    difficulty=q.get("difficulty", 3),
-                    question_text=q.get("question", ""),
-                    reference_answer=q.get("answer", ""),
+                    category=_sanitize(q.get("category"), "计算机基础"),
+                    difficulty=q.get("difficulty", 3) or 3,
+                    question_text=_sanitize(q.get("question"), ""),
+                    reference_answer=_sanitize(q.get("answer"), ""),
                     tags=q.get("tags", []),
-                    company=q.get("company", ""),
-                    position=q.get("position", ""),
-                    source=source_name,
-                    year=q.get("year", "2025"),
+                    company=_sanitize(q.get("company")),
+                    position=_sanitize(q.get("position")),
+                    source=_sanitize(source_name),
+                    year=_sanitize(q.get("year"), "2025"),
                 )
                 if result["success"]:
                     count_success += 1

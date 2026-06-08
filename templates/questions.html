@@ -366,11 +366,20 @@
             <!-- Toolbar -->
             <div class="toolbar">
                 <div class="toolbar-left">
-                    <select class="filter-select" id="scenarioFilter" onchange="loadQuestions()">
+                    <select class="filter-select" id="scenarioFilter" onchange="onFilterChange()">
                         <option value="">全部场景</option>
                     </select>
-                    <select class="filter-select" id="categoryFilter" onchange="loadQuestions()">
+                    <select class="filter-select" id="categoryFilter" onchange="onFilterChange()">
                         <option value="">全部分类</option>
+                    </select>
+                    <select class="filter-select" id="companyFilter" onchange="onFilterChange()">
+                        <option value="">全部公司</option>
+                    </select>
+                    <select class="filter-select" id="positionFilter" onchange="onFilterChange()">
+                        <option value="">全部岗位</option>
+                    </select>
+                    <select class="filter-select" id="yearFilter" onchange="onFilterChange()">
+                        <option value="">全部年份</option>
                     </select>
                     <div class="diff-stars" id="difficultySelector">
                         <span class="diff-star" data-value="1" onclick="toggleDifficulty(1)">★</span>
@@ -382,7 +391,7 @@
                 </div>
                 <div class="toolbar-right">
                     <input type="text" class="search-input" id="searchInput" placeholder="搜索题目..." onkeyup="handleSearch()">
-                    <button class="btn btn-primary" onclick="openAddModal()" style="padding:8px 18px;font-size:13px;">
+                    <button class="btn btn-primary" onclick="openAddModal()" style="padding:8px 18px;font-size:13px;white-space:nowrap;">
                         <span>+</span> 添加题目
                     </button>
                 </div>
@@ -486,6 +495,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadScenarios();
             loadCategories();
+            loadFilterOptions('companies', 'companyFilter');
+            loadFilterOptions('positions', 'positionFilter');
+            loadFilterOptions('years', 'yearFilter');
             loadQuestions();
         });
 
@@ -515,15 +527,53 @@
                 });
         }
 
+        function loadFilterOptions(endpoint, selectId) {
+            const scenario = document.getElementById('scenarioFilter').value;
+            let url = '/api/questions/' + endpoint;
+            if (scenario) url += '?scenario=' + scenario;
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const select = document.getElementById(selectId);
+                        const currentVal = select.value;
+                        // Preserve first option ("全部XX"), clear rest
+                        while (select.options.length > 1) select.remove(1);
+                        data.data.forEach(value => {
+                            const option = document.createElement('option');
+                            option.value = value;
+                            option.textContent = value;
+                            select.appendChild(option);
+                        });
+                        // Restore selection if still valid
+                        if (currentVal) select.value = currentVal;
+                    }
+                });
+        }
+
+        function onFilterChange() {
+            // 当场景变化时重新加载公司和岗位筛选选项
+            loadFilterOptions('companies', 'companyFilter');
+            loadFilterOptions('positions', 'positionFilter');
+            loadFilterOptions('years', 'yearFilter');
+            loadQuestions();
+        }
+
         function loadQuestions() {
             const scenario = document.getElementById('scenarioFilter').value;
             const category = document.getElementById('categoryFilter').value;
+            const company = document.getElementById('companyFilter').value;
+            const position = document.getElementById('positionFilter').value;
+            const year = document.getElementById('yearFilter').value;
             const keyword = document.getElementById('searchInput').value;
 
             let url = '/api/questions';
             const params = [];
             if (scenario) params.push('scenario=' + scenario);
             if (category) params.push('category=' + encodeURIComponent(category));
+            if (company) params.push('company=' + encodeURIComponent(company));
+            if (position) params.push('position=' + encodeURIComponent(position));
+            if (year) params.push('year=' + encodeURIComponent(year));
             if (selectedDifficulty) params.push('difficulty=' + selectedDifficulty);
             if (keyword) params.push('keyword=' + encodeURIComponent(keyword));
             if (params.length > 0) url += '?' + params.join('&');

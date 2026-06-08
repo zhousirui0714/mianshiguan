@@ -174,7 +174,8 @@ class DatabaseManager:
 
     def get_questions(self, scenario_id: str = None, category: str = None,
                       difficulty: int = None, keyword: str = None,
-                      company: str = None, position: str = None) -> List[dict]:
+                      company: str = None, position: str = None,
+                      year: str = None) -> List[dict]:
         conn = self._get_conn()
         try:
             sql = "SELECT * FROM questions WHERE 1=1"
@@ -197,6 +198,9 @@ class DatabaseManager:
             if position:
                 sql += " AND position LIKE ?"
                 params.append(f"%{position}%")
+            if year:
+                sql += " AND year = ?"
+                params.append(year)
             sql += " ORDER BY year DESC, created_at DESC"
             rows = conn.execute(sql, params).fetchall()
             # 解析 tags JSON
@@ -280,6 +284,29 @@ class DatabaseManager:
             return [r["category"] for r in conn.execute(sql, params).fetchall()]
         finally:
             conn.close()
+
+    def get_distinct_values(self, field: str, scenario_id: str = None) -> List[str]:
+        """获取某字段的非重复有效值（用于筛选下拉框）"""
+        conn = self._get_conn()
+        try:
+            sql = f"SELECT DISTINCT {field} FROM questions WHERE {field} IS NOT NULL AND {field} != ''"
+            params = []
+            if scenario_id:
+                sql += " AND scenario_id = ?"
+                params.append(scenario_id)
+            sql += f" ORDER BY {field}"
+            return [r[field] for r in conn.execute(sql, params).fetchall()]
+        finally:
+            conn.close()
+
+    def get_companies(self, scenario_id: str = None) -> List[str]:
+        return self.get_distinct_values("company", scenario_id)
+
+    def get_positions(self, scenario_id: str = None) -> List[str]:
+        return self.get_distinct_values("position", scenario_id)
+
+    def get_years(self, scenario_id: str = None) -> List[str]:
+        return self.get_distinct_values("year", scenario_id)
 
     def get_tags(self, scenario_id: str = None) -> List[str]:
         conn = self._get_conn()
