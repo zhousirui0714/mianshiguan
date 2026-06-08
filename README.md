@@ -76,3 +76,4 @@ python app.py          # http://127.0.0.1:5000
 | `GET /api/user/<id>/progress` | 用户成长档案 |
 | `GET /api/skills` | 已注册的 Skill 列表 |
 | `GET /api/health` | 健康检查 |
+# auto-push test
