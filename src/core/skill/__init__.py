@@ -212,6 +212,10 @@ class SkillExecutor:
         # 生成下一轮问题
         session.round += 1
         next_question = skill.generate_question(session, history)
+        # 记录已使用问题（去重）
+        session.context.setdefault("used_questions", [])
+        if next_question not in session.context["used_questions"]:
+            session.context["used_questions"].append(next_question)
 
         # 构建回复
         response = next_question
@@ -277,15 +281,24 @@ class SkillExecutor:
                     })
 
             try:
+                _retrieved_qs = session.context.get("retrieved_questions", [])
+                _used_qs = session.context.get("used_questions", [])
                 llm_result = skill.llm.chat_with_tools(
                     scenario_id=skill_id,
                     user_message=user_message,
                     conversation_history=history,
                     tools=tool_defs,
                     user_background=session.context.get("user_background", ""),
+                    retrieved_questions=_retrieved_qs,
+                    used_questions=_used_qs,
                 )
 
                 response_text = llm_result.get("response", "")
+                # 记录已使用问题（去重）
+                if response_text:
+                    session.context.setdefault("used_questions", [])
+                    if response_text not in session.context["used_questions"]:
+                        session.context["used_questions"].append(response_text)
                 tool_calls = llm_result.get("tool_calls")
 
                 # 执行 LLM 请求的工具调用

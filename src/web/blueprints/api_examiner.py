@@ -1,10 +1,193 @@
 """AI 考官 + 场景 API Blueprint"""
 import random
+import re
 from flask import Blueprint, request, jsonify
 
 from src.services.llm_client import EXAMINER_PROFILES
 from src.core.skill.types import AnswerRecord
 from src.web import dependencies as deps
+
+# 岗位关键词映射表（岗位名称 → 关键词列表）
+POSITION_KEYWORDS = {
+    "python":      ["Python", "Redis", "MySQL", "数据库", "缓存", "系统设计", "Django", "Flask", "后端", "API"],
+    "python后端":  ["Python", "Redis", "MySQL", "数据库", "缓存", "系统设计", "Django", "Flask", "后端", "API"],
+    "java":        ["Java", "JVM", "Spring", "MySQL", "微服务", "中间件", "MyBatis", "后端"],
+    "java后端":    ["Java", "JVM", "Spring", "MySQL", "微服务", "中间件", "MyBatis", "后端"],
+    "golang":      ["Go", "Golang", "goroutine", "并发", "channel", "微服务", "后端"],
+    "go":          ["Go", "Golang", "goroutine", "并发", "channel", "微服务", "后端"],
+    "前端":        ["JavaScript", "浏览器", "CSS", "Vue", "React", "TypeScript", "HTML", "DOM", "前端"],
+    "算法":        ["算法", "数据结构", "LeetCode", "排序", "搜索", "动态规划", "复杂度"],
+    "产品经理":    ["需求分析", "用户研究", "产品设计", "用户", "产品", "需求", "流程", "体验"],
+    "运营":        ["增长", "活动运营", "数据分析", "用户增长", "内容", "社群", "转化"],
+    "测试":        ["测试", "自动化", "测试用例", "接口测试", "性能测试", "质量", "CI"],
+    "数据分析":    ["数据", "分析", "SQL", "数仓", "ETL", "数据挖掘", "可视化"],
+    "数据开发":    ["数据", "SQL", "数仓", "ETL", "数据挖掘", "Spark", "Flink", "Hadoop"],
+    "产品运营":    ["运营", "用户", "增长", "活动", "内容", "数据", "转化率"],
+}
+
+
+def _get_position_keywords(position: str) -> list:
+    """根据目标岗位获取匹配关键词列表"""
+    if not position:
+        return []
+    pos_lower = position.lower().strip()
+    # 精确匹配
+    if pos_lower in POSITION_KEYWORDS:
+        return POSITION_KEYWORDS[pos_lower]
+    # 模糊匹配：输入包含key 或 key包含输入
+    matched = []
+    for key, kws in POSITION_KEYWORDS.items():
+        if key in pos_lower or pos_lower in key:
+            matched.extend(kws)
+    return matched
+
+
+def _match_question_to_position(question: dict, keywords: list) -> int:
+    """计算题目与岗位的匹配得分"""
+    if not keywords:
+        return 0
+    score = 0
+    text = (question.get("question_text", "") or "")
+    position_field = (question.get("position", "") or "")
+    category = (question.get("category", "") or "")
+    company = (question.get("company", "") or "")
+    text_lower = text.lower()
+    for kw in keywords:
+        if kw.lower() in text_lower:
+            score += 10
+    # position字段匹配加分
+    for kw in keywords:
+        if kw.lower() in position_field.lower():
+            score += 15
+    # category匹配加分
+    for kw in keywords:
+        if kw.lower() in category.lower():
+            score += 8
+    return score
+
+
+def _weighted_question_recall(db, scenario_id: str,
+                               target_position: str = "",
+                               target_company: str = "",
+                               limit: int = 20) -> list:
+    """
+    加权召回题库
+    权重策略：real_interview > open_source > ai_generated
+    目标比例：real >= 50%, open >= 20%, ai <= 30%
+    """
+    all_qs = db.get_questions(scenario_id=scenario_id)
+    if not all_qs:
+        return []
+
+    random.shuffle(all_qs)
+    position_kws = _get_position_keywords(target_position)
+
+    # 每道题计算加权得分
+    scored = []
+    for q in all_qs:
+        base = 0
+        source = (q.get("source_type") or "ai_generated").strip()
+        if source == "real_interview":
+            base = 100
+        elif source == "open_source":
+            base = 60
+        else:
+            base = 20
+
+        # 公司匹配加分
+        if target_company:
+            q_company = (q.get("company") or "")
+            if target_company.lower() in q_company.lower():
+                base += 30
+
+        # 岗位匹配加分
+        if target_position:
+            q_position = (q.get("position") or "")
+            if target_position.lower() in q_position.lower() or q_position.lower() in target_position.lower():
+                base += 50
+
+        # 关键词匹配分
+        kw_score = _match_question_to_position(q, position_kws)
+        base += kw_score
+
+        scored.append((base, source, q))
+
+    # 按得分降序排列
+    scored.sort(key=lambda x: -x[0])
+
+    # 按来源分层选入
+    real_qs  = [s[2] for s in scored if s[1] == "real_interview"]
+    open_qs  = [s[2] for s in scored if s[1] == "open_source"]
+    ai_qs    = [s[2] for s in scored if s[1] == "ai_generated"]
+
+    selected = []
+    selected_ids = set()
+
+    # 1. real_interview: 50% = 10题
+    real_count = 0
+    for q in real_qs:
+        if real_count >= 10 or len(selected) >= limit:
+            break
+        if q.get("id") not in selected_ids:
+            selected.append(q)
+            selected_ids.add(q.get("id"))
+            real_count += 1
+
+    # 2. open_source: 20% = 4-5题
+    open_count = 0
+    for q in open_qs:
+        if open_count >= 5 or len(selected) >= limit:
+            break
+        if q.get("id") not in selected_ids:
+            selected.append(q)
+            selected_ids.add(q.get("id"))
+            open_count += 1
+
+    # 3. ai_generated: 最多30% = 5-6题
+    ai_count = 0
+    for q in ai_qs:
+        if ai_count >= 5 or len(selected) >= limit:
+            break
+        if q.get("id") not in selected_ids:
+            selected.append(q)
+            selected_ids.add(q.get("id"))
+            ai_count += 1
+
+    # 4. 仍不足20题：按得分补充，尽量保持来源均衡
+    if len(selected) < limit:
+        # 优先补充 real_interview
+        for q in real_qs:
+            if len(selected) >= limit:
+                break
+            if q.get("id") not in selected_ids:
+                selected.append(q)
+                selected_ids.add(q.get("id"))
+        # 再补充 open_source
+        if len(selected) < limit:
+            for q in open_qs:
+                if len(selected) >= limit:
+                    break
+                if q.get("id") not in selected_ids:
+                    selected.append(q)
+                    selected_ids.add(q.get("id"))
+        # 最后补充 ai_generated
+        if len(selected) < limit:
+            for q in ai_qs:
+                if len(selected) >= limit:
+                    break
+                if q.get("id") not in selected_ids:
+                    selected.append(q)
+                    selected_ids.add(q.get("id"))
+        # 仍然不够：用 scored 剩余补齐
+        if len(selected) < limit:
+            for _, _, q in scored:
+                if len(selected) >= limit:
+                    break
+                if q.get("id") not in selected_ids:
+                    selected.append(q)
+                    selected_ids.add(q.get("id"))
+
+    return selected[:limit]
 
 examiner_bp = Blueprint('api_examiner', __name__)
 
@@ -134,10 +317,23 @@ def examiner_chat():
             for m in conversation.get('messages', [])
         ]
 
+        # 为 legacy 路径加权召回题库
+        _retrieved = []
+        _legacy_used = [m['content'] for m in conversation_history if m['role'] == 'assistant']
+        try:
+            _retrieved = _weighted_question_recall(
+                deps.db, scenario_id,
+                target_position='', target_company='',
+            )
+        except Exception:
+            pass
+
         try:
             ai_response = deps.llm_client.examiner_chat(
                 scenario_id=scenario_id, user_message=user_message,
-                conversation_history=conversation_history, user_background=user_background
+                conversation_history=conversation_history, user_background=user_background,
+                retrieved_questions=_retrieved,
+                used_questions=_legacy_used,
             )
         except Exception:
             ai_response = (
@@ -213,11 +409,23 @@ def examiner_start():
             except Exception:
                 spider_questions = []
 
+        # 加权召回题库（真实面经 > 开源 > AI生成，岗位定向）
+        retrieved_questions = []
+        try:
+            retrieved_questions = _weighted_question_recall(
+                deps.db, scenario_id,
+                target_position=search_position,
+                target_company=search_company,
+            )
+        except Exception as e:
+            print(f"[examiner_start] 题库召回失败: {e}")
+
         skill = deps.skill_registry.get(scenario_id)
         if skill:
             session_data = skill.create_session(user_id, {
                 "user_background": user_background,
                 "spider_questions": spider_questions,
+                "retrieved_questions": retrieved_questions,
                 "position": search_position,
                 "company": search_company,
             })
@@ -267,6 +475,8 @@ def examiner_start():
             welcome_parts.append(f"我看到你正在准备{search_position}岗位{'（' + search_company + '）' if search_company else ''}的面试。我已经根据你的背景和真实面经数据，准备好了针对性的面试题。")
         welcome_parts.append(f"")
         welcome_parts.append(f"欢迎参加{scenario_name}模拟面试，我们将进行约{deps.MAX_ROUNDS}轮的问答。")
+        if retrieved_questions:
+            welcome_parts.append(f"我已从题库中精选了{len(retrieved_questions)}道相关真题，将在面试中依次呈现。")
         if spider_questions:
             welcome_parts.append(f"")
             welcome_parts.append(f"在面试中，我会参考以下来自真实面经的高频问题方向：")

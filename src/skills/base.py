@@ -65,8 +65,11 @@ class LLMBasedSkill(BaseSkill):
     # ==================== 问题生成 ====================
 
     def generate_question(self, session: SkillSession, history: List[Dict[str, str]]) -> str:
-        """用 LLM 生成下一轮问题"""
+        """用 LLM 生成下一轮问题（题库优先 + 已问去重）"""
         system_prompt = self.get_system_prompt(session)
+
+        retrieved_questions = session.context.get("retrieved_questions", [])
+        used_questions = session.context.get("used_questions", [])
 
         messages = [{"role": "system", "content": system_prompt}]
         messages.extend(history)
@@ -81,6 +84,8 @@ class LLMBasedSkill(BaseSkill):
                 user_message=messages[-1]["content"],
                 conversation_history=history,
                 user_background=session.context.get("user_background", ""),
+                retrieved_questions=retrieved_questions,
+                used_questions=used_questions,
             )
             return response if response else "请继续介绍你的相关经验。"
         except Exception as e:
