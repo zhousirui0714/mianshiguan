@@ -67,13 +67,66 @@ def _match_question_to_position(question: dict, keywords: list) -> int:
     return score
 
 
+def _pick_questions_by_source(qs_pool: list, limit: int,
+                               selected_ids: set) -> list:
+    """
+    从候选中按来源分层选入，尽量保持 real >= open >= ai 的优先级。
+    返回新选中的题目列表（不修改 selected_ids）。
+    """
+    if limit <= 0 or not qs_pool:
+        return []
+
+    # 按来源分组
+    real_qs = [q for q in qs_pool if (q.get("source_type") or "").strip() == "real_interview"]
+    open_qs = [q for q in qs_pool if (q.get("source_type") or "").strip() == "open_source"]
+    ai_qs   = [q for q in qs_pool if (q.get("source_type") or "").strip() == "ai_generated"]
+
+    selected = []
+    # caps: real 最多50%, open 最多25%, ai 最多25% 但不超过 limit
+    real_cap = min(10, limit)
+    open_cap = min(5, limit)
+    ai_cap   = min(5, limit)
+
+    def _pick(src_qs, cap):
+        count = 0
+        for q in src_qs:
+            if count >= cap or len(selected) >= limit:
+                break
+            if q.get("id") not in selected_ids:
+                selected.append(q)
+                selected_ids.add(q.get("id"))
+                count += 1
+
+    _pick(real_qs, real_cap)
+    _pick(open_qs, open_cap)
+    _pick(ai_qs, ai_cap)
+
+    # 补充：任一来源不够时继续从其他来源补
+    if len(selected) < limit:
+        for qs in (real_qs, open_qs, ai_qs):
+            for q in qs:
+                if len(selected) >= limit:
+                    break
+                if q.get("id") not in selected_ids:
+                    selected.append(q)
+                    selected_ids.add(q.get("id"))
+
+    return selected
+
+
 def _weighted_question_recall(db, scenario_id: str,
                                target_position: str = "",
                                target_company: str = "",
                                limit: int = 20) -> list:
     """
     加权召回题库
-    权重策略：real_interview > open_source > ai_generated
+
+    权重策略（优先级从高到低）：
+    1. 题目等级：S > A > B > C
+    2. 来源权重：real_interview > open_source > ai_generated
+    3. 岗位匹配：目标岗位 + 关键词
+
+    默认只召回 S + A 级，数量不足时回退到 B，再回退到 C。
     目标比例：real >= 50%, open >= 20%, ai <= 30%
     """
     all_qs = db.get_questions(scenario_id=scenario_id)
@@ -116,77 +169,45 @@ def _weighted_question_recall(db, scenario_id: str,
     # 按得分降序排列
     scored.sort(key=lambda x: -x[0])
 
-    # 按来源分层选入
-    real_qs  = [s[2] for s in scored if s[1] == "real_interview"]
-    open_qs  = [s[2] for s in scored if s[1] == "open_source"]
-    ai_qs    = [s[2] for s in scored if s[1] == "ai_generated"]
+    # 按题目等级分组
+    level_map = {"S": [], "A": [], "B": [], "C": []}
+    for _, _, q in scored:
+        lev = (q.get("question_level") or "C").strip().upper()
+        if lev not in level_map:
+            lev = "C"
+        level_map[lev].append(q)
 
     selected = []
     selected_ids = set()
 
-    # 1. real_interview: 50% = 10题
-    real_count = 0
-    for q in real_qs:
-        if real_count >= 10 or len(selected) >= limit:
-            break
-        if q.get("id") not in selected_ids:
-            selected.append(q)
-            selected_ids.add(q.get("id"))
-            real_count += 1
+    # 分层选题：S → A → B → C
+    LEVEL_ORDER = ["S", "A"]
+    # 如果 S+A 不足 limit，自动补充 B，还不够再补充 C
+    for level in LEVEL_ORDER:
+        pool = level_map.get(level, [])
+        picked = _pick_questions_by_source(pool, limit - len(selected), selected_ids)
+        selected.extend(picked)
 
-    # 2. open_source: 20% = 4-5题
-    open_count = 0
-    for q in open_qs:
-        if open_count >= 5 or len(selected) >= limit:
-            break
-        if q.get("id") not in selected_ids:
-            selected.append(q)
-            selected_ids.add(q.get("id"))
-            open_count += 1
-
-    # 3. ai_generated: 最多30% = 5-6题
-    ai_count = 0
-    for q in ai_qs:
-        if ai_count >= 5 or len(selected) >= limit:
-            break
-        if q.get("id") not in selected_ids:
-            selected.append(q)
-            selected_ids.add(q.get("id"))
-            ai_count += 1
-
-    # 4. 仍不足20题：按得分补充，尽量保持来源均衡
+    # 补齐 B 级
     if len(selected) < limit:
-        # 优先补充 real_interview
-        for q in real_qs:
+        pool = level_map.get("B", [])
+        # B 级不限 caps（已经不够了）
+        for q in pool:
             if len(selected) >= limit:
                 break
             if q.get("id") not in selected_ids:
                 selected.append(q)
                 selected_ids.add(q.get("id"))
-        # 再补充 open_source
-        if len(selected) < limit:
-            for q in open_qs:
-                if len(selected) >= limit:
-                    break
-                if q.get("id") not in selected_ids:
-                    selected.append(q)
-                    selected_ids.add(q.get("id"))
-        # 最后补充 ai_generated
-        if len(selected) < limit:
-            for q in ai_qs:
-                if len(selected) >= limit:
-                    break
-                if q.get("id") not in selected_ids:
-                    selected.append(q)
-                    selected_ids.add(q.get("id"))
-        # 仍然不够：用 scored 剩余补齐
-        if len(selected) < limit:
-            for _, _, q in scored:
-                if len(selected) >= limit:
-                    break
-                if q.get("id") not in selected_ids:
-                    selected.append(q)
-                    selected_ids.add(q.get("id"))
+
+    # 补齐 C 级
+    if len(selected) < limit:
+        pool = level_map.get("C", [])
+        for q in pool:
+            if len(selected) >= limit:
+                break
+            if q.get("id") not in selected_ids:
+                selected.append(q)
+                selected_ids.add(q.get("id"))
 
     return selected[:limit]
 

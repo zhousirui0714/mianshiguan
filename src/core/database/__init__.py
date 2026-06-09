@@ -60,7 +60,8 @@ class DatabaseManager:
             except sqlite3.OperationalError:
                 pass
             for col in ['company TEXT', 'position TEXT', 'source TEXT', 'year TEXT',
-                         "source_type TEXT DEFAULT 'ai_generated'"]:
+                         "source_type TEXT DEFAULT 'ai_generated'",
+                         "question_level TEXT DEFAULT 'C'"]:
                 try:
                     conn.execute(f"ALTER TABLE questions ADD COLUMN {col}")
                     conn.commit()
@@ -146,7 +147,8 @@ class DatabaseManager:
     def add_question(self, scenario_id: str, category: str, difficulty: int,
                      question_text: str, reference_answer: str, tags: List[str] = None,
                      company: str = "", position: str = "", source: str = "",
-                     year: str = "", source_type: str = "ai_generated") -> dict:
+                     year: str = "", source_type: str = "ai_generated",
+                     question_level: str = "C") -> dict:
         conn = self._get_conn()
         try:
             # 检查是否已存在相同问题
@@ -162,11 +164,11 @@ class DatabaseManager:
             conn.execute(
                 "INSERT INTO questions (id, scenario_id, category, difficulty, "
                 "question_text, reference_answer, tags, company, position, "
-                "source, source_type, year, created_at, updated_at) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "source, source_type, year, question_level, created_at, updated_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (qid, scenario_id, category, difficulty, question_text, reference_answer,
                  json.dumps(tags or [], ensure_ascii=False), company, position,
-                 source, source_type, year, now, now)
+                 source, source_type, year, question_level, now, now)
             )
             conn.commit()
             return {"success": True, "question_id": qid}
@@ -238,7 +240,8 @@ class DatabaseManager:
 
             allowed = ["scenario_id", "category", "difficulty",
                        "question_text", "reference_answer", "tags",
-                       "company", "position", "source", "year"]
+                       "company", "position", "source", "year",
+                       "source_type", "question_level"]
             updates = {}
             for k, v in kwargs.items():
                 if k in allowed:
