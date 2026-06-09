@@ -281,25 +281,39 @@ class SkillExecutor:
                     })
 
             try:
-                _retrieved_qs = session.context.get("retrieved_questions", [])
-                _used_qs = session.context.get("used_questions", [])
+                # 程序化选题（LLM 不再负责选题）
+                bank_question = None
+                if hasattr(skill, '_select_next_bank_question'):
+                    bank_question = skill._select_next_bank_question(session)
+
+                # LLM 只负责评价回复（不传题库）
                 llm_result = skill.llm.chat_with_tools(
                     scenario_id=skill_id,
                     user_message=user_message,
                     conversation_history=history,
                     tools=tool_defs,
                     user_background=session.context.get("user_background", ""),
-                    retrieved_questions=_retrieved_qs,
-                    used_questions=_used_qs,
                 )
 
                 response_text = llm_result.get("response", "")
-                # 记录已使用问题（去重）
-                if response_text:
-                    session.context.setdefault("used_questions", [])
-                    if response_text not in session.context["used_questions"]:
-                        session.context["used_questions"].append(response_text)
                 tool_calls = llm_result.get("tool_calls")
+
+                if bank_question:
+                    # 追加程序化选择的题目
+                    if response_text:
+                        response_text = f"{response_text}\n\n{bank_question}"
+                    else:
+                        response_text = bank_question
+                    # 记录题库题目文本（不含 LLM 评价部分）
+                    session.context.setdefault("used_questions", [])
+                    if bank_question not in session.context["used_questions"]:
+                        session.context["used_questions"].append(bank_question)
+                else:
+                    # 题库用完，LLM 自由生成
+                    if response_text:
+                        session.context.setdefault("used_questions", [])
+                        if response_text not in session.context["used_questions"]:
+                            session.context["used_questions"].append(response_text)
 
                 # 执行 LLM 请求的工具调用
                 if tool_calls:

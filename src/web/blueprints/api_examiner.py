@@ -1,6 +1,7 @@
 """AI 考官 + 场景 API Blueprint"""
 import random
 import re
+import traceback
 from flask import Blueprint, request, jsonify
 
 from src.services.llm_client import EXAMINER_PROFILES
@@ -319,28 +320,40 @@ def examiner_chat():
 
         # 为 legacy 路径加权召回题库
         _retrieved = []
-        _legacy_used = [m['content'] for m in conversation_history if m['role'] == 'assistant']
         try:
             _retrieved = _weighted_question_recall(
                 deps.db, scenario_id,
                 target_position='', target_company='',
             )
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[examiner_chat] legacy 加权召回失败: {e}")
 
-        try:
-            ai_response = deps.llm_client.examiner_chat(
-                scenario_id=scenario_id, user_message=user_message,
-                conversation_history=conversation_history, user_background=user_background,
-                retrieved_questions=_retrieved,
-                used_questions=_legacy_used,
-            )
-        except Exception:
-            ai_response = (
-                f"抱歉，当前AI服务暂时不可用。"
-                f"{deps.EXAMINERS.get(scenario_id, deps.EXAMINERS['job_interview'])['name']}问你："
-                "请简要介绍一下你自己，包括你的专业背景和相关经验。"
-            )
+        # 程序化选题（LLM 不再负责选题）
+        _legacy_used = set(m['content'] for m in conversation_history if m['role'] == 'assistant')
+        _bank_text = None
+        for q in _retrieved:
+            text = q.get("question_text", "")
+            if text and text not in _legacy_used:
+                _bank_text = text
+                break
+
+        if _bank_text:
+            # 后端选题，直接使用
+            ai_response = _bank_text
+        else:
+            # 题库用完，LLM 自由生成
+            try:
+                ai_response = deps.llm_client.examiner_chat(
+                    scenario_id=scenario_id, user_message=user_message,
+                    conversation_history=conversation_history, user_background=user_background,
+                )
+            except Exception as e:
+                print(f"[examiner_chat] legacy LLM 调用失败: {e}")
+                ai_response = (
+                    f"抱歉，当前AI服务暂时不可用。"
+                    f"{deps.EXAMINERS.get(scenario_id, deps.EXAMINERS['job_interview'])['name']}问你："
+                    "请简要介绍一下你自己，包括你的专业背景和相关经验。"
+                )
 
         deps.db.add_message(conversation_id, 'user', user_message)
         deps.db.add_message(conversation_id, 'assistant', ai_response)
@@ -360,6 +373,32 @@ def examiner_chat():
         })
 
     except Exception as e:
+        _vars = {}
+        for _name in ['scenario_id', 'conversation_id', 'user_id',
+                       'user_message', 'user_background',
+                       'skill_session', 'history', 'conversation_history',
+                       '_retrieved', 'last_question']:
+            try:
+                _val = locals().get(_name)
+                if _val is None:
+                    continue
+                if _name == 'skill_session':
+                    _vars[_name] = f"<round={_val.round}>"
+                elif _name in ('history', 'conversation_history'):
+                    _vars[_name] = f"<len={len(_val)}>"
+                elif _name in ('user_message', 'user_background', 'last_question'):
+                    _vars[_name] = f"<len={len(_val)}>"
+                elif _name == '_retrieved':
+                    _vars[_name] = f"<{len(_val)} questions>"
+                else:
+                    _vars[_name] = _val
+            except Exception:
+                _vars[_name] = '<error>'
+
+        print(f"[examiner_chat] 未捕获异常: {e}")
+        for _k, _v in _vars.items():
+            print(f"  {_k}={_v}")
+        print(f"  traceback:\n{traceback.format_exc()}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -497,6 +536,26 @@ def examiner_start():
         })
 
     except Exception as e:
+        _vars = {}
+        for _name in ['scenario_id', 'conversation_id', 'user_id',
+                       'user_background', 'search_position', 'search_company',
+                       'retrieved_questions', 'spider_questions']:
+            try:
+                _val = locals().get(_name)
+                if _val is None:
+                    continue
+                if _name in ('retrieved_questions', 'spider_questions'):
+                    _vars[_name] = f"<{len(_val)} questions>"
+                elif _name == 'user_background':
+                    _vars[_name] = f"<len={len(_val)}>"
+                else:
+                    _vars[_name] = _val
+            except Exception:
+                _vars[_name] = '<error>'
+        print(f"[examiner_start] 未捕获异常: {e}")
+        for _k, _v in _vars.items():
+            print(f"  {_k}={_v}")
+        print(f"  traceback:\n{traceback.format_exc()}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -617,6 +676,13 @@ def examiner_finish():
         return jsonify({'success': True, 'report': {**report, 'new_badges': new_badges}})
 
     except Exception as e:
+        try:
+            _cid = (request.get_json() or {}).get('conversation_id', '?')
+        except Exception:
+            _cid = '<error>'
+        print(f"[examiner_finish] 未捕获异常: {e}")
+        print(f"  conversation_id={_cid}")
+        print(f"  traceback:\n{traceback.format_exc()}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 

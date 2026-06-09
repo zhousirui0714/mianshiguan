@@ -280,40 +280,6 @@ class LLMClient:
         tone = profile["tone"]
         
         # 构建系统提示词
-        # 构建题库注入
-        _question_bank_section = ""
-        if retrieved_questions:
-            _qb_text = "\n".join([
-                f"{i+1}. {q['question_text']}"
-                for i, q in enumerate(retrieved_questions[:20])
-            ])
-            _used_text = ""
-            if used_questions:
-                _used_text = "\n".join([
-                    f"{i+1}. {q}" for i, q in enumerate(used_questions)
-                ])
-            _banned = ""
-            if used_questions:
-                _banned = f"""
-【已使用问题（禁止再次使用）】
-以下问题已经问过，严禁再次使用：
-
-{_used_text}
-"""
-            _question_bank_section = f"""
-【参考题库】
-以下是从真实题库中为你准备的面试题目：
-
-{_qb_text}
-{_banned}
-【出题规则】
-1. 必须优先使用【参考题库】中的问题，禁止自由生成新问题
-2. 除非题库中的所有题目都已经用完，否则不允许自由生成
-3. 优先选择与目标岗位最相关的问题
-4. 严禁使用【已使用问题】中的任何题目
-5. 只有对用户回答进行追问时，才允许基于用户回答生成新的追问问题
-6. 每次仍然只问一个问题，不要一次性问多个问题
-"""
         system_prompt = f"""
 你是一位{scenario_name}考官，名叫{examiner_name}。
 
@@ -327,7 +293,7 @@ class LLMClient:
 
 【用户背景信息】
 {user_background}
-{_question_bank_section}
+
 【面试要求】
 - 仔细阅读用户的背景信息，包括目标岗位、公司和个人简历
 - 面试问题必须与用户的目标岗位高度相关
@@ -754,40 +720,6 @@ class LLMClient:
                 "TOOL_CALL: {\"tool_id\": \"工具ID\", \"arguments\": {...}}\n"
             )
 
-        # 构建题库注入
-        _ct_qb_section = ""
-        if retrieved_questions:
-            _ct_qb_text = "\n".join([
-                f"{i+1}. {q['question_text']}"
-                for i, q in enumerate(retrieved_questions[:20])
-            ])
-            _ct_used_text = ""
-            if used_questions:
-                _ct_used_text = "\n".join([
-                    f"{i+1}. {q}" for i, q in enumerate(used_questions)
-                ])
-            _ct_banned = ""
-            if used_questions:
-                _ct_banned = f"""
-【已使用问题（禁止再次使用）】
-以下问题已经问过，严禁再次使用：
-
-{_ct_used_text}
-"""
-            _ct_qb_section = f"""
-【参考题库】
-以下是从真实题库中为你准备的面试题目：
-
-{_ct_qb_text}
-{_ct_banned}
-【出题规则】
-1. 必须优先使用【参考题库】中的问题，禁止自由生成新问题
-2. 除非题库中的所有题目都已经用完，否则不允许自由生成
-3. 优先选择与目标岗位最相关的问题
-4. 严禁使用【已使用问题】中的任何题目
-5. 只有对用户回答进行追问时，才允许基于用户回答生成新的追问问题
-6. 每次仍然只问一个问题，不要一次性问多个问题
-"""
         system_prompt = f"""
 你是一位{scenario_name}考官，名叫{examiner_name}。
 
@@ -802,7 +734,7 @@ class LLMClient:
 
 【用户背景信息】
 {user_background}
-{_ct_qb_section}
+
 【面试要求】
 - 仔细阅读用户的背景信息，包括目标岗位、公司和个人简历
 - 面试问题必须与用户的目标岗位高度相关

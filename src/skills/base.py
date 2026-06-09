@@ -64,28 +64,47 @@ class LLMBasedSkill(BaseSkill):
 
     # ==================== 问题生成 ====================
 
-    def generate_question(self, session: SkillSession, history: List[Dict[str, str]]) -> str:
-        """用 LLM 生成下一轮问题（题库优先 + 已问去重）"""
+    def generate_question(self, session: SkillSession,
+                          history: List[Dict[str, str]]) -> str:
+        """生成下一轮问题：优先程序化选题，题库用完时由 LLM 自由生成"""
+        # 1. 程序化选题：从题库中选一个未使用的题目
+        bank_text = self._select_next_bank_question(session)
+        if bank_text:
+            return bank_text
+
+        # 2. 题库已用完 → LLM 自由生成
+        return self._llm_generate_free(session, history)
+
+    def _select_next_bank_question(self,
+                                   session: SkillSession) -> Optional[str]:
+        """程序化选择下一个未使用的题库题目"""
+        retrieved = session.context.get("retrieved_questions", [])
+        if not retrieved:
+            return None
+        used = set(session.context.get("used_questions", []))
+        for q in retrieved:
+            text = q.get("question_text", "")
+            if text and text not in used:
+                return text
+        return None
+
+    def _llm_generate_free(self, session: SkillSession,
+                           history: List[Dict[str, str]]) -> str:
+        """题库已用完，LLM 自由生成新问题"""
         system_prompt = self.get_system_prompt(session)
-
-        retrieved_questions = session.context.get("retrieved_questions", [])
-        used_questions = session.context.get("used_questions", [])
-
         messages = [{"role": "system", "content": system_prompt}]
         messages.extend(history)
         messages.append({
             "role": "user",
             "content": "请根据对话进展，提出下一个面试问题。只输出问题本身，不要解释。"
         })
-
         try:
             response = self.llm.examiner_chat(
                 scenario_id=self.config.id,
                 user_message=messages[-1]["content"],
                 conversation_history=history,
                 user_background=session.context.get("user_background", ""),
-                retrieved_questions=retrieved_questions,
-                used_questions=used_questions,
+                # 不传 retrieved_questions 和 used_questions，LLM 自由发挥
             )
             return response if response else "请继续介绍你的相关经验。"
         except Exception as e:
