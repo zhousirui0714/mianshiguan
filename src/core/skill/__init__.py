@@ -18,6 +18,7 @@ from src.core.skill.types import (
     EvaluationResult,
     FeedbackReport,
 )
+from src.core.deep_dive import DeepDiveManager
 
 
 # ==================== 抽象基类 ====================
@@ -211,6 +212,26 @@ class SkillExecutor:
 
         # 生成下一轮问题
         session.round += 1
+
+        # 项目关键词检测：用户回答中提及项目相关技术时，进入深挖模式
+        PROJECT_KEYWORDS = ["redis", "mysql", "kafka", "rag", "agent"]
+        detected = [kw for kw in PROJECT_KEYWORDS if kw in user_message.lower()]
+        if detected:
+            # 尝试初始化深挖模式
+            keyword = detected[0]
+            if DeepDiveManager.should_enter(keyword, session.context):
+                DeepDiveManager.initialize(session.context, keyword)
+            else:
+                session.context["pending_project_keywords"] = detected
+
+        # 深挖退出检测：用户主动要求换话题
+        deep_dive = session.context.get("deep_dive", {})
+        if deep_dive.get("active") and not deep_dive.get("exited"):
+            config = DeepDiveManager.load_config()
+            topic_config = config.get(deep_dive.get("topic", ""))
+            if topic_config and DeepDiveManager.check_exit(user_message, topic_config):
+                DeepDiveManager.exit(session.context)
+
         next_question = skill.generate_question(session, history)
         # 记录已使用问题（去重）
         session.context.setdefault("used_questions", [])
@@ -281,9 +302,39 @@ class SkillExecutor:
                     })
 
             try:
+                # 项目关键词检测：用户回答中提及项目相关技术时，进入深挖模式
+                PROJECT_KEYWORDS = ["redis", "mysql", "kafka", "rag", "agent"]
+                detected = [kw for kw in PROJECT_KEYWORDS if kw in user_message.lower()]
+                if detected:
+                    keyword = detected[0]
+                    if DeepDiveManager.should_enter(keyword, session.context):
+                        DeepDiveManager.initialize(session.context, keyword)
+                    else:
+                        session.context["pending_project_keywords"] = detected
+
+                # 深挖退出检测
+                deep_dive = session.context.get("deep_dive", {})
+                if deep_dive.get("active") and not deep_dive.get("exited"):
+                    config = DeepDiveManager.load_config()
+                    topic_config = config.get(deep_dive.get("topic", ""))
+                    if topic_config and DeepDiveManager.check_exit(user_message, topic_config):
+                        DeepDiveManager.exit(session.context)
+
                 # 程序化选题（LLM 不再负责选题）
                 bank_question = None
                 if hasattr(skill, '_select_next_bank_question'):
+                    # 先确定阶段（深挖模式下跳过阶段判断）
+                    if hasattr(skill, '_determine_next_stage'):
+                        deep_dive_active = session.context.get("deep_dive", {}).get("active", False)
+                        if not deep_dive_active:
+                            next_stage = skill._determine_next_stage(session)
+                            session.context["current_stage"] = next_stage
+                            stage_rounds = session.context.setdefault("stage_rounds", {})
+                            stage_rounds[next_stage] = stage_rounds.get(next_stage, 0) + 1
+                        else:
+                            # 深挖模式下仍要消费 pending_project_keywords
+                            session.context.pop("pending_project_keywords", None)
+
                     bank_question = skill._select_next_bank_question(session)
 
                 # LLM 只负责评价回复（不传题库）

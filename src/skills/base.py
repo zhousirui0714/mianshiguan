@@ -12,6 +12,7 @@ from src.core.skill.types import (
     EvaluationResult, FeedbackReport,
 )
 from src.services.llm_client import LLMClient
+from src.core.deep_dive import DeepDiveManager
 
 
 class LLMBasedSkill(BaseSkill):
@@ -66,26 +67,91 @@ class LLMBasedSkill(BaseSkill):
 
     def generate_question(self, session: SkillSession,
                           history: List[Dict[str, str]]) -> str:
-        """生成下一轮问题：优先程序化选题，题库用完时由 LLM 自由生成"""
-        # 1. 程序化选题：从题库中选一个未使用的题目
+        """生成下一轮问题：优先深挖 → 程序化选题 → LLM 自由生成"""
+        # 1. 检查是否在深挖模式中
+        deep_dive = session.context.get("deep_dive", {})
+        if deep_dive.get("active") and not deep_dive.get("exited"):
+            if DeepDiveManager.should_continue(session.context):
+                question = DeepDiveManager.select_question(session.context)
+                if question:
+                    return question["question_text"]
+            # 深挖结束（题目用完或达上限）
+            session.context["deep_dive"]["active"] = False
+
+        # 2. 确定当前面试阶段
+        next_stage = self._determine_next_stage(session)
+        session.context["current_stage"] = next_stage
+
+        # 3. 追踪每阶段轮次
+        stage_rounds = session.context.setdefault("stage_rounds", {})
+        stage_rounds[next_stage] = stage_rounds.get(next_stage, 0) + 1
+
+        # 4. 程序化选题：从题库中选一个未使用的题目（按阶段过滤）
         bank_text = self._select_next_bank_question(session)
         if bank_text:
             return bank_text
 
-        # 2. 题库已用完 → LLM 自由生成
+        # 5. 题库已用完 → LLM 自由生成
         return self._llm_generate_free(session, history)
+
+    def _determine_next_stage(self, session: SkillSession) -> str:
+        """
+        确定下一个面试阶段。
+        优先级：项目关键词检测 > 轮次映射
+        """
+        # 关键词检测覆盖：如果用户上一轮回答中包含项目技术关键词，进入 project
+        pending_keywords = session.context.pop("pending_project_keywords", [])
+        if pending_keywords:
+            session.context.setdefault("project_keywords_detected", []).extend(pending_keywords)
+            return "project"
+
+        # 默认基于轮次映射
+        round_num = session.round + 1  # 1-indexed
+        if round_num == 1:
+            return "intro"
+        elif round_num == 2:
+            return "project"
+        elif 3 <= round_num <= 5:
+            return "basic"
+        elif 6 <= round_num <= 7:
+            return "advanced"
+        elif 8 <= round_num <= 9:
+            return "system_design"
+        else:
+            return "behavior"
 
     def _select_next_bank_question(self,
                                    session: SkillSession) -> Optional[str]:
-        """程序化选择下一个未使用的题库题目"""
+        """程序化选择下一个未使用的题库题目（深挖优先 → 阶段匹配）"""
+        # 深挖模式：由 DeepDiveManager 选题
+        deep_dive = session.context.get("deep_dive", {})
+        if deep_dive.get("active") and not deep_dive.get("exited"):
+            if DeepDiveManager.should_continue(session.context):
+                question = DeepDiveManager.select_question(session.context)
+                if question:
+                    return question["question_text"]
+            session.context["deep_dive"]["active"] = False
+
         retrieved = session.context.get("retrieved_questions", [])
         if not retrieved:
             return None
+
+        current_stage = session.context.get("current_stage", "basic")
         used = set(session.context.get("used_questions", []))
+
+        # 1. 优先选择匹配当前阶段的未使用题目
+        for q in retrieved:
+            text = q.get("question_text", "")
+            stage = (q.get("interview_stage") or "basic").strip()
+            if text and text not in used and stage == current_stage:
+                return text
+
+        # 2. 无匹配当前阶段的题目 → 选任意未使用题目（降级兜底）
         for q in retrieved:
             text = q.get("question_text", "")
             if text and text not in used:
                 return text
+
         return None
 
     def _llm_generate_free(self, session: SkillSession,

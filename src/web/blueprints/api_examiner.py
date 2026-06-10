@@ -488,6 +488,10 @@ def examiner_start():
                 "retrieved_questions": retrieved_questions,
                 "position": search_position,
                 "company": search_company,
+                "current_stage": "intro",
+                "stage_rounds": {},
+                "project_keywords_detected": [],
+                "deep_dive": {"active": False},
             })
             welcome_message = skill.get_welcome_message(session_data)
 
