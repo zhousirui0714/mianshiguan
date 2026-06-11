@@ -21,7 +21,7 @@
             display: flex;
             align-items: center;
             gap: 16px;
-            margin-bottom: 32px;
+            margin-bottom: 20px;
         }
         .setup-header h1 {
             font-size: 24px;
@@ -51,7 +51,7 @@
         .setup-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 24px;
+            gap: 20px;
             align-items: start;
         }
 
@@ -59,7 +59,7 @@
             background: #fff;
             border: 1px solid var(--gray-200);
             border-radius: 16px;
-            padding: 28px;
+            padding: 22px 24px;
             transition: border-color 0.2s;
         }
 
@@ -76,11 +76,11 @@
         .setup-card-desc {
             font-size: 13px;
             color: var(--gray-400);
-            margin-bottom: 24px;
+            margin-bottom: 16px;
             line-height: 1.5;
         }
 
-        .form-group { margin-bottom: 20px; }
+        .form-group { margin-bottom: 16px; }
         .form-label {
             display: block;
             margin-bottom: 8px;
@@ -106,7 +106,7 @@
         .form-input::placeholder { color: var(--gray-400); }
 
         .form-textarea {
-            min-height: 140px;
+            min-height: 110px;
             resize: vertical;
             line-height: 1.6;
         }
@@ -191,7 +191,7 @@
         .btn-group {
             display: flex;
             gap: 12px;
-            margin-top: 24px;
+            margin-top: 16px;
             grid-column: 1 / -1;
         }
 
@@ -229,7 +229,7 @@
 
                 <!-- Right sidebar -->
                 <div>
-                    <div class="setup-card" style="margin-bottom:20px;">
+                    <div class="setup-card" style="margin-bottom:12px;">
                         <div class="setup-card-title">&#128202; 场景信息</div>
                         <ul class="info-list">
                             <li><span class="icon">&#128218;</span> <span><strong>场景：</strong><span id="displayScenarioName">{{ scenario_name }}</span></span></li>
