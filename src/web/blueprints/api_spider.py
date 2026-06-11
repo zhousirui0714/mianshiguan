@@ -59,11 +59,36 @@ def search_interview_experiences():
 
         # 面经不足时，从真题库兜底匹配
         if len(results) < limit:
-            q_rows = deps.db.get_questions(
+            # 扩展搜索关键词
+            search_kws = []
+            if position:
+                search_kws.append(position)
+            if company:
+                search_kws.append(company)
+            # 从用户背景额外提取关键词
+            user_bg = request.args.get('user_background', '').strip()
+            if user_bg:
+                # 提取技术栈和关键术语
+                for kw in user_bg.split():
+                    kw = kw.strip().rstrip(',，;；')
+                    if len(kw) >= 2:
+                        search_kws.append(kw)
+            # 去重
+            search_kws = list(dict.fromkeys(search_kws))[:5]
+
+            q_rows = deps.db.search_questions_broad(
+                keywords=search_kws,
                 scenario_id=scenario_id if scenario_id else None,
-                keyword=position or company or None,
+                limit=limit - len(results),
             )
-            q_rows = q_rows[:limit - len(results)]
+
+            # 宽泛匹配无结果时，展示该场景的高分题目作为参考
+            if not q_rows and scenario_id:
+                q_rows = deps.db.get_top_questions(
+                    scenario_id=scenario_id,
+                    limit=limit - len(results),
+                )
+
             if q_rows:
                 bank_questions = [
                     q.get("question_text", "")

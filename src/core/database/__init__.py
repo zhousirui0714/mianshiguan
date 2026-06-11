@@ -221,6 +221,65 @@ class DatabaseManager:
         finally:
             conn.close()
 
+    def search_questions_broad(self, keywords: List[str],
+                                scenario_id: str = None,
+                                limit: int = 20) -> List[dict]:
+        """宽泛搜索：同时匹配题目、标签、分类、公司、岗位等字段"""
+        if not keywords:
+            return []
+        conn = self._get_conn()
+        try:
+            # 构建多字段 OR 条件
+            clauses = []
+            params = []
+            for kw in keywords:
+                kw_param = f"%{kw}%"
+                clauses.append(
+                    "(question_text LIKE ? OR reference_answer LIKE ? OR "
+                    "category LIKE ? OR company LIKE ? OR position LIKE ? OR "
+                    "tags LIKE ?)"
+                )
+                params.extend([kw_param, kw_param, kw_param, kw_param, kw_param, kw_param])
+
+            sql = "SELECT * FROM questions WHERE " + " OR ".join(clauses)
+            if scenario_id:
+                sql += " AND scenario_id = ?"
+                params.append(scenario_id)
+            sql += (" ORDER BY CASE question_level "
+                    "WHEN 'S' THEN 0 WHEN 'A' THEN 1 WHEN 'B' THEN 2 ELSE 3 END "
+                    "LIMIT ?")
+            params.append(limit)
+
+            rows = conn.execute(sql, params).fetchall()
+            for r in rows:
+                if isinstance(r.get("tags"), str):
+                    r["tags"] = json.loads(r["tags"])
+            return rows
+        finally:
+            conn.close()
+
+    def get_top_questions(self, scenario_id: str = None,
+                          limit: int = 20) -> List[dict]:
+        """获取评分最高的题目（兜底展示用）"""
+        conn = self._get_conn()
+        try:
+            sql = ("SELECT * FROM questions WHERE 1=1")
+            params = []
+            if scenario_id:
+                sql += " AND scenario_id = ?"
+                params.append(scenario_id)
+            sql += (" ORDER BY CASE question_level "
+                    "WHEN 'S' THEN 0 WHEN 'A' THEN 1 WHEN 'B' THEN 2 ELSE 3 END "
+                    "LIMIT ?")
+            params.append(limit)
+            rows = conn.execute(sql, params).fetchall()
+            for r in rows:
+                if isinstance(r.get("tags"), str):
+                    r["tags"] = json.loads(r["tags"])
+            return rows
+        finally:
+            conn.close()
+
     def get_question(self, question_id: str) -> Optional[dict]:
         conn = self._get_conn()
         try:

@@ -537,6 +537,9 @@
                     if (!searchVal && params[f.id]) searchVal = params[f.id];
                 });
                 if (searchVal) qp.set('position', searchVal);
+                // 传入完整背景信息以提取更多关键词
+                var bgEl = document.getElementById('background');
+                if (bgEl && bgEl.value.trim()) qp.set('user_background', bgEl.value.trim());
                 qp.set('scenario_id', SCENARIO_ID);
                 qp.set('limit', '6');
 
