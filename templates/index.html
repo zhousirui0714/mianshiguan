@@ -261,12 +261,39 @@
             justify-content: center;
         }
         .hero-card-mock {
+            display: block;
             width: 100%;
             padding: 32px;
             background: #fff;
             border: 1px solid var(--gray-200);
             border-radius: 20px;
             box-shadow: 0 20px 60px -12px rgba(0,0,0,0.08);
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-card-mock:hover {
+            border-color: var(--blue-300);
+            box-shadow: 0 24px 72px -12px rgba(59,130,246,0.15);
+            transform: translateY(-3px);
+        }
+        .hero-card-mock::after {
+            content: '点击开始求职面试 →';
+            position: absolute;
+            right: 24px;
+            bottom: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--blue-500);
+            opacity: 0;
+            transform: translateX(-8px);
+            transition: all 0.25s;
+            pointer-events: none;
+        }
+        .hero-card-mock:hover::after {
+            opacity: 1;
+            transform: translateX(0);
         }
         .hero-card-top {
             display: flex;
@@ -374,17 +401,37 @@
             gap: 20px;
         }
         .scenario-card {
+            display: block;
             padding: 28px;
             background: #fff;
             border: 1px solid var(--gray-200);
             border-radius: 16px;
             transition: all 0.25s;
-            cursor: default;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
         }
         .scenario-card:hover {
-            border-color: var(--blue-200);
-            box-shadow: 0 8px 30px -8px rgba(59,130,246,0.08);
+            border-color: var(--blue-400);
+            box-shadow: 0 8px 30px -8px rgba(59,130,246,0.15);
             transform: translateY(-2px);
+        }
+        .scenario-card::after {
+            content: '开始练习 →';
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--blue-500);
+            opacity: 0;
+            transform: translateX(-8px);
+            transition: all 0.25s;
+            pointer-events: none;
+        }
+        .scenario-card:hover::after {
+            opacity: 1;
+            transform: translateX(0);
         }
         .scenario-icon {
             width: 44px;
@@ -396,6 +443,11 @@
             justify-content: center;
             margin-bottom: 16px;
             color: var(--blue-500);
+            transition: all 0.25s;
+        }
+        .scenario-card:hover .scenario-icon {
+            background: var(--blue-100);
+            transform: scale(1.05);
         }
         .scenario-card h3 {
             font-size: 17px;
@@ -407,6 +459,7 @@
             font-size: 14px;
             color: var(--gray-400);
             line-height: 1.6;
+            padding-right: 40px;
         }
 
         /* ================================================================
@@ -670,7 +723,7 @@
                     AI 考官实时提问、评分、反馈，越练越强。
                 </p>
                 <div class="hero-actions">
-                    <a href="{{ url_for('web.register') }}" class="btn-primary">
+                    <a href="/scenarios" class="btn-primary">
                         免费开始
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
@@ -683,7 +736,7 @@
             </div>
 
             <div class="hero-illustration">
-                <div class="hero-card-mock">
+                <a href="/setup/job_interview" class="hero-card-mock">
                     <div class="hero-card-top">
                         <span class="hc-scenario">互联网求职 · 技术面</span>
                         <span class="hc-score"><span>92</span> 分</span>
@@ -718,7 +771,7 @@
                             个性报告
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
         </div>
     </section>
@@ -736,48 +789,48 @@
                 <p class="section-sub">从校园到职场，从国内到海外，我们覆盖你需要的每一个面试场景。</p>
             </div>
             <div class="scenario-grid">
-                <div class="scenario-card">
+                <a href="/setup/job_interview" class="scenario-card">
                     <div class="scenario-icon">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
                     </div>
                     <h3>求职面试</h3>
                     <p>互联网大厂技术面、产品面、HR 面全覆盖，AI 模拟真实面试官追问。</p>
-                </div>
-                <div class="scenario-card">
+                </a>
+                <a href="/setup/graduate_school" class="scenario-card">
                     <div class="scenario-icon">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
                     </div>
                     <h3>考研复试</h3>
                     <p>英语口语、专业课问答、综合面试，还原真实复试流程与评分标准。</p>
-                </div>
-                <div class="scenario-card">
+                </a>
+                <a href="/setup/civil_service" class="scenario-card">
                     <div class="scenario-icon">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                     </div>
                     <h3>公务员面试</h3>
                     <p>结构化面试全真模拟，综合分析、组织管理、应急应变等题型专项训练。</p>
-                </div>
-                <div class="scenario-card">
+                </a>
+                <a href="/setup/teacher_cert" class="scenario-card">
                     <div class="scenario-icon">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/><line x1="9" y1="10" x2="15" y2="10"/></svg>
                     </div>
                     <h3>教资面试</h3>
                     <p>试讲演练、结构化问答、答辩，AI 从教态、板书、教学设计多维度评估。</p>
-                </div>
-                <div class="scenario-card">
+                </a>
+                <a href="/setup/ielts_speaking" class="scenario-card">
                     <div class="scenario-icon">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
                     </div>
                     <h3>雅思口语</h3>
                     <p>Part 1/2/3 全真模拟，流利度、词汇、语法、发音四大维度精准评分。</p>
-                </div>
-                <div class="scenario-card">
+                </a>
+                <a href="/setup/mba_interview" class="scenario-card">
                     <div class="scenario-icon">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     </div>
                     <h3>MBA 面试</h3>
                     <p>个人背景评估、管理案例分析、压力面试，帮你讲好商业故事。</p>
-                </div>
+                </a>
             </div>
         </div>
     </section>
@@ -918,9 +971,9 @@
     ================================================================ -->
     <section class="cta-section" id="cta">
         <h2>开始你的第一次模拟面试</h2>
-        <p>免费注册，立即练习。不用等到面试前才焦虑，现在每一次练习都在为未来加分。</p>
-        <a href="{{ url_for('web.register') }}" class="btn-primary">
-            免费注册
+        <p>无需注册，打开即练。不用等到面试前才焦虑，现在每一次练习都在为未来加分。</p>
+        <a href="/scenarios" class="btn-primary">
+            免费开始
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
             </svg>
