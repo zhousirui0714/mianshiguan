@@ -3,397 +3,335 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>面试结果 - 面试成长伴侣</title>
-<link rel="stylesheet" href="/static/css/theme.css">
-<link rel="stylesheet" href="/static/css/effects.css">
-<link rel="stylesheet" href="/static/css/3d-overlay.css">
-<link rel="stylesheet" href="/static/css/video-preview.css">
+<title>面试结果 — 百工</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-/* ========== 全局重置与主题 ========== */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  --bg: var(--bg-primary);
-  --bg-alt: #0A0F1E;
-  --card: rgba(30, 41, 59, 0.85);
-  --card-hover: rgba(30, 41, 59, 0.95);
-  --text: var(--text-primary);
-  --text-secondary: var(--text-secondary);
-  --text-muted: var(--text-muted);
-  --border: var(--border-color);
-  --border-hover: rgba(148, 163, 184, 0.25);
-  --primary: #7DD3FC;
-  --primary-light: #818CF8;
-  --primary-glow: rgba(99, 102, 241, 0.3);
-  --secondary: var(--accent-green);
-  --accent: var(--accent-amber);
-  --danger: var(--accent-red);
-  --purple: var(--accent-purple);
-  --radius: 16px;
-  --radius-sm: 10px;
-  --shadow: 0 8px 32px rgba(0,0,0,0.3);
-}
-
-body {
-  font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  line-height: 1.6;
-}
-
-#app {
-  max-width: 1000px;
+/* ========== 容器 ========== */
+.result-container {
+  max-width: 960px;
   margin: 0 auto;
-  padding: 24px 20px 60px;
+  padding: 24px 24px 60px;
 }
 
-/* ========== 加载状态 ========== */
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 60vh;
-  gap: 20px;
-}
-
-.spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid var(--border);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.loading-state p { color: var(--text-secondary); font-size: 1rem; }
-
-/* ========== 错误状态 ========== */
-.error-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 60vh;
-  gap: 16px;
-  text-align: center;
-}
-
-.error-state .error-icon {
-  font-size: 3rem;
-  width: 80px;
-  height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(239, 68, 68, 0.1);
-  border-radius: 50%;
-}
-
-.error-state h2 { font-size: 1.3rem; color: var(--text); }
-.error-state p { color: var(--text-secondary); max-width: 400px; }
-
-/* ========== 头部 ========== */
-.page-header {
+/* ========== 头部导航 ========== */
+.result-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 16px 0;
   margin-bottom: 32px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--gray-100);
 }
 
-.page-header .back-btn {
-  display: flex;
+.back-link {
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 16px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-decoration: none;
+  font-size: 14px;
+  color: var(--gray-500);
+  font-weight: 500;
+  transition: color 0.2s;
+}
+.back-link:hover { color: var(--gray-700); }
+.back-link svg { width: 16px; height: 16px; }
+
+.header-date {
+  font-size: 13px;
+  color: var(--gray-400);
 }
 
-.page-header .back-btn:hover {
-  background: var(--card-hover);
-  color: var(--text);
-  border-color: var(--border-hover);
-}
-
-.page-header .header-meta {
-  text-align: right;
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-}
-
-/* ========== 玻璃态卡片 ========== */
-.glass-card {
-  background: var(--card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.04);
-  padding: 28px;
-  margin-bottom: 24px;
-  transition: border-color 0.3s;
-}
-
-.section-title {
-  font-size: 1.1rem;
-  font-weight: 600;
+/* ========== 分数卡片 ========== */
+.score-card {
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: 16px;
+  padding: 36px 40px;
   margin-bottom: 20px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  color: var(--text);
+  gap: 48px;
 }
 
-.section-title .icon { font-size: 1.2rem; }
-
-/* ========== 成绩速览 ========== */
-.score-section {
-  display: flex;
-  align-items: center;
-  gap: 40px;
-  padding: 12px 0;
-}
-
-.score-circle-wrapper {
+.score-ring-wrap {
   flex-shrink: 0;
   position: relative;
-  width: 160px;
-  height: 160px;
+  width: 148px;
+  height: 148px;
 }
 
-.score-circle {
-  width: 160px;
-  height: 160px;
+.score-ring {
+  width: 148px;
+  height: 148px;
   border-radius: 50%;
-  background: conic-gradient(var(--primary) 0deg, var(--purple) 180deg, var(--primary) 360deg);
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  animation: fadeInScore 0.6s ease-out;
 }
 
-@keyframes fadeInScore {
-  from { opacity: 0; transform: scale(0.8); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-.score-circle::before {
-  content: '';
+.score-ring svg {
   position: absolute;
-  inset: 6px;
-  border-radius: 50%;
-  background: var(--bg);
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
 }
 
-.score-value {
-  position: relative;
-  z-index: 1;
-  font-size: 3.2rem;
+.score-ring-bg {
+  fill: none;
+  stroke: var(--gray-100);
+  stroke-width: 10;
+}
+
+.score-ring-fill {
+  fill: none;
+  stroke: url(#scoreGradient);
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1.5s ease-out;
+}
+
+.score-num {
+  font-size: 3rem;
   font-weight: 800;
-  color: var(--text);
+  color: var(--gray-900);
+  letter-spacing: -0.03em;
   line-height: 1;
-  font-variant-numeric: tabular-nums;
 }
 
-.score-unit {
+.score-num .unit {
   font-size: 1rem;
-  color: var(--text-secondary);
-  margin-left: 2px;
+  font-weight: 500;
+  color: var(--gray-400);
 }
 
-.score-info { flex: 1; }
+.score-meta { flex: 1; }
 
-.score-info .percentile-badge {
+.pass-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 6px 16px;
-  background: rgba(99, 102, 241, 0.15);
-  border: 1px solid rgba(99, 102, 241, 0.3);
   border-radius: 20px;
-  font-size: 0.95rem;
+  font-size: 14px;
   font-weight: 600;
-  color: var(--primary-light);
   margin-bottom: 16px;
 }
+.pass-badge.passed {
+  background: rgba(16, 185, 129, 0.08);
+  color: var(--green-500);
+}
+.pass-badge.failed {
+  background: rgba(239, 68, 68, 0.08);
+  color: var(--red-500);
+}
 
-.score-info .meta-list {
+.score-details {
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
 }
 
-.score-info .meta-item {
+.score-detail-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
+  font-size: 14px;
+  color: var(--gray-500);
+}
+.score-detail-item .detail-icon { font-size: 16px; }
+.score-detail-item .detail-val {
+  color: var(--gray-700);
+  font-weight: 500;
 }
 
-.score-info .meta-item .meta-icon { font-size: 1rem; }
+/* ========== 通用卡片 ========== */
+.result-card {
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: 16px;
+  padding: 28px 32px;
+  margin-bottom: 20px;
+}
+
+.section-heading {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-heading .ico { font-size: 18px; }
 
 /* ========== 雷达图 ========== */
-.chart-wrapper {
-  position: relative;
-  max-width: 460px;
+.radar-wrap {
+  max-width: 440px;
   margin: 0 auto;
 }
-
-.chart-wrapper canvas { width: 100% !important; }
-
+.radar-wrap canvas { width: 100% !important; }
 .empty-chart {
   text-align: center;
-  padding: 40px;
-  color: var(--text-secondary);
+  padding: 32px;
+  color: var(--gray-400);
+  font-size: 14px;
 }
 
-/* ========== AI 点评 ========== */
+/* ========== 点评卡片 ========== */
 .review-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 16px;
 }
 
-.review-card {
+.review-box {
+  border-radius: 12px;
   padding: 20px;
-  border-radius: var(--radius-sm);
   min-height: 120px;
 }
 
-.review-card.strengths {
-  background: rgba(16, 185, 129, 0.08);
-  border: 1px solid rgba(16, 185, 129, 0.2);
+.review-box.strengths {
+  background: rgba(16, 185, 129, 0.04);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+}
+.review-box.improvements {
+  background: rgba(245, 158, 11, 0.04);
+  border: 1px solid rgba(245, 158, 11, 0.15);
 }
 
-.review-card.improvements {
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.2);
-}
-
-.review-card .review-title {
-  font-size: 0.95rem;
+.review-box .review-label {
+  font-size: 14px;
   font-weight: 600;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
+.review-box.strengths .review-label { color: #059669; }
+.review-box.improvements .review-label { color: #d97706; }
 
-.review-card.strengths .review-title { color: var(--secondary); }
-.review-card.improvements .review-title { color: var(--accent); }
-
-.review-card ul {
+.review-box ul {
   list-style: none;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
-
-.review-card li {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
+.review-box li {
+  font-size: 14px;
+  color: var(--gray-600);
   line-height: 1.5;
-  padding-left: 20px;
+  padding-left: 18px;
   position: relative;
 }
+.review-box.strengths li::before { content: '✓'; position:absolute; left:0; color:#10b981; font-weight:700; }
+.review-box.improvements li::before { content: '→'; position:absolute; left:0; color:#f59e0b; font-weight:700; }
 
-.review-card li::before {
-  position: absolute;
-  left: 0;
-}
-
-.review-card.strengths li::before { content: '✅'; }
-.review-card.improvements li::before { content: '💡'; }
-
-.overall-comment {
+.overall-note {
   margin-top: 16px;
   padding: 16px 20px;
-  background: rgba(99, 102, 241, 0.06);
-  border: 1px solid rgba(99, 102, 241, 0.15);
-  border-radius: var(--radius-sm);
-  font-size: 0.9rem;
-  color: var(--text-secondary);
+  background: var(--blue-50);
+  border-radius: 12px;
+  font-size: 14px;
+  color: var(--gray-600);
   line-height: 1.7;
 }
 
 /* ========== 徽章 ========== */
-.badges-grid {
+.badge-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
 }
 
-.badge-card {
+.badge-item {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 18px;
-  background: rgba(99, 102, 241, 0.06);
-  border: 1px solid rgba(99, 102, 241, 0.2);
-  border-radius: var(--radius-sm);
-  cursor: default;
+  padding: 16px;
+  background: var(--gray-50);
+  border: 1px solid var(--gray-100);
+  border-radius: 12px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.badge-item:hover {
+  border-color: var(--blue-200);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.08);
 }
 
-.badge-icon {
-  width: 48px;
-  height: 48px;
+.badge-item .badge-icon-wrap {
+  width: 44px; height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.6rem;
-  background: rgba(99, 102, 241, 0.1);
-  border-radius: 12px;
+  font-size: 22px;
+  background: var(--blue-50);
+  border-radius: 10px;
   flex-shrink: 0;
 }
 
-.badge-info .badge-name {
+.badge-item .badge-text .badge-name {
   font-weight: 600;
-  font-size: 0.95rem;
-  color: var(--text);
-  margin-bottom: 4px;
+  font-size: 14px;
+  color: var(--gray-900);
+  margin-bottom: 2px;
+}
+.badge-item .badge-text .badge-desc {
+  font-size: 12px;
+  color: var(--gray-400);
+  line-height: 1.4;
 }
 
-.badge-info .badge-desc {
-  font-size: 0.8rem;
-  color: var(--text-muted);
+/* ========== 答题回顾 ========== */
+.answer-card {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--gray-100);
 }
+.answer-card:last-child { border-bottom: none; }
 
-.badge-info .badge-rarity {
+.answer-card .round-tag {
   display: inline-block;
-  font-size: 0.7rem;
-  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--blue-500);
+  background: var(--blue-50);
+  padding: 2px 10px;
   border-radius: 10px;
-  margin-top: 4px;
-  background: rgba(99, 102, 241, 0.15);
-  color: var(--primary-light);
+  margin-bottom: 8px;
 }
 
-.empty-badges {
-  text-align: center;
-  padding: 24px;
-  color: var(--text-muted);
-  font-size: 0.9rem;
+.answer-card .q-text {
+  font-size: 14px;
+  color: var(--gray-900);
+  font-weight: 500;
+  margin-bottom: 6px;
 }
 
-/* ========== 行动按钮 ========== */
-.actions-section {
+.answer-card .a-text {
+  font-size: 13px;
+  color: var(--gray-500);
+  line-height: 1.5;
+  margin-bottom: 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.answer-card .a-score {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--blue-500);
+}
+
+/* ========== 操作按钮 ========== */
+.action-bar {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   justify-content: center;
   flex-wrap: wrap;
   padding: 8px 0 24px;
@@ -403,231 +341,227 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 14px 32px;
-  border: none;
-  border-radius: var(--radius-sm);
-  font-size: 1rem;
+  padding: 12px 28px;
+  border-radius: 10px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
-  transition: all 0.25s ease;
+  transition: all 0.2s;
+  border: none;
   font-family: inherit;
 }
 
 .btn-primary {
-  background: var(--accent-gradient);
+  background: var(--blue-500);
   color: #fff;
-  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
 }
-
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(99, 102, 241, 0.4);
+  background: var(--blue-600);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
 }
 
 .btn-secondary {
-  background: var(--card);
-  color: var(--text);
-  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--gray-700);
+  border: 1px solid var(--gray-200);
 }
-
 .btn-secondary:hover {
-  background: var(--card-hover);
-  border-color: var(--border-hover);
-  transform: translateY(-1px);
+  background: var(--gray-50);
+  border-color: var(--gray-300);
 }
 
-.btn-outline {
+.btn-ghost {
   background: transparent;
-  color: var(--text-secondary);
-  border: 1px solid var(--border);
+  color: var(--gray-500);
+}
+.btn-ghost:hover {
+  color: var(--gray-700);
+  background: var(--gray-50);
 }
 
-.btn-outline:hover {
-  color: var(--text);
-  border-color: var(--border-hover);
+/* ========== 加载 / 错误 ========== */
+.loading-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 16px;
 }
-
-/* ========== 答题回顾 ========== */
-.answers-section { margin-bottom: 24px; }
-
-.answer-item {
-  padding: 16px 0;
-  border-bottom: 1px solid var(--border);
+.spinner {
+  width: 40px; height: 40px;
+  border: 3px solid var(--gray-100);
+  border-top-color: var(--blue-500);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
 }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-wrap p { color: var(--gray-400); font-size: 14px; }
 
-.answer-item:last-child { border-bottom: none; }
-
-.answer-item .answer-round {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  margin-bottom: 6px;
+.error-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 12px;
+  text-align: center;
 }
-
-.answer-item .answer-q {
-  font-size: 0.9rem;
-  color: var(--text);
-  font-weight: 500;
-  margin-bottom: 4px;
+.error-wrap .err-icon {
+  width: 72px; height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  background: var(--gray-50);
+  border-radius: 50%;
+  border: 1px solid var(--gray-100);
 }
-
-.answer-item .answer-a {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.answer-item .answer-score {
-  display: inline-block;
-  margin-top: 6px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--primary-light);
-}
+.error-wrap h3 { font-size: 17px; color: var(--gray-900); }
+.error-wrap p { font-size: 14px; color: var(--gray-400); max-width: 360px; }
 
 /* ========== 响应式 ========== */
 @media (max-width: 768px) {
-  #app { padding: 16px 12px 40px; }
-  .glass-card { padding: 20px; }
-
-  .score-section {
+  .result-container { padding: 16px 16px 40px; }
+  .score-card {
     flex-direction: column;
     text-align: center;
-    gap: 20px;
+    gap: 24px;
+    padding: 28px 24px;
   }
-
-  .score-info .meta-list { justify-content: center; }
-
+  .score-details { justify-content: center; }
+  .score-ring-wrap { width: 120px; height: 120px; }
+  .score-ring { width: 120px; height: 120px; }
+  .score-num { font-size: 2.4rem; }
   .review-grid { grid-template-columns: 1fr; }
-
-  .actions-section { flex-direction: column; align-items: stretch; }
-  .actions-section .btn { justify-content: center; }
-
-  .score-circle-wrapper { width: 130px; height: 130px; }
-  .score-circle { width: 130px; height: 130px; }
-  .score-value { font-size: 2.6rem; }
+  .action-bar { flex-direction: column; align-items: stretch; }
+  .action-bar .btn { justify-content: center; }
+  .badge-list { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 480px) {
-  .badges-grid { grid-template-columns: 1fr; }
-  .page-header { flex-direction: column; gap: 12px; align-items: flex-start; }
-  .page-header .header-meta { text-align: left; }
+  .result-header { flex-direction: column; gap: 8px; align-items: flex-start; }
 }
 </style>
 </head>
 <body>
-<!-- 极光背景 -->
-<div class="aurora-bg">
-  <div class="aurora-layer"></div>
-  <div class="aurora-layer"></div>
-  <div class="aurora-layer"></div>
-  <div class="aurora-layer"></div>
-</div>
-<div id="app">
-  <!-- 加载状态 -->
-  <div class="loading-state" id="loadingState">
+
+{% include 'components/nav.html' %}
+
+<div class="result-container">
+  <!-- 加载 -->
+  <div class="loading-wrap" id="loadingState">
     <div class="spinner"></div>
     <p>正在加载面试报告...</p>
   </div>
 
-  <!-- 错误状态 -->
-  <div class="error-state" id="errorState" style="display:none;">
-    <div class="error-icon">⚠️</div>
-    <h2>加载失败</h2>
+  <!-- 错误 -->
+  <div class="error-wrap" id="errorState" style="display:none;">
+    <div class="err-icon">⚠️</div>
+    <h3>加载失败</h3>
     <p id="errorMessage">无法加载面试结果数据，请稍后重试。</p>
-    <a href="/" class="btn btn-primary" style="margin-top:8px;">返回首页</a>
+    <a href="/" class="btn btn-primary" style="margin-top:12px;">返回首页</a>
   </div>
 
   <!-- 主内容 -->
   <div id="mainContent" style="display:none;">
     <!-- 头部 -->
-    <div class="page-header">
-      <a href="/" class="back-btn">← 返回首页</a>
-      <div class="header-meta">
-        <div id="headerDate"></div>
-      </div>
+    <div class="result-header">
+      <a href="/" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        返回首页
+      </a>
+      <div class="header-date" id="headerDate"></div>
     </div>
 
-    <!-- 成绩速览 -->
-    <div class="glass-card" id="scoreSection">
-      <div class="score-section">
-        <div class="score-circle-wrapper">
-          <div class="score-circle">
-            <div class="score-value">
-              <span id="scoreNumber">0</span><span class="score-unit">分</span>
-            </div>
+    <!-- 分数卡片 -->
+    <div class="score-card">
+      <div class="score-ring-wrap">
+        <div class="score-ring">
+          <svg viewBox="0 0 148 148">
+            <defs>
+              <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#3b82f6"/>
+                <stop offset="100%" stop-color="#8b5cf6"/>
+              </linearGradient>
+            </defs>
+            <circle class="score-ring-bg" cx="74" cy="74" r="64"/>
+            <circle class="score-ring-fill" id="scoreRingFill" cx="74" cy="74" r="64"
+                    stroke-dasharray="402.12" stroke-dashoffset="402.12"/>
+          </svg>
+          <div class="score-num">
+            <span id="scoreNumber">0</span><span class="unit">分</span>
           </div>
         </div>
-        <div class="score-info">
-          <div class="percentile-badge" id="percentileBadge">
-            📊 超越 <span id="percentileValue">0</span>% 的考生
+      </div>
+      <div class="score-meta">
+        <div class="pass-badge" id="passBadge">
+          <span id="passIcon"></span> <span id="passLabel"></span>
+        </div>
+        <div class="score-details">
+          <div class="score-detail-item">
+            <span class="detail-icon">📊</span> 超越 <span class="detail-val" id="percentileValue">0</span>% 的考生
           </div>
-          <div class="meta-list">
-            <span class="meta-item"><span class="meta-icon">🎯</span> <span id="metaScenario"></span></span>
-            <span class="meta-item"><span class="meta-icon">⏱️</span> <span id="metaDuration"></span></span>
-            <span class="meta-item"><span class="meta-icon">📝</span> <span id="metaRounds"></span></span>
-            <span class="meta-item"><span class="meta-icon">📅</span> <span id="metaDate"></span></span>
+          <div class="score-detail-item">
+            <span class="detail-icon">🎯</span> <span class="detail-val" id="metaScenario"></span>
+          </div>
+          <div class="score-detail-item">
+            <span class="detail-icon">⏱️</span> <span class="detail-val" id="metaDuration"></span>
+          </div>
+          <div class="score-detail-item">
+            <span class="detail-icon">📝</span> 共 <span class="detail-val" id="metaRounds"></span>
+          </div>
+          <div class="score-detail-item">
+            <span class="detail-icon">📅</span> <span class="detail-val" id="metaDate"></span>
           </div>
         </div>
       </div>
     </div>
 
     <!-- 能力雷达图 -->
-    <div class="glass-card" id="radarSection">
-      <div class="section-title"><span class="icon">📊</span> 能力评估</div>
-      <div class="chart-wrapper">
-        <canvas id="radarChart"></canvas>
-      </div>
-      <div class="empty-chart" id="emptyRadar" style="display:none;">暂无维度数据</div>
+    <div class="result-card" id="radarSection">
+      <div class="section-heading"><span class="ico">📊</span> 能力评估</div>
+      <div class="radar-wrap"><canvas id="radarChart"></canvas></div>
+      <div class="empty-chart" id="emptyRadar" style="display:none;">暂无维度评分数据</div>
     </div>
 
-    <!-- 视频回放 -->
-    <div class="glass-card video-playback-section" id="videoSection" style="display:none;">
-      <div class="section-title"><span class="icon">🎥</span> 面试回放</div>
-      <div id="video-playback"></div>
-    </div>
-
-    <!-- AI 点评 -->
-    <div class="glass-card" id="reviewSection">
-      <div class="section-title"><span class="icon">🤖</span> 考官点评</div>
+    <!-- 考官点评 -->
+    <div class="result-card" id="reviewSection">
+      <div class="section-heading"><span class="ico">💬</span> 考官点评</div>
       <div class="review-grid" id="reviewGrid">
-        <div class="review-card strengths">
-          <div class="review-title">✅ 优点</div>
-          <ul id="strengthsList">
-            <li>暂无数据</li>
-          </ul>
+        <div class="review-box strengths">
+          <div class="review-label">✓ 优势亮点</div>
+          <ul id="strengthsList"><li>暂无数据</li></ul>
         </div>
-        <div class="review-card improvements">
-          <div class="review-title">💡 改进建议</div>
-          <ul id="improvementsList">
-            <li>暂无数据</li>
-          </ul>
+        <div class="review-box improvements">
+          <div class="review-label">→ 改进建议</div>
+          <ul id="improvementsList"><li>暂无数据</li></ul>
         </div>
       </div>
-      <div class="overall-comment" id="overallComment" style="display:none;"></div>
+      <div class="overall-note" id="overallComment" style="display:none;"></div>
     </div>
 
-    <!-- 徽章解锁 -->
-    <div class="glass-card" id="badgesSection" style="display:none;">
-      <div class="section-title"><span class="icon">🏆</span> 新解锁徽章</div>
-      <div class="badges-grid" id="badgesGrid"></div>
+    <!-- 新徽章 -->
+    <div class="result-card" id="badgesSection" style="display:none;">
+      <div class="section-heading"><span class="ico">🏆</span> 新解锁徽章</div>
+      <div class="badge-list" id="badgesGrid"></div>
     </div>
 
     <!-- 答题回顾 -->
-    <div class="glass-card" id="answersSection" style="display:none;">
-      <div class="section-title"><span class="icon">📋</span> 答题回顾</div>
+    <div class="result-card" id="answersSection" style="display:none;">
+      <div class="section-heading"><span class="ico">📋</span> 答题回顾</div>
       <div id="answersList"></div>
     </div>
 
-    <!-- 行动按钮 -->
-    <div class="actions-section">
+    <!-- 操作按钮 -->
+    <div class="action-bar">
       <button class="btn btn-primary" onclick="restartInterview()">🔄 再来一次</button>
-      <a href="/learning-plan" class="btn btn-secondary">📋 查看学习计划</a>
-      <a href="/" class="btn btn-outline">🏠 返回首页</a>
+      <a href="/growth" class="btn btn-secondary">📈 查看成长档案</a>
+      <a href="/" class="btn btn-ghost">🏠 返回首页</a>
     </div>
   </div>
 </div>
@@ -639,14 +573,12 @@ body {
   var conversationId = '{{ conversation_id }}';
   var chartInstance = null;
 
-  // ========== DOM 引用 ==========
   var $ = function(id) { return document.getElementById(id); };
   var loadingState = $('loadingState');
   var errorState = $('errorState');
   var mainContent = $('mainContent');
   var errorMessage = $('errorMessage');
 
-  // ========== 主流程 ==========
   document.addEventListener('DOMContentLoaded', function() {
     fetchResult();
   });
@@ -668,80 +600,77 @@ body {
   }
 
   function render(data) {
-    // 保存场景 ID 供重新面试按钮使用
     window._resultScenarioId = data.scenario_id || 'job_interview';
 
-    // 日期
     var d = data.created_at ? data.created_at.substring(0, 10) : '';
     $('headerDate').textContent = d ? '面试日期: ' + d : '';
-
-    // 元信息
     $('metaScenario').textContent = data.scenario_name || data.scenario_id || '';
-    $('metaDuration').textContent = data.total_duration_min ? (data.total_duration_min + ' 分钟') : '';
+    $('metaDuration').textContent = data.total_duration_min ? (data.total_duration_min + ' 分钟') : '—';
     $('metaRounds').textContent = (data.round_count || 0) + ' 轮回答';
-    $('metaDate').textContent = d || '';
+    $('metaDate').textContent = d || '—';
     $('percentileValue').textContent = data.percentile || 0;
 
-    // 分数滚动动画（使用 effects.js）
-    if (window.Effects && window.Effects.animateNumber) {
-      window.Effects.animateNumber($('scoreNumber'), 0, data.overall_score || 0, 2000, '分');
-    } else {
-      $('scoreNumber').textContent = (data.overall_score || 0) + '分';
-    }
+    // 分数滚动动画
+    var finalScore = data.overall_score || 0;
+    animateScore(finalScore);
+
+    // 通过/未通过
+    var passed = data.overall_score >= 60;
+    var passBadge = $('passBadge');
+    passBadge.className = 'pass-badge ' + (passed ? 'passed' : 'failed');
+    $('passIcon').textContent = passed ? '✓' : '✗';
+    $('passLabel').textContent = passed ? '通过' : '未通过';
 
     // 雷达图
     if (data.dimensions && data.dimensions.length > 0) {
       renderRadar(data.dimensions);
     } else {
       $('emptyRadar').style.display = 'block';
-      document.querySelector('#radarSection .chart-wrapper').style.display = 'none';
+      document.querySelector('#radarSection .radar-wrap').style.display = 'none';
     }
 
-    // 点评
     renderReview(data);
 
-    // 徽章
     if (data.new_badges && data.new_badges.length > 0) {
       renderBadges(data.new_badges);
     }
 
-    // 答题回顾
     if (data.answers && data.answers.length > 0) {
       renderAnswers(data.answers);
     }
 
-    // 总体评价
     if (data.overall_comment) {
       var oc = $('overallComment');
       oc.textContent = data.overall_comment;
       oc.style.display = 'block';
     }
-
-    // 视频回放
-    loadVideoPlayback();
   }
 
-  // ========== 视频回放 ==========
-  function loadVideoPlayback() {
-    var section = $('videoSection');
-    var container = $('video-playback');
-    if (!section || !container) return;
+  // ========== 分数动画 ==========
+  function animateScore(target) {
+    var el = $('scoreNumber');
+    var ring = $('scoreRingFill');
+    var circumference = 402.12; // 2 * π * 64
+    var duration = 1500;
+    var start = performance.now();
+    var from = 0;
 
-    // 尝试加载视频录制
-    if (window.VideoRecorder && window.VideoRecorder.hasRecording) {
-      window.VideoRecorder.hasRecording(conversationId).then(function(has) {
-        if (has) {
-          section.style.display = 'block';
-          window.VideoRecorder.playback(conversationId, container);
-        } else {
-          section.style.display = 'none';
-        }
-      }).catch(function() {
-        section.style.display = 'none';
-      });
-    } else {
-      section.style.display = 'none';
+    function step(now) {
+      var elapsed = now - start;
+      var progress = Math.min(elapsed / duration, 1);
+      // easeOutCubic
+      var eased = 1 - Math.pow(1 - progress, 3);
+      var current = Math.round(from + (target - from) * eased);
+      el.textContent = current;
+      // 更新圆环
+      var offset = circumference - (circumference * (current / 100));
+      ring.setAttribute('stroke-dashoffset', offset);
+
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      }
     }
+    requestAnimationFrame(step);
   }
 
   // ========== 雷达图 ==========
@@ -757,14 +686,14 @@ body {
         datasets: [{
           label: '本次得分',
           data: scores,
-          backgroundColor: 'rgba(99, 102, 241, 0.15)',
-          borderColor: '#8B6914',
+          backgroundColor: 'rgba(59, 130, 246, 0.08)',
+          borderColor: '#3b82f6',
           borderWidth: 2,
-          pointBackgroundColor: '#8B6914',
+          pointBackgroundColor: '#3b82f6',
           pointBorderColor: '#fff',
-          pointBorderWidth: 1,
-          pointRadius: 4,
-          pointHoverRadius: 6,
+          pointBorderWidth: 2,
+          pointRadius: 5,
+          pointHoverRadius: 7,
         }]
       },
       options: {
@@ -775,19 +704,17 @@ body {
           r: {
             min: 0,
             max: 100,
-            ticks: { stepSize: 20, color: '#64748B', backdropColor: 'transparent' },
-            grid: { color: 'rgba(148, 163, 184, 0.12)' },
-            angleLines: { color: 'rgba(148, 163, 184, 0.12)' },
+            ticks: { stepSize: 20, color: '#9ca3af', backdropColor: 'transparent', font: { size: 10 } },
+            grid: { color: 'rgba(229, 231, 235, 0.8)' },
+            angleLines: { color: 'rgba(229, 231, 235, 0.8)' },
             pointLabels: {
-              color: '#94A3B8',
-              font: { family: "-apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif", size: 12 }
+              color: '#374151',
+              font: { family: "Inter, -apple-system, 'PingFang SC', sans-serif", size: 11, weight: '500' }
             }
           }
         },
         plugins: {
-          legend: {
-            labels: { color: '#94A3B8', font: { size: 12 } }
-          }
+          legend: { display: false }
         }
       }
     });
@@ -799,15 +726,15 @@ body {
     var il = $('improvementsList');
 
     if (data.strengths && data.strengths.length > 0) {
-      sl.innerHTML = data.strengths.map(function(s) { return '<li>' + escapeHtml(s) + '</li>'; }).join('');
+      sl.innerHTML = data.strengths.map(function(s) { return '<li>' + esc(s) + '</li>'; }).join('');
     } else {
-      sl.innerHTML = '<li style="color:var(--text-muted);padding-left:0;">暂无数据</li>';
+      sl.innerHTML = '<li style="color:var(--gray-400);padding-left:0;">暂无数据</li>';
     }
 
     if (data.improvements && data.improvements.length > 0) {
-      il.innerHTML = data.improvements.map(function(s) { return '<li>' + escapeHtml(s) + '</li>'; }).join('');
+      il.innerHTML = data.improvements.map(function(s) { return '<li>' + esc(s) + '</li>'; }).join('');
     } else {
-      il.innerHTML = '<li style="color:var(--text-muted);padding-left:0;">暂无数据</li>';
+      il.innerHTML = '<li style="color:var(--gray-400);padding-left:0;">暂无数据</li>';
     }
   }
 
@@ -817,29 +744,15 @@ body {
     var grid = $('badgesGrid');
     section.style.display = 'block';
 
-    grid.innerHTML = badges.map(function(b, idx) {
-      return '<div class="badge-card unlocking" data-badge-idx="' + idx + '">' +
-        '<div class="badge-icon">' + (b.icon || '🎯') + '</div>' +
-        '<div class="badge-info">' +
-          '<div class="badge-name">' + escapeHtml(b.name || '') + '</div>' +
-          '<div class="badge-desc">' + escapeHtml(b.description || '') + '</div>' +
-          '<span class="badge-rarity">' + (b.rarity || 'common') + '</span>' +
+    grid.innerHTML = badges.map(function(b) {
+      return '<div class="badge-item">' +
+        '<div class="badge-icon-wrap">' + (b.icon || '🎯') + '</div>' +
+        '<div class="badge-text">' +
+          '<div class="badge-name">' + esc(b.name || '') + '</div>' +
+          '<div class="badge-desc">' + esc(b.description || '') + '</div>' +
         '</div>' +
       '</div>';
     }).join('');
-
-    // 触发徽章解锁特效（延迟确保 DOM 已渲染）
-    setTimeout(function() {
-      var cards = grid.querySelectorAll('.badge-card');
-      cards.forEach(function(card, idx) {
-        setTimeout(function() {
-          // 粒子爆发
-          if (window.ThreeDEffects && window.ThreeDEffects.triggerBadgeUnlock) {
-            window.ThreeDEffects.triggerBadgeUnlock(card);
-          }
-        }, idx * 600); // 每个徽章间隔 0.6 秒
-      });
-    }, 500);
   }
 
   // ========== 答题回顾 ==========
@@ -849,17 +762,16 @@ body {
     section.style.display = 'block';
 
     list.innerHTML = answers.map(function(a) {
-      return '<div class="answer-item">' +
-        '<div class="answer-round">第 ' + (a.round || '?') + ' 题</div>' +
-        '<div class="answer-q">' + escapeHtml(a.question || '(无题目)') + '</div>' +
-        '<div class="answer-a">' + escapeHtml(a.answer || '') + '</div>' +
-        (a.score != null ? '<div class="answer-score">得分: ' + a.score + '</div>' : '') +
+      return '<div class="answer-card">' +
+        '<div class="round-tag">第 ' + (a.round || '?') + ' 题</div>' +
+        '<div class="q-text">' + esc(a.question || '(无题目)') + '</div>' +
+        '<div class="a-text">' + esc(a.answer || '') + '</div>' +
+        (a.score != null ? '<div class="a-score">得分: ' + a.score + ' 分</div>' : '') +
       '</div>';
     }).join('');
   }
 
-  // ========== 工具函数 ==========
-  function escapeHtml(str) {
+  function esc(str) {
     if (!str) return '';
     var div = document.createElement('div');
     div.textContent = str;
@@ -868,26 +780,14 @@ body {
 
   // ========== 重新面试 ==========
   window.restartInterview = function() {
-    // 从页面可见的 scenario 名称推断场景 ID，默认跳转聊天页
     var sid = window._resultScenarioId || 'job_interview';
     window.location.href = '/chat/' + sid;
   };
 
-  // 保存场景 ID 供重新面试按钮使用
   window._resultScenarioId = '';
 
 })();
 </script>
-<script src="/static/js/video-record.js"></script>
-<script src="/static/js/effects.js"></script>
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-  }
-}
-</script>
-<script type="module" src="/static/js/3d-effects.js"></script>
+
 </body>
 </html>
