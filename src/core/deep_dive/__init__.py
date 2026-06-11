@@ -15,6 +15,11 @@ from typing import List, Optional, Dict, Any
 
 _CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                             "deep_dive_topics.json")
+_DEBUG_LOG = r"D:\zhousirui\新建文件夹 (2)\mianshiguan\debug_audit.log"
+def _debug(msg: str):
+    with open(_DEBUG_LOG, "a", encoding="utf-8") as f:
+        f.write(msg + "\n")
+        f.flush()
 
 _KEYWORD_TO_TOPIC = {
     "redis": "redis",
@@ -65,7 +70,7 @@ class DeepDiveManager:
         return True
 
     @staticmethod
-    def initialize(context: dict, keyword: str) -> dict:
+    def initialize(context: dict, keyword: str, cid: str = "????") -> dict:
         """
         初始化深挖模式：
         1. 从配置获取 topic 信息
@@ -75,16 +80,23 @@ class DeepDiveManager:
         topic_key = DeepDiveManager.keyword_to_topic(keyword)
         config = DeepDiveManager.load_config()
         topic_config = config.get(topic_key, {})
+        context["_cid"] = cid
 
         display_name = topic_config.get("display_name", keyword)
         related_topics = topic_config.get("related_topics", [])
         max_depth = topic_config.get("max_depth", 3)
 
         # 从 retrieved_questions 筛选 topic 匹配的题目
+        retrieved = context.get("retrieved_questions", [])
+        _debug(f"[DEBUG][{cid}] DeepDive.initialize: topic={topic_key} "
+              f"related={related_topics} retrieved_count={len(retrieved)}")
+
         candidates = DeepDiveManager._filter_candidates(
-            context.get("retrieved_questions", []),
+            retrieved,
             related_topics,
         )
+
+        _debug(f"[DEBUG][{cid}] DeepDive.initialize: 候选 {len(candidates)} 题")
 
         context["deep_dive"] = {
             "active": True,
@@ -99,6 +111,7 @@ class DeepDiveManager:
 
         print(f"[DeepDiveManager] 进入深挖: {display_name}, "
               f"候选 {len(candidates)} 题, 计划 {max_depth} 轮")
+        _debug(f"[DEBUG][{cid}] DeepDive.initialize -> 完成: 候选{len(candidates)}题, max_depth={max_depth}")
         return context
 
     @staticmethod
@@ -126,8 +139,10 @@ class DeepDiveManager:
                 except (json.JSONDecodeError, TypeError):
                     q_topics = []
 
-            if isinstance(q_topics, list):
+            if not match and isinstance(q_topics, list):
                 match = any(rt in qt for rt in related_topics for qt in q_topics)
+                if match:
+                    _debug(f"[FILTER] 话题匹配命中: text={text[:40]} topics={q_topics} related={related_topics}")
 
             if not match:
                 continue
@@ -165,21 +180,30 @@ class DeepDiveManager:
         asked_ids = set(deep_dive.get("asked_ids", []))
         used = set(context.get("used_questions", []))
 
+        topic = deep_dive.get("topic", "?")
+        # Try to get conversation_id from context (injected upstream)
+        cid = context.get("_cid", "????")
+
+        _debug(f"[DEBUG][{cid}] DeepDive.select_question: topic={topic} "
+              f"candidates={len(candidates)} asked_ids={len(asked_ids)} used={len(used)} "
+              f"depth={deep_dive.get('depth',0)}/{deep_dive.get('max_depth',3)}")
+
         for c in candidates:
-            cid = c.get("id", "")
+            cid_q = c.get("id", "")
             text = c.get("question_text", "")
-            if cid and cid not in asked_ids and text and text not in used:
-                asked_ids.add(cid)
+            if cid_q and cid_q not in asked_ids and text and text not in used:
+                asked_ids.add(cid_q)
                 deep_dive["asked_ids"] = list(asked_ids)
                 deep_dive["depth"] = deep_dive.get("depth", 0) + 1
 
                 context.setdefault("used_questions", []).append(text)
 
-                print(f"[DeepDiveManager] 深挖出题 [{deep_dive['depth']}/{deep_dive['max_depth']}]: "
-                      f"{text[:60]}...")
+                _debug(f"[DEBUG][{cid}] DeepDive.select_question -> 命中: "
+                      f"[{c.get('level','?')}] {text[:60]}")
+                _debug(f"[DEBUG][{cid}] DeepDive.select_question: question_id={cid_q}")
                 return c
 
-        print(f"[DeepDiveManager] 候选题目已用完，自动结束深挖")
+        _debug(f"[DEBUG][{cid}] DeepDive.select_question -> 无可用候选，自动结束深挖")
         deep_dive["active"] = False
         return None
 

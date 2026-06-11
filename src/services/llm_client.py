@@ -256,20 +256,24 @@ class LLMClient:
         wait=wait_exponential(multiplier=1, min=1, max=3),
         retry=retry_if_exception_type((httpx.TimeoutException, httpx.HTTPStatusError))
     )
-    def examiner_chat(self, scenario_id: str, user_message: str, 
-                     conversation_history: List[Dict[str, str]], 
+    def examiner_chat(self, scenario_id: str, user_message: str,
+                     conversation_history: List[Dict[str, str]],
                      user_background: str = "",
                      retrieved_questions: list = None,
-                     used_questions: list = None) -> str:
+                     used_questions: list = None,
+                     next_question: str = "",
+                     current_stage: str = "") -> str:
         """
         AI考官聊天接口
-        
+
         Args:
             scenario_id: 场景ID
             user_message: 用户消息
             conversation_history: 对话历史 ([{"role": "...", "content": "..."}, ...])
             user_background: 用户背景信息
-        
+            next_question: 系统预设的下一个问题（如果提供，LLM应围绕它展开）
+            current_stage: 当前面试阶段（intro/project/basic/advanced/system_design/behavior）
+
         Returns:
             AI考官的回复内容
         """
@@ -278,60 +282,97 @@ class LLMClient:
         scenario_name = profile["title"]
         examiner_name = profile["name"]
         tone = profile["tone"]
-        
+        background = profile["background"]
+
+        # 构建已覆盖话题摘要
+        covered_topics = ""
+        assistant_msgs = [m for m in conversation_history if m.get("role") == "assistant"]
+        if assistant_msgs:
+            recent_questions = [m["content"][:80] for m in assistant_msgs[-3:]]
+            covered_topics = "已提问过的话题：\n" + "\n".join(f"- {q}" for q in recent_questions)
+
+        # 阶段提示
+        stage_hint = ""
+        if current_stage:
+            stage_map = {
+                "intro": "自我介绍阶段，了解候选人基本背景",
+                "project": "项目经验深挖阶段，针对简历中的项目追问技术细节",
+                "basic": "基础知识考察阶段，考察岗位所需的核心技术能力",
+                "advanced": "进阶能力考察阶段，考察系统设计和高阶技能",
+                "system_design": "系统设计阶段，考察架构能力和技术视野",
+                "behavior": "行为面试阶段，考察软技能和团队协作",
+            }
+            stage_desc = stage_map.get(current_stage, current_stage)
+            stage_hint = f"\n当前面试阶段：{stage_desc}"
+
+        # 预设问题提示
+        question_hint = ""
+        if next_question:
+            question_hint = f"""
+【预设问题】
+下一轮你应当围绕以下问题展开提问：
+"{next_question}"
+
+请先用1-2句话简要评价用户的回答，然后自然地提出这个问题。
+你可以用自己的话重新组织问题，但核心考察点不要偏离。
+"""
+
         # 构建系统提示词
-        system_prompt = f"""
-你是一位{scenario_name}考官，名叫{examiner_name}。
+        system_prompt = f"""你是一位{scenario_name}，名叫{examiner_name}。
+背景：{background}
+语气要求：{tone}
 
-你的任务是：
-1. 进行一场约5轮的模拟面试
-2. 每次只问一个问题，根据用户回答进行追问
-3. 语气{tone}，适当给予鼓励
-4. 结束后给出结构化评估
+【你的角色】
+你正在进行一场真实的一对一面试。你的核心任务是：
+1. 先简要评价用户刚才的回答（1-2句话，具体指出亮点或不足）
+2. 然后提出下一个面试问题（每次只问一个问题）
 
-当前场景：{scenario_name}
+【面试规则】
+- 每次回复只包含：简短评价 + 一个面试问题
+- 问题要有深度，能考察真实能力，不要问泛泛而谈的问题
+- 根据用户的实际回答进行追问深挖，而不是机械地走流程
+- 不要一次问多个问题
+- 不要说"如果你准备好了我们就开始"之类的废话
+- 不要自我评价或解释你在做什么
+
+{stage_hint}
 
 【用户背景信息】
 {user_background}
 
-【面试要求】
-- 仔细阅读用户的背景信息，包括目标岗位、公司和个人简历
-- 面试问题必须与用户的目标岗位高度相关
-- 参考用户简历中的技术栈和项目经验，提出有针对性的深度问题
-- 每次只问一个问题，根据回答深入追问
-- 模拟真实面试场景，考察专业能力、项目经验和综合素质
+{covered_topics}
+{question_hint}
 
-请按照真实面试流程进行对话，不要一次问多个问题。
-        """.strip()
-        
+请像一个真实的面试官那样自然地提问。""".strip()
+
         # 构建消息列表
         messages = [
             {"role": "system", "content": system_prompt}
         ]
-        
+
         # 添加对话历史
         for msg in conversation_history:
             messages.append({
                 "role": msg["role"],
                 "content": msg["content"]
             })
-        
+
         # 添加用户当前消息
         messages.append({
             "role": "user",
             "content": user_message
         })
-        
+
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
-        
+
         payload = {
             "model": LLM_MODEL,
             "messages": messages,
-            "temperature": 0.7,
-            "max_tokens": 1000
+            "temperature": 0.5,
+            "max_tokens": 800
         }
         
         try:
@@ -415,8 +456,8 @@ class LLMClient:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"对话历史：\n{conversation_text}"}
             ],
-            "temperature": 0.5,
-            "max_tokens": 1500
+            "temperature": 0.4,
+            "max_tokens": 2000
         }
         
         try:
@@ -527,7 +568,7 @@ class LLMClient:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            "temperature": 0.3,
+            "temperature": 0.2,
             "max_tokens": 1000
         }
 
@@ -637,7 +678,7 @@ class LLMClient:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"请为以下{skill_name}模拟面试生成评估报告：\n\n{qa_text}"}
             ],
-            "temperature": 0.4,
+            "temperature": 0.3,
             "max_tokens": 2000
         }
 
@@ -679,7 +720,9 @@ class LLMClient:
                         tools: List[Dict[str, Any]],
                         user_background: str = "",
                         retrieved_questions: list = None,
-                        used_questions: list = None) -> Dict[str, Any]:
+                        used_questions: list = None,
+                        next_question: str = "",
+                        current_stage: str = "") -> Dict[str, Any]:
         """
         AI考官聊天（支持工具调用）
 
@@ -692,6 +735,8 @@ class LLMClient:
             conversation_history: 对话历史
             tools: 可用工具列表 [{"id": "...", "name": "...", "description": "...", "parameters": [...]}]
             user_background: 用户背景
+            next_question: 系统预设的下一个问题
+            current_stage: 当前面试阶段
 
         Returns:
             {
@@ -703,6 +748,7 @@ class LLMClient:
         scenario_name = profile["title"]
         examiner_name = profile["name"]
         tone = profile["tone"]
+        background = profile["background"]
 
         # 构建工具描述
         tools_desc = ""
@@ -720,31 +766,66 @@ class LLMClient:
                 "TOOL_CALL: {\"tool_id\": \"工具ID\", \"arguments\": {...}}\n"
             )
 
-        system_prompt = f"""
-你是一位{scenario_name}考官，名叫{examiner_name}。
+        # 已覆盖话题
+        covered_topics = ""
+        assistant_msgs = [m for m in conversation_history if m.get("role") == "assistant"]
+        if assistant_msgs:
+            recent_questions = [m["content"][:80] for m in assistant_msgs[-3:]]
+            covered_topics = "已提问过的话题：\n" + "\n".join(f"- {q}" for q in recent_questions)
 
-你的任务是：
-1. 进行一场约5轮的模拟面试
-2. 每次只问一个问题，根据用户回答进行追问
-3. 语气{tone}，适当给予鼓励
-4. 可以调用工具来分析用户回答（如有需要）
-5. 结束后给出结构化评估
+        # 阶段提示
+        stage_hint = ""
+        if current_stage:
+            stage_map = {
+                "intro": "自我介绍阶段，了解候选人基本背景",
+                "project": "项目经验深挖阶段，针对简历中的项目追问技术细节",
+                "basic": "基础知识考察阶段，考察岗位所需的核心技术能力",
+                "advanced": "进阶能力考察阶段，考察系统设计和高阶技能",
+                "system_design": "系统设计阶段，考察架构能力和技术视野",
+                "behavior": "行为面试阶段，考察软技能和团队协作",
+            }
+            stage_desc = stage_map.get(current_stage, current_stage)
+            stage_hint = f"\n当前面试阶段：{stage_desc}"
 
-当前场景：{scenario_name}
+        # 预设问题提示
+        question_hint = ""
+        if next_question:
+            question_hint = f"""
+【预设问题】
+下一轮你应当围绕以下问题展开提问：
+"{next_question}"
+
+请先用1-2句话简要评价用户的回答，然后自然地提出这个问题。
+你可以用自己的话重新组织问题，但核心考察点不要偏离。
+"""
+
+        system_prompt = f"""你是一位{scenario_name}，名叫{examiner_name}。
+背景：{background}
+语气要求：{tone}
+
+【你的角色】
+你正在进行一场真实的一对一面试。你的核心任务是：
+1. 先简要评价用户刚才的回答（1-2句话，具体指出亮点或不足）
+2. 然后提出下一个面试问题（每次只问一个问题）
+
+【面试规则】
+- 每次回复只包含：简短评价 + 一个面试问题
+- 问题要有深度，能考察真实能力，不要问泛泛而谈的问题
+- 根据用户的实际回答进行追问深挖，而不是机械地走流程
+- 不要一次问多个问题
+- 不要说"如果你准备好了我们就开始"之类的废话
+- 不要自我评价或解释你在做什么
+
+{stage_hint}
 
 【用户背景信息】
 {user_background}
 
-【面试要求】
-- 仔细阅读用户的背景信息，包括目标岗位、公司和个人简历
-- 面试问题必须与用户的目标岗位高度相关
-- 参考用户简历中的技术栈和项目经验，提出有针对性的深度问题
-- 每次只问一个问题，根据回答深入追问
-- 模拟真实面试场景，考察专业能力、项目经验和综合素质
+{covered_topics}
+{question_hint}
 {tools_desc}
 
-请按照真实面试流程进行对话，不要一次问多个问题。
-        """.strip()
+请像一个真实的面试官那样自然地提问。""".strip()
 
         messages = [{"role": "system", "content": system_prompt}]
         for msg in conversation_history:
@@ -759,8 +840,8 @@ class LLMClient:
         payload = {
             "model": LLM_MODEL,
             "messages": messages,
-            "temperature": 0.7,
-            "max_tokens": 1200
+            "temperature": 0.5,
+            "max_tokens": 800
         }
 
         try:

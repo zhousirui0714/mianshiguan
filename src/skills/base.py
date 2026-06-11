@@ -14,6 +14,14 @@ from src.core.skill.types import (
 from src.services.llm_client import LLMClient
 from src.core.deep_dive import DeepDiveManager
 
+_DEBUG_LOG = r"D:\zhousirui\新建文件夹 (2)\mianshiguan\debug_audit.log"
+def _debug(msg: str):
+    import sys
+    with open(_DEBUG_LOG, "a", encoding="utf-8") as f:
+        f.write(msg + "\n")
+        f.flush()
+    print(msg, flush=True)
+
 
 class LLMBasedSkill(BaseSkill):
     """
@@ -49,19 +57,31 @@ class LLMBasedSkill(BaseSkill):
     # ==================== 欢迎语 ====================
 
     def get_welcome_message(self, session: SkillSession) -> str:
-        """生成欢迎语 + 第一个问题"""
+        """生成欢迎语 + 第一个问题（融入用户背景）"""
+        user_bg = session.context.get("user_background", "")
         return self._render_greeting(
             name=self.config.persona.name,
             title=self.config.persona.title,
             scenario=self.config.name,
             max_rounds=str(self.config.max_rounds),
+            user_background=user_bg,
         )
 
-    def _render_greeting(self, name: str, title: str, scenario: str, max_rounds: str) -> str:
-        """直接渲染欢迎语（避免模板引擎问题）"""
-        return (f"你好！我是{name}，{title}。\n\n"
-                f"欢迎参加{scenario}模拟面试。我们将进行约{max_rounds}轮的面试。\n\n"
-                f"首先，请做一个简短的自我介绍。")
+    def _render_greeting(self, name: str, title: str, scenario: str,
+                         max_rounds: str, user_background: str = "") -> str:
+        """直接渲染欢迎语（融入用户背景）"""
+        greeting = f"你好！我是{name}，{title}。\n\n欢迎参加{scenario}模拟面试。\n\n"
+
+        if user_background:
+            for line in user_background.split("\n"):
+                line = line.strip()
+                if line.startswith("目标岗位："):
+                    greeting += f"我注意到你在准备{line.replace('目标岗位：', '')}的面试。\n"
+                elif line.startswith("目标公司："):
+                    greeting += f"目标公司是{line.replace('目标公司：', '')}，我会针对性地提问。\n"
+
+        greeting += f"\n本次面试共有约{max_rounds}轮，准备好了吗？\n\n首先，请做一个简短的自我介绍，包括你的专业背景和求职方向。"
+        return greeting
 
     # ==================== 问题生成 ====================
 
@@ -123,58 +143,94 @@ class LLMBasedSkill(BaseSkill):
     def _select_next_bank_question(self,
                                    session: SkillSession) -> Optional[str]:
         """程序化选择下一个未使用的题库题目（深挖优先 → 阶段匹配）"""
+        cid = session.id[:8]
         # 深挖模式：由 DeepDiveManager 选题
         deep_dive = session.context.get("deep_dive", {})
         if deep_dive.get("active") and not deep_dive.get("exited"):
             if DeepDiveManager.should_continue(session.context):
                 question = DeepDiveManager.select_question(session.context)
                 if question:
+                    _debug(f"[DEBUG][{cid}] _select_next_bank_question -> 深挖选题: "
+                          f"topic={deep_dive.get('topic')} text={question['question_text'][:60]}")
                     return question["question_text"]
             session.context["deep_dive"]["active"] = False
 
         retrieved = session.context.get("retrieved_questions", [])
         if not retrieved:
+            _debug(f"[DEBUG][{cid}] _select_next_bank_question -> 无题库，返回 None")
             return None
 
         current_stage = session.context.get("current_stage", "basic")
         used = set(session.context.get("used_questions", []))
 
+        _debug(f"[DEBUG][{cid}] _select_next_bank_question: stage={current_stage} "
+              f"retrieved={len(retrieved)} used={len(used)}")
+
         # 1. 优先选择匹配当前阶段的未使用题目
+        stage_matched = 0
         for q in retrieved:
             text = q.get("question_text", "")
             stage = (q.get("interview_stage") or "basic").strip()
-            if text and text not in used and stage == current_stage:
+            if stage == current_stage and text and text not in used:
+                _debug(f"[DEBUG][{cid}] _select_next_bank_question -> 阶段匹配命中: "
+                      f"stage={stage} text={text[:60]}")
                 return text
+            if stage == current_stage:
+                stage_matched += 1
+
+        _debug(f"[DEBUG][{cid}] _select_next_bank_question -> 阶段匹配失败: "
+              f"stage={current_stage} 共{stage_matched}题, 均不可用或已用")
 
         # 2. 无匹配当前阶段的题目 → 选任意未使用题目（降级兜底）
         for q in retrieved:
             text = q.get("question_text", "")
             if text and text not in used:
+                fallback_stage = (q.get("interview_stage") or "basic").strip()
+                _debug(f"[DEBUG][{cid}] _select_next_bank_question -> 降级兜底命中: "
+                      f"stage={fallback_stage} text={text[:60]}")
                 return text
 
+        _debug(f"[DEBUG][{cid}] _select_next_bank_question -> 全部已用，返回 None")
         return None
 
     def _llm_generate_free(self, session: SkillSession,
                            history: List[Dict[str, str]]) -> str:
         """题库已用完，LLM 自由生成新问题"""
-        system_prompt = self.get_system_prompt(session)
-        messages = [{"role": "system", "content": system_prompt}]
-        messages.extend(history)
-        messages.append({
-            "role": "user",
-            "content": "请根据对话进展，提出下一个面试问题。只输出问题本身，不要解释。"
-        })
+        cid = session.id[:8]
+        retrieved = session.context.get("retrieved_questions", [])
+        used = session.context.get("used_questions", [])
+        current_stage = session.context.get("current_stage", "")
+        _debug(f"[DEBUG][{cid}] _llm_generate_free 进入: "
+              f"retrieved_questions={len(retrieved)} used_questions={len(used)} "
+              f"round={session.round} "
+              f"stage={current_stage}")
+
+        # 构建已覆盖话题的简要说明
+        covered_text = ""
+        if used:
+            covered_text = "已讨论过的话题：\n" + "\n".join(f"- {q[:60]}..." for q in used[-3:])
+
+        prompt = f"""请根据对话进展和当前面试阶段，提出下一个有深度的面试问题。
+
+当前阶段：{current_stage}
+{covered_text}
+
+要求：
+- 问题要有深度，能考察真实能力
+- 与用户的背景和目标岗位相关
+- 只输出问题本身，不要解释
+- 每次只问一个问题"""
         try:
             response = self.llm.examiner_chat(
                 scenario_id=self.config.id,
-                user_message=messages[-1]["content"],
+                user_message=prompt,
                 conversation_history=history,
                 user_background=session.context.get("user_background", ""),
-                # 不传 retrieved_questions 和 used_questions，LLM 自由发挥
+                current_stage=current_stage,
             )
             return response if response else "请继续介绍你的相关经验。"
         except Exception as e:
-            print(f"[{self.config.id}] LLM 调用失败，使用默认问题: {e}")
+            _debug(f"[{self.config.id}] LLM 调用失败，使用默认问题: {e}")
             return self._get_default_question(session.round)
 
     # ==================== 评分 ====================

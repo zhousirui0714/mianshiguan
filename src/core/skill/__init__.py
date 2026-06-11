@@ -20,6 +20,12 @@ from src.core.skill.types import (
 )
 from src.core.deep_dive import DeepDiveManager
 
+_DEBUG_LOG = r"D:\zhousirui\新建文件夹 (2)\mianshiguan\debug_audit.log"
+def _debug(msg: str):
+    with open(_DEBUG_LOG, "a", encoding="utf-8") as f:
+        f.write(msg + "\n")
+        f.flush()
+
 
 # ==================== 抽象基类 ====================
 
@@ -220,9 +226,7 @@ class SkillExecutor:
             # 尝试初始化深挖模式
             keyword = detected[0]
             if DeepDiveManager.should_enter(keyword, session.context):
-                DeepDiveManager.initialize(session.context, keyword)
-            else:
-                session.context["pending_project_keywords"] = detected
+                DeepDiveManager.initialize(session.context, keyword, cid=session.id[:8])
 
         # 深挖退出检测：用户主动要求换话题
         deep_dive = session.context.get("deep_dive", {})
@@ -308,9 +312,7 @@ class SkillExecutor:
                 if detected:
                     keyword = detected[0]
                     if DeepDiveManager.should_enter(keyword, session.context):
-                        DeepDiveManager.initialize(session.context, keyword)
-                    else:
-                        session.context["pending_project_keywords"] = detected
+                        DeepDiveManager.initialize(session.context, keyword, cid=session.id[:8])
 
                 # 深挖退出检测
                 deep_dive = session.context.get("deep_dive", {})
@@ -337,34 +339,40 @@ class SkillExecutor:
 
                     bank_question = skill._select_next_bank_question(session)
 
-                # LLM 只负责评价回复（不传题库）
+                current_stage = session.context.get("current_stage", "")
+
+                # LLM 调用：传入预设问题和当前阶段
+                # LLM 的角色是「评价上一轮 + 自然地提出下一个问题」
                 llm_result = skill.llm.chat_with_tools(
                     scenario_id=skill_id,
                     user_message=user_message,
                     conversation_history=history,
                     tools=tool_defs,
                     user_background=session.context.get("user_background", ""),
+                    next_question=bank_question or "",
+                    current_stage=current_stage,
                 )
 
                 response_text = llm_result.get("response", "")
                 tool_calls = llm_result.get("tool_calls")
 
-                if bank_question:
-                    # 追加程序化选择的题目
-                    if response_text:
-                        response_text = f"{response_text}\n\n{bank_question}"
-                    else:
+                if not response_text:
+                    # LLM 完全失败：直接用题库问题兜底
+                    if bank_question:
                         response_text = bank_question
-                    # 记录题库题目文本（不含 LLM 评价部分）
+                    else:
+                        response_text = "请继续介绍你的相关经验和技能。"
+
+                # 记录已使用的题库题目
+                if bank_question:
                     session.context.setdefault("used_questions", [])
                     if bank_question not in session.context["used_questions"]:
                         session.context["used_questions"].append(bank_question)
                 else:
                     # 题库用完，LLM 自由生成
-                    if response_text:
-                        session.context.setdefault("used_questions", [])
-                        if response_text not in session.context["used_questions"]:
-                            session.context["used_questions"].append(response_text)
+                    session.context.setdefault("used_questions", [])
+                    if response_text not in session.context["used_questions"]:
+                        session.context["used_questions"].append(response_text)
 
                 # 执行 LLM 请求的工具调用
                 if tool_calls:
@@ -402,6 +410,14 @@ class SkillExecutor:
                 response = response_text
                 if evaluation and evaluation.comment:
                     response = f"{evaluation.comment}\n\n{response_text}"
+
+                cid = session.id[:8]
+                _debug(f"[DEBUG][{cid}] chat_with_tools 最终: "
+                      f"round={session.round} "
+                      f"stage={session.context.get('current_stage','?')} "
+                      f"bank_q={'有' if bank_question else '无'} "
+                      f"response_text前60字={response_text[:60]} "
+                      f"used_count={len(session.context.get('used_questions',[]))}")
 
                 return {
                     "response": response,
