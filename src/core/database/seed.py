@@ -456,16 +456,67 @@ def seed_scenarios(db: "DatabaseManager") -> None:
     print(f"[Seed] 已填充 {len(SCENARIO_IDS)} 个场景")
 
 
+# 分类 → 面试阶段映射
+CATEGORY_TO_STAGE = {
+    "自我介绍": "intro",
+    "专业技能": "basic",
+    "项目经验": "project",
+    "系统设计": "system_design",
+    "算法与数据结构": "advanced",
+    "数据库": "basic",
+    "操作系统": "basic",
+    "网络": "basic",
+    "应变能力": "behavior",
+    "职业规划": "behavior",
+    "团队协作": "behavior",
+    "教育理念": "intro",
+    "课堂管理": "basic",
+    "教学设计": "basic",
+    "学生心理": "behavior",
+    "家校沟通": "behavior",
+    "教育法规": "basic",
+    "教育技术": "advanced",
+    "应急处理": "behavior",
+    "个人经历": "intro",
+    "观点表达": "advanced",
+    "社会话题": "advanced",
+    "文化与传统": "basic",
+    "环境话题": "advanced",
+    "教育话题": "basic",
+    "抽象话题": "advanced",
+    "综合分析": "advanced",
+    "组织协调": "basic",
+    "人际关系": "behavior",
+    "岗位认知": "intro",
+    "政策理解": "advanced",
+    "情景处理": "behavior",
+    "专业基础": "basic",
+    "科研能力": "project",
+    "学习动机": "intro",
+    "英语能力": "basic",
+    "综合素质": "behavior",
+    "热点分析": "advanced",
+    "面试总结": "behavior",
+    "领导力": "project",
+    "商业洞察": "advanced",
+    "决策分析": "advanced",
+    "团队管理": "behavior",
+    "自我认知": "intro",
+}
+
+
 def seed_questions(db: "DatabaseManager") -> None:
     """填充 100 条预置真题"""
     count = 0
     for row in QUESTIONS:
         scenario_id, category, diff, question, answer, company, position, source, year = row
+        stage = CATEGORY_TO_STAGE.get(category, "basic")
         result = db.add_question(
             scenario_id, category, diff, question, answer,
             tags=[category, company, source],
             company=company, position=position,
-            source=source, year=year
+            source=source, year=year,
+            interview_stage=stage,
         )
         if result["success"]:
             count += 1

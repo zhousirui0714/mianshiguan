@@ -181,20 +181,46 @@ class LLMBasedSkill(BaseSkill):
         _debug(f"[DEBUG][{cid}] _select_next_bank_question -> 阶段匹配失败: "
               f"stage={current_stage} 共{stage_matched}题, 均不可用或已用")
 
-        # 2. 无匹配当前阶段的题目 → 选任意未使用题目（降级兜底）
-        # 过滤规则：非 intro 阶段时跳过自我介绍类题目
+        # 2. 无匹配当前阶段的题目 → 按岗位相关性评分选最优题目
         intro_keywords = ["自我介绍", "introduce yourself", "介绍一下你自己", "一分钟时间介绍"]
+        # 软技能类问题（应排到后期轮次）
+        soft_skill_keywords = ["意见不合", "同事", "团队合作", "团队协作", "处理冲突",
+                               "leader 否定", "职业规划", "优缺点", "优点和缺点",
+                               "为什么选择", "还有什么想问"]
+        # 从用户背景提取技术关键词
+        tech_keywords = self._extract_tech_keywords(session)
+
+        candidates = []
         for q in retrieved:
             text = q.get("question_text", "")
             if not text or text in used:
                 continue
             # 非 intro 阶段跳过自我介绍类题目
             if current_stage != "intro" and any(kw in text for kw in intro_keywords):
-                _debug(f"[DEBUG][{cid}] _select_next_bank_question -> 降级跳过intro题: text={text[:60]}")
                 continue
-            fallback_stage = (q.get("interview_stage") or "basic").strip()
-            _debug(f"[DEBUG][{cid}] _select_next_bank_question -> 降级兜底命中: "
-                  f"stage={fallback_stage} text={text[:60]}")
+
+            score = 0
+            # 技术关键词匹配加分
+            for kw in tech_keywords:
+                if kw.lower() in text.lower():
+                    score += 15
+            # 软技能题目在非 behavior 阶段扣分
+            if current_stage not in ("behavior", "intro") and any(kw in text for kw in soft_skill_keywords):
+                score -= 30
+            # 题目难度等级加分（S>A>B>C）
+            lev = (q.get("question_level") or "C").strip().upper()
+            level_bonus = {"S": 10, "A": 6, "B": 3, "C": 0}.get(lev, 0)
+            score += level_bonus
+
+            candidates.append((score, q))
+
+        # 按得分降序排列，选最高分
+        candidates.sort(key=lambda x: -x[0])
+        if candidates:
+            best_score, best_q = candidates[0]
+            text = best_q.get("question_text", "")
+            _debug(f"[DEBUG][{cid}] _select_next_bank_question -> 评分降级命中: "
+                  f"score={best_score} stage={current_stage} text={text[:60]}")
             return text
 
         _debug(f"[DEBUG][{cid}] _select_next_bank_question -> 全部已用，返回 None")
@@ -476,6 +502,48 @@ class LLMBasedSkill(BaseSkill):
         for key, value in variables.items():
             result = result.replace("{{" + key + "}}", value)
         return result
+
+    def _extract_tech_keywords(self, session: SkillSession) -> list:
+        """从用户背景中提取技术关键词，用于题目相关性评分"""
+        user_bg = session.context.get("user_background", "")
+        position = session.context.get("position", "")
+
+        # 岗位关键词映射
+        POSITION_KW_MAP = {
+            "后端": ["Java", "Spring", "MySQL", "Redis", "微服务", "数据库", "系统设计",
+                    "分布式", "高并发", "性能优化", "缓存", "消息队列"],
+            "java": ["Java", "Spring", "MySQL", "Redis", "微服务", "数据库", "JVM",
+                    "分布式", "高并发", "性能优化"],
+            "python": ["Python", "Redis", "MySQL", "数据库", "缓存", "系统设计", "Django", "Flask"],
+            "前端": ["JavaScript", "浏览器", "CSS", "Vue", "React", "TypeScript", "HTML",
+                    "性能优化", "渲染", "DOM", "前端"],
+            "产品经理": ["需求分析", "用户研究", "产品设计", "用户体验", "数据驱动",
+                      "竞品分析", "项目管理"],
+            "算法": ["算法", "数据结构", "排序", "搜索", "动态规划", "复杂度"],
+            "测试": ["测试", "自动化", "测试用例", "接口测试", "性能测试", "质量"],
+            "数据分析": ["数据", "SQL", "数仓", "ETL", "数据挖掘", "可视化"],
+            "golang": ["Go", "Golang", "并发", "goroutine", "channel", "微服务"],
+            "go": ["Go", "Golang", "并发", "goroutine", "channel", "微服务"],
+        }
+
+        keywords = set()
+        pos_lower = position.lower().strip() if position else ""
+        user_bg_lower = user_bg.lower() if user_bg else ""
+
+        # 从岗位名称匹配关键词
+        for key, kws in POSITION_KW_MAP.items():
+            if key in pos_lower or key in user_bg_lower:
+                keywords.update(kws)
+
+        # 额外：从用户背景中提取具体提到的技术
+        extra_tech = ["Java", "Spring", "MySQL", "Redis", "Kafka", "Docker",
+                     "Kubernetes", "Python", "Go", "Vue", "React", "TypeScript",
+                     "微服务", "分布式", "高并发", "系统设计", "架构"]
+        for tech in extra_tech:
+            if tech.lower() in user_bg_lower or tech.lower() in pos_lower:
+                keywords.add(tech)
+
+        return list(keywords)
 
     def _get_default_question(self, round_num: int) -> str:
         """LLM 不可用时的兜底问题"""
