@@ -458,56 +458,48 @@ def seed_scenarios(db: "DatabaseManager") -> None:
 
 # 分类 → 面试阶段映射
 CATEGORY_TO_STAGE = {
-    "自我介绍": "intro",
-    "专业技能": "basic",
-    "项目经验": "project",
-    "系统设计": "system_design",
-    "算法与数据结构": "advanced",
-    "数据库": "basic",
-    "操作系统": "basic",
-    "网络": "basic",
-    "应变能力": "behavior",
-    "职业规划": "behavior",
-    "团队协作": "behavior",
-    "教育理念": "intro",
-    "课堂管理": "basic",
-    "教学设计": "basic",
-    "学生心理": "behavior",
-    "家校沟通": "behavior",
-    "教育法规": "basic",
-    "教育技术": "advanced",
-    "应急处理": "behavior",
-    "个人经历": "intro",
-    "观点表达": "advanced",
-    "社会话题": "advanced",
-    "文化与传统": "basic",
-    "环境话题": "advanced",
-    "教育话题": "basic",
-    "抽象话题": "advanced",
-    "综合分析": "advanced",
-    "组织协调": "basic",
-    "人际关系": "behavior",
-    "岗位认知": "intro",
-    "政策理解": "advanced",
-    "情景处理": "behavior",
-    "专业基础": "basic",
-    "科研能力": "project",
-    "学习动机": "intro",
-    "英语能力": "basic",
-    "综合素质": "behavior",
-    "热点分析": "advanced",
+    # 求职
+    "自我介绍": "intro", "专业技能": "basic", "项目经验": "project",
+    "项目深挖": "project", "系统设计": "system_design",
+    "算法与数据结构": "advanced", "算法": "advanced",
+    "数据库": "basic", "操作系统": "basic", "网络": "basic",
+    "应变能力": "behavior", "职业规划": "behavior",
+    "团队协作": "behavior", "行为面试": "behavior",
+    "管理经验": "project", "行业分析": "advanced",
+    "前端": "basic", "Java": "basic", "Python": "basic", "Go": "basic",
+    # 教资
+    "教育理念": "intro", "课堂管理": "basic", "教学设计": "basic",
+    "班级管理": "basic", "教学能力": "basic",
+    "学生心理": "behavior", "家校沟通": "behavior",
+    "教育法规": "basic", "教育技术": "advanced",
+    # 雅思
+    "Part 1": "intro", "Part 2": "basic", "Part 3": "advanced",
+    "个人经历": "intro", "观点表达": "advanced",
+    "社会话题": "advanced", "文化与传统": "basic",
+    "环境话题": "advanced", "教育话题": "basic", "抽象话题": "advanced",
+    # 公务员
+    "综合分析": "advanced", "组织协调": "basic", "组织管理": "basic",
+    "人际关系": "behavior", "岗位认知": "intro",
+    "政策理解": "advanced", "情景处理": "behavior",
+    "结构化面试": "basic", "应急处理": "behavior",
+    # 考研
+    "专业基础": "basic", "科研能力": "project",
+    "学习动机": "intro", "英语能力": "basic", "英语面试": "basic",
+    "综合素质": "behavior", "综合面试": "behavior",
+    "学术面试": "project", "热点分析": "advanced",
     "面试总结": "behavior",
-    "领导力": "project",
-    "商业洞察": "advanced",
-    "决策分析": "advanced",
-    "团队管理": "behavior",
+    # MBA
+    "领导力": "project", "商业洞察": "advanced",
+    "决策分析": "advanced", "团队管理": "behavior",
     "自我认知": "intro",
 }
 
 
 def seed_questions(db: "DatabaseManager") -> None:
-    """填充 100 条预置真题"""
+    """填充预置真题（硬编码 100 题 + JSON 文件导入）"""
     count = 0
+
+    # 1. 从硬编码的 QUESTIONS 导入
     for row in QUESTIONS:
         scenario_id, category, diff, question, answer, company, position, source, year = row
         stage = CATEGORY_TO_STAGE.get(category, "basic")
@@ -520,7 +512,101 @@ def seed_questions(db: "DatabaseManager") -> None:
         )
         if result["success"]:
             count += 1
-    print(f"[Seed] 已填充 {count} 道题目")
+
+    # 2. 从 data/collected_questions/ 下的 JSON 文件导入
+    import json
+    import os
+    json_dir = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
+        "data", "collected_questions"
+    )
+    source_type_map = {"real": "real_interview", "open": "open_source", "ai": "ai_generated"}
+    json_count = 0
+
+    for fname in sorted(os.listdir(json_dir)) if os.path.isdir(json_dir) else []:
+        if not fname.endswith(".json"):
+            continue
+        fpath = os.path.join(json_dir, fname)
+        try:
+            with open(fpath, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception:
+            continue
+
+        questions_list = data if isinstance(data, list) else []
+        for q in questions_list:
+            if not isinstance(q, dict):
+                continue
+            q_text = q.get("question", "")
+            if not q_text:
+                continue
+
+            scenario_id = q.get("scenario", "job_interview")
+            category = q.get("category", "")
+            difficulty = int(q.get("difficulty", 3) or 3)
+            # 参考答案：优先 excellent > good > basic
+            ref_answer = (q.get("answer_excellent") or q.get("answer_good")
+                          or q.get("answer_basic") or "")
+            company = q.get("school_or_company", "") or ""
+            year = str(q.get("year", "")) or ""
+            source = q.get("source", "") or ""
+            source_type = source_type_map.get(q.get("authenticity", ""), "ai_generated")
+            question_level = (q.get("grade") or "C").strip().upper()
+            if question_level not in ("S", "A", "B", "C"):
+                question_level = "C"
+            tags = q.get("tags", []) or []
+            if not isinstance(tags, list):
+                tags = [tags] if tags else []
+            stage = CATEGORY_TO_STAGE.get(category, "basic")
+
+            result = db.add_question(
+                scenario_id, category, difficulty, q_text, ref_answer,
+                tags=tags, company=company, position="",
+                source=source, year=year,
+                source_type=source_type,
+                question_level=question_level,
+                interview_stage=stage,
+            )
+            if result["success"]:
+                json_count += 1
+
+    # 3. 从 src/spider/local_data.py 导入开源仓库真题
+    try:
+        from src.spider.local_data import SOURCES_LOCAL
+        import re
+        local_count = 0
+        for src_data in SOURCES_LOCAL:
+            category = src_data.get("default_cat", "专业技能")
+            stage = CATEGORY_TO_STAGE.get(category, "basic")
+            repo = src_data.get("repo", "")
+            # 解析 markdown: ## Q: 问题 后面跟答案段落
+            blocks = re.split(r'\n## Q:\s*', src_data.get("content", ""))
+            for block in blocks:
+                block = block.strip()
+                if not block:
+                    continue
+                # 分离问题和答案
+                parts = block.split('\n', 1)
+                q_text = parts[0].strip()
+                ref_answer = parts[1].strip() if len(parts) > 1 else ""
+                if not q_text:
+                    continue
+                result = db.add_question(
+                    "job_interview", category, 3, q_text, ref_answer,
+                    tags=[category, "开源题库"],
+                    company="", position="",
+                    source=repo, year="",
+                    source_type="open_source",
+                    question_level="A",
+                    interview_stage=stage,
+                )
+                if result["success"]:
+                    local_count += 1
+        count += local_count
+    except Exception as e:
+        print(f"[Seed] local_data 导入异常: {e}")
+
+    print(f"[Seed] 总题目: {count} 道（硬编码 + JSON文件 + 开源题库，已去重）")
 
 
 def seed_badges(db: "DatabaseManager") -> None:

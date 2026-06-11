@@ -62,6 +62,9 @@ CREATE TABLE IF NOT EXISTS questions (
     position TEXT DEFAULT '',
     source TEXT DEFAULT '',
     source_type TEXT DEFAULT 'ai_generated',
+    question_level TEXT DEFAULT 'C',
+    interview_stage TEXT DEFAULT 'basic',
+    topics TEXT DEFAULT '[]',
     year TEXT DEFAULT '',
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
