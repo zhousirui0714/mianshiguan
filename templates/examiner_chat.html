@@ -565,14 +565,14 @@
                     }, 3000);
                 }
             } else {
-                addMessage('assistant', '抱歉，我暂时无法回答，请稍后重试。');
+                addMessage('assistant', '抱歉，AI 服务暂时繁忙，请稍后点击发送按钮重试。');
                 Examiner.setExpression('neutral');
             }
         } catch (error) {
             console.error('发送消息失败:', error);
             if (typingElement.parentNode) messagesContainer.removeChild(typingElement);
             isTyping = false;
-            addMessage('assistant', '网络错误，请检查网络连接后重试。');
+            addMessage('assistant', '网络错误，请检查网络连接后刷新页面重试。');
         }
     }
 

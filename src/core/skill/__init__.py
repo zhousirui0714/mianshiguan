@@ -426,10 +426,40 @@ class SkillExecutor:
                 }
 
             except Exception as llm_err:
-                print(f"[SkillExecutor] chat_with_tools 失败，降级到普通 chat: {llm_err}")
+                _debug(f"[SkillExecutor] chat_with_tools LLM调用失败: {llm_err}")
 
-        # 降级：普通 chat（无工具集成）
-        return self.chat(skill_id, session, user_message, history)
+        # ===== LLM 完全不可用时的纯本地降级 =====
+        # 不再调用 self.chat()（它内部还会再调 LLM + 二次递增 round）
+        # 直接使用题库题目或兜底文字
+        skill = self._get_skill(skill_id)
+
+        # 程序化选题：找一个未使用的题库题目
+        fallback_text = ""
+        if hasattr(skill, '_select_next_bank_question'):
+            if hasattr(skill, '_determine_next_stage'):
+                deep_dive_active = session.context.get("deep_dive", {}).get("active", False)
+                if not deep_dive_active:
+                    next_stage = skill._determine_next_stage(session)
+                    session.context["current_stage"] = next_stage
+                    stage_rounds = session.context.setdefault("stage_rounds", {})
+                    stage_rounds[next_stage] = stage_rounds.get(next_stage, 0) + 1
+            fallback_text = skill._select_next_bank_question(session)
+
+        if not fallback_text:
+            fallback_text = "请继续介绍你的相关经验和技能。"
+
+        # 记录已用题目
+        session.context.setdefault("used_questions", [])
+        if fallback_text not in session.context["used_questions"]:
+            session.context["used_questions"].append(fallback_text)
+
+        return {
+            "response": fallback_text,
+            "round": session.round,
+            "evaluation": evaluation,
+            "tool_results": [],
+            "is_finished": session.round >= skill.config.max_rounds,
+        }
 
     def finish_interview(self, skill_id: str, session: SkillSession) -> FeedbackReport:
         """结束面试，生成反馈报告"""
