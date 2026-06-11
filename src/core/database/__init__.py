@@ -258,6 +258,70 @@ class DatabaseManager:
         finally:
             conn.close()
 
+    def search_questions_targeted(self, company: str = "",
+                                   position: str = "",
+                                   scenario_id: str = None,
+                                   limit: int = 20) -> List[dict]:
+        """按公司+岗位精确搜索，优先返回真实企业真题
+
+        级联策略：公司AND岗位 → 公司OR岗位 → 返回空列表
+        """
+        conn = self._get_conn()
+        try:
+            all_rows = []
+            seen_ids = set()
+
+            for cascade in ["AND", "OR"]:
+                if len(all_rows) >= limit:
+                    break
+                if cascade == "AND" and (not company or not position):
+                    continue  # 没有两个条件时跳过 AND
+
+                sql = "SELECT * FROM questions WHERE 1=1"
+                params = []
+
+                if cascade == "AND":
+                    sql += " AND company LIKE ? AND position LIKE ?"
+                    params.extend([f"%{company}%", f"%{position}%"])
+                else:
+                    conditions = []
+                    if company:
+                        conditions.append("company LIKE ?")
+                        params.append(f"%{company}%")
+                    if position:
+                        conditions.append("position LIKE ?")
+                        params.append(f"%{position}%")
+                    if conditions:
+                        sql += " AND (" + " OR ".join(conditions) + ")"
+
+                if scenario_id:
+                    sql += " AND scenario_id = ?"
+                    params.append(scenario_id)
+
+                # 真实面经优先 + S/A 级优先
+                sql += (" ORDER BY CASE source_type "
+                        "WHEN 'real_interview' THEN 0 WHEN 'open_source' THEN 1 ELSE 2 END, "
+                        "CASE question_level "
+                        "WHEN 'S' THEN 0 WHEN 'A' THEN 1 WHEN 'B' THEN 2 ELSE 3 END "
+                        "LIMIT ?")
+                params.append(limit)
+
+                rows = conn.execute(sql, params).fetchall()
+                for r in rows:
+                    rid = r["id"]
+                    if rid not in seen_ids:
+                        seen_ids.add(rid)
+                        all_rows.append(r)
+                        if len(all_rows) >= limit:
+                            break
+
+            for r in all_rows:
+                if isinstance(r.get("tags"), str):
+                    r["tags"] = json.loads(r["tags"])
+            return all_rows[:limit]
+        finally:
+            conn.close()
+
     def get_top_questions(self, scenario_id: str = None,
                           limit: int = 20) -> List[dict]:
         """获取评分最高的题目（兜底展示用）"""

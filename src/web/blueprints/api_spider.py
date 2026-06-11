@@ -57,32 +57,40 @@ def search_interview_experiences():
                 "source_label": "真实面经",
             })
 
-        # 面经不足时，从真题库兜底匹配
+        # 面经不足时，从真题库分层兜底
         if len(results) < limit:
-            # 扩展搜索关键词
-            search_kws = []
-            if position:
-                search_kws.append(position)
-            if company:
-                search_kws.append(company)
-            # 从用户背景额外提取关键词
-            user_bg = request.args.get('user_background', '').strip()
-            if user_bg:
-                # 提取技术栈和关键术语
-                for kw in user_bg.split():
-                    kw = kw.strip().rstrip(',，;；')
-                    if len(kw) >= 2:
-                        search_kws.append(kw)
-            # 去重
-            search_kws = list(dict.fromkeys(search_kws))[:5]
+            q_rows = []
 
-            q_rows = deps.db.search_questions_broad(
-                keywords=search_kws,
-                scenario_id=scenario_id if scenario_id else None,
-                limit=limit - len(results),
-            )
+            # 第一层：按公司+岗位精确匹配（真实企业真题优先）
+            if company or position:
+                q_rows = deps.db.search_questions_targeted(
+                    company=company, position=position,
+                    scenario_id=scenario_id if scenario_id else None,
+                    limit=limit,
+                )
 
-            # 宽泛匹配无结果时，展示该场景的高分题目作为参考
+            # 第二层：宽泛关键词搜索
+            if not q_rows:
+                search_kws = []
+                if position:
+                    search_kws.append(position)
+                if company:
+                    search_kws.append(company)
+                user_bg = request.args.get('user_background', '').strip()
+                if user_bg:
+                    for kw in user_bg.split():
+                        kw = kw.strip().rstrip(',，;；')
+                        if len(kw) >= 2:
+                            search_kws.append(kw)
+                search_kws = list(dict.fromkeys(search_kws))[:5]
+
+                q_rows = deps.db.search_questions_broad(
+                    keywords=search_kws,
+                    scenario_id=scenario_id if scenario_id else None,
+                    limit=limit - len(results),
+                )
+
+            # 第三层：场景高分题目兜底
             if not q_rows and scenario_id:
                 q_rows = deps.db.get_top_questions(
                     scenario_id=scenario_id,
@@ -94,6 +102,7 @@ def search_interview_experiences():
                     q.get("question_text", "")
                     for q in q_rows if q.get("question_text")
                 ]
+                source_label = "真实企业真题" if (company or position) else "真题库匹配"
                 results.append({
                     "id": "bank_fallback",
                     "company_name": company or "通用",
@@ -102,7 +111,7 @@ def search_interview_experiences():
                     "questions": bank_questions,
                     "source_url": "",
                     "created_at": "",
-                    "source_label": "真题库匹配",
+                    "source_label": source_label,
                 })
 
         return jsonify({
