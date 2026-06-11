@@ -286,9 +286,44 @@
   line-height: 1.4;
 }
 
+/* ========== AI 答案按钮 ========== */
+.ai-answer-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.btn-ai {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--gray-200);
+  background: #fff;
+  color: var(--gray-600);
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.btn-ai:hover {
+  border-color: var(--blue-300);
+  color: var(--blue-600);
+  background: var(--blue-50);
+}
+.btn-ai.loading { pointer-events: none; opacity: 0.7; }
+.btn-ai .ai-sparkle { font-size: 16px; }
+.ai-answer-bar .ai-hint {
+  font-size: 12px;
+  color: var(--gray-400);
+}
+
 /* ========== 答题回顾 ========== */
 .answer-card {
-  padding: 16px 0;
+  padding: 20px 0;
   border-bottom: 1px solid var(--gray-100);
 }
 .answer-card:last-child { border-bottom: none; }
@@ -301,31 +336,98 @@
   background: var(--blue-50);
   padding: 2px 10px;
   border-radius: 10px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .answer-card .q-text {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--gray-900);
-  font-weight: 500;
-  margin-bottom: 6px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  line-height: 1.5;
 }
 
-.answer-card .a-text {
-  font-size: 13px;
-  color: var(--gray-500);
-  line-height: 1.5;
-  margin-bottom: 6px;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+/* 用户回答和 AI 参考答案并排 */
+.answer-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
+
+.answer-col {
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.answer-col.user-answer {
+  background: var(--gray-50);
+  border: 1px solid var(--gray-100);
+}
+
+.answer-col.model-answer {
+  background: rgba(59, 130, 246, 0.03);
+  border: 1px solid rgba(59, 130, 246, 0.12);
+}
+
+.answer-col .col-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.answer-col.user-answer .col-label { color: var(--gray-400); }
+.answer-col.model-answer .col-label { color: var(--blue-500); }
+
+.answer-col .col-text {
+  color: var(--gray-600);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.answer-col.model-answer .col-text { color: var(--gray-700); }
 
 .answer-card .a-score {
-  font-size: 13px;
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--blue-500);
+  background: rgba(59, 130, 246, 0.06);
+  padding: 2px 10px;
+  border-radius: 8px;
+}
+
+/* AI 答案加载动画 */
+.ai-loading-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--gray-400);
+  font-size: 12px;
+}
+.ai-dot-pulse {
+  display: flex; gap: 4px;
+}
+.ai-dot-pulse span {
+  width: 5px; height: 5px;
+  background: var(--blue-400);
+  border-radius: 50%;
+  animation: dotBounce 1.2s infinite ease-in-out;
+}
+.ai-dot-pulse span:nth-child(2) { animation-delay: 0.2s; }
+.ai-dot-pulse span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dotBounce {
+  0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1); }
+}
+
+@media (max-width: 768px) {
+  .answer-compare { grid-template-columns: 1fr; }
 }
 
 /* ========== 操作按钮 ========== */
@@ -554,6 +656,12 @@
     <!-- 答题回顾 -->
     <div class="result-card" id="answersSection" style="display:none;">
       <div class="section-heading"><span class="ico">📋</span> 答题回顾</div>
+      <div class="ai-answer-bar" id="aiAnswerBar" style="display:none;">
+        <button class="btn-ai" id="btnLoadAI" onclick="loadAIAnswers()">
+          <span class="ai-sparkle">✨</span> 查看 AI 参考答案
+        </button>
+        <span class="ai-hint">与你的回答进行对比，发现提升空间</span>
+      </div>
       <div id="answersList"></div>
     </div>
 
@@ -756,19 +864,99 @@
   }
 
   // ========== 答题回顾 ==========
+  var _cachedAnswers = [];  // 缓存答案数据，供 AI 按钮使用
+  var _modelAnswersLoaded = false;
+
   function renderAnswers(answers) {
     var section = $('answersSection');
     var list = $('answersList');
     section.style.display = 'block';
+    _cachedAnswers = answers;
+
+    // 显示 AI 按钮（有题目且未加载过 AI 答案时）
+    $('aiAnswerBar').style.display = answers.length > 0 ? 'flex' : 'none';
 
     list.innerHTML = answers.map(function(a) {
-      return '<div class="answer-card">' +
+      return '<div class="answer-card" id="ansCard-' + (a.round || 0) + '">' +
         '<div class="round-tag">第 ' + (a.round || '?') + ' 题</div>' +
         '<div class="q-text">' + esc(a.question || '(无题目)') + '</div>' +
-        '<div class="a-text">' + esc(a.answer || '') + '</div>' +
-        (a.score != null ? '<div class="a-score">得分: ' + a.score + ' 分</div>' : '') +
+        '<div class="a-text" style="font-size:13px;color:var(--gray-500);line-height:1.5;">' +
+          esc(a.answer || '(未作答)') +
+        '</div>' +
+        (a.score != null ? '<div class="a-score">你的得分: ' + a.score + ' 分</div>' : '') +
+        '<div class="model-answer-slot" id="modelSlot-' + (a.round || 0) + '"></div>' +
       '</div>';
     }).join('');
+  }
+
+  // ========== AI 参考答案 ==========
+  window.loadAIAnswers = function() {
+    if (_modelAnswersLoaded) return;
+    var btn = $('btnLoadAI');
+    btn.classList.add('loading');
+    btn.innerHTML = '<span class="ai-sparkle">⏳</span> AI 正在生成参考答案...';
+
+    // 准备题目列表
+    var questions = _cachedAnswers.map(function(a) {
+      return { question: a.question || '', round: a.round || 0 };
+    }).filter(function(q) { return q.question; });
+
+    fetch('/api/examiner/model-answers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        questions: questions,
+        scenario_id: window._resultScenarioId || 'job_interview',
+        user_background: ''  // 可选：传入用户背景
+      })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(resp) {
+      if (resp.success && resp.answers) {
+        injectModelAnswers(resp.answers);
+        _modelAnswersLoaded = true;
+        btn.style.display = 'none';
+        $('aiAnswerBar').querySelector('.ai-hint').textContent = '✅ AI 参考答案已生成，对比看看差距吧';
+      } else {
+        btn.classList.remove('loading');
+        btn.innerHTML = '<span class="ai-sparkle">⚠️</span> 生成失败，点击重试';
+      }
+    })
+    .catch(function() {
+      btn.classList.remove('loading');
+      btn.innerHTML = '<span class="ai-sparkle">⚠️</span> 网络错误，点击重试';
+    });
+  };
+
+  function injectModelAnswers(modelAnswers) {
+    modelAnswers.forEach(function(ma) {
+      var roundNum = ma.round || 0;
+      var card = document.getElementById('ansCard-' + roundNum);
+      var slot = document.getElementById('modelSlot-' + roundNum);
+      if (!card || !slot) return;
+
+      var userAnswerEl = card.querySelector('.a-text');
+      var userAnswer = userAnswerEl ? userAnswerEl.textContent : '';
+      var scoreEl = card.querySelector('.a-score');
+      var scoreHtml = scoreEl ? scoreEl.outerHTML : '';
+
+      // 用对比布局替换原有内容
+      var roundTagHtml = card.querySelector('.round-tag').outerHTML;
+      var qTextHtml = card.querySelector('.q-text').outerHTML;
+
+      card.innerHTML = roundTagHtml + qTextHtml +
+        '<div class="answer-compare">' +
+          '<div class="answer-col user-answer">' +
+            '<div class="col-label">👤 你的回答</div>' +
+            '<div class="col-text">' + esc(userAnswer || '(未作答)') + '</div>' +
+          '</div>' +
+          '<div class="answer-col model-answer">' +
+            '<div class="col-label">✨ AI 参考答案</div>' +
+            '<div class="col-text">' + esc(ma.model_answer || '') + '</div>' +
+          '</div>' +
+        '</div>' +
+        scoreHtml;
+    });
   }
 
   function esc(str) {

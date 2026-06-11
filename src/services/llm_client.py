@@ -878,5 +878,73 @@ class LLMClient:
             raise Exception(f"LLM API调用失败: {str(e)}")
 
 
+    # ==================== AI 参考答案生成 ====================
+
+    def generate_model_answer(self, question: str, scenario_id: str = "",
+                              user_background: str = "") -> str:
+        """
+        生成一道面试题的 AI 参考答案
+
+        Args:
+            question: 面试问题
+            scenario_id: 场景 ID（用于适配风格）
+            user_background: 用户背景（让答案更有针对性）
+
+        Returns:
+            AI 生成的参考答案文本
+        """
+        profile = EXAMINER_PROFILES.get(scenario_id, EXAMINER_PROFILES["job_interview"])
+        scenario_name = profile["title"]
+
+        context_hint = ""
+        if user_background:
+            # 只取最关键的行避免 prompt 过长
+            lines = [l.strip() for l in user_background.split("\n") if l.strip()
+                     and any(l.startswith(p) for p in
+                             ["目标岗位", "目标公司", "个人简历", "报考", "目标院校", "目标专业"])]
+            if lines:
+                context_hint = "【用户背景】\n" + "\n".join(lines[:6]) + "\n\n"
+
+        system_prompt = f"""你是一位经验丰富的{scenario_name}面试辅导专家。
+
+{context_hint}请针对以下面试问题，生成一份高质量的参考答案。
+
+要求：
+1. 使用 STAR 法则（情境-任务-行动-结果）结构回答（适用于行为类问题）
+2. 内容要具体、有深度，展示真实的技术能力和思考过程
+3. 语气专业自信，但不傲慢
+4. 长度控制在 150-300 字，不要太长
+5. 直接输出答案内容，不要包含"参考答案："之类的标题前缀
+6. 不要使用 markdown 格式，用纯文本"""
+
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+
+        payload = {
+            "model": LLM_MODEL,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"面试问题：{question}\n\n请生成参考答案。"}
+            ],
+            "temperature": 0.5,
+            "max_tokens": 800
+        }
+
+        try:
+            with httpx.Client(timeout=httpx.Timeout(self.timeout)) as client:
+                response = client.post(self.api_url, headers=headers, json=payload)
+                response.raise_for_status()
+                response_data = response.json()
+
+                if "choices" in response_data and len(response_data["choices"]) > 0:
+                    return response_data["choices"][0]["message"]["content"].strip()
+                return ""
+        except Exception as e:
+            print(f"[LLM] 生成参考答案失败: {e}")
+            return ""
+
+
 # 导出
 __all__ = ["LLMClient", "LLM_TIMEOUT", "FALLBACK_QUESTIONS", "EXAMINER_PROFILES"]

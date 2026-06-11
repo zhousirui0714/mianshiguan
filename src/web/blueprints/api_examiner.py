@@ -753,6 +753,43 @@ def get_examiners():
     return jsonify({'success': True, 'data': EXAMINER_PROFILES})
 
 
+@examiner_bp.route('/examiner/model-answers', methods=['POST'])
+def generate_model_answers():
+    """为一组面试问题生成 AI 参考答案"""
+    try:
+        data = request.get_json()
+        questions = data.get('questions', [])
+        scenario_id = data.get('scenario_id', 'job_interview')
+        user_background = data.get('user_background', '')
+
+        if not questions:
+            return jsonify({'success': False, 'error': '缺少问题列表'}), 400
+
+        answers = []
+        for q in questions:
+            q_text = q.get('question', '') if isinstance(q, dict) else str(q)
+            round_num = q.get('round', 0) if isinstance(q, dict) else 0
+
+            model_answer = deps.llm_client.generate_model_answer(
+                question=q_text,
+                scenario_id=scenario_id,
+                user_background=user_background,
+            )
+
+            answers.append({
+                'round': round_num,
+                'question': q_text,
+                'model_answer': model_answer or '（AI 暂未生成参考答案）',
+            })
+
+        return jsonify({'success': True, 'answers': answers})
+
+    except Exception as e:
+        print(f"[model_answers] 生成失败: {e}")
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 def _ensure_user(user_id):
     """确保用户存在于数据库"""
     if not deps.db.get_user(user_id):
