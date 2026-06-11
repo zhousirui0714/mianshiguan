@@ -182,13 +182,20 @@ class LLMBasedSkill(BaseSkill):
               f"stage={current_stage} 共{stage_matched}题, 均不可用或已用")
 
         # 2. 无匹配当前阶段的题目 → 选任意未使用题目（降级兜底）
+        # 过滤规则：非 intro 阶段时跳过自我介绍类题目
+        intro_keywords = ["自我介绍", "introduce yourself", "介绍一下你自己", "一分钟时间介绍"]
         for q in retrieved:
             text = q.get("question_text", "")
-            if text and text not in used:
-                fallback_stage = (q.get("interview_stage") or "basic").strip()
-                _debug(f"[DEBUG][{cid}] _select_next_bank_question -> 降级兜底命中: "
-                      f"stage={fallback_stage} text={text[:60]}")
-                return text
+            if not text or text in used:
+                continue
+            # 非 intro 阶段跳过自我介绍类题目
+            if current_stage != "intro" and any(kw in text for kw in intro_keywords):
+                _debug(f"[DEBUG][{cid}] _select_next_bank_question -> 降级跳过intro题: text={text[:60]}")
+                continue
+            fallback_stage = (q.get("interview_stage") or "basic").strip()
+            _debug(f"[DEBUG][{cid}] _select_next_bank_question -> 降级兜底命中: "
+                  f"stage={fallback_stage} text={text[:60]}")
+            return text
 
         _debug(f"[DEBUG][{cid}] _select_next_bank_question -> 全部已用，返回 None")
         return None

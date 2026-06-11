@@ -242,10 +242,8 @@ class SkillExecutor:
         if next_question not in session.context["used_questions"]:
             session.context["used_questions"].append(next_question)
 
-        # 构建回复
+        # 构建回复（评价仅内部记录，不拼接到用户可见回复中）
         response = next_question
-        if evaluation and evaluation.comment:
-            response = f"{evaluation.comment}\n\n{next_question}"
 
         return {
             "response": response,
@@ -356,8 +354,9 @@ class SkillExecutor:
                 response_text = llm_result.get("response", "")
                 tool_calls = llm_result.get("tool_calls")
 
-                # 强制使用题库选题：有 bank_question 时，LLM 只负责评价不负责选题
-                if bank_question:
+                # LLM 回复优先（已包含简短评价 + 来自 next_question 的题目）
+                # LLM 无响应时降级为纯题库题目
+                if not response_text and bank_question:
                     response_text = bank_question
                 elif not response_text:
                     response_text = "请继续介绍你的相关经验和技能。"
@@ -406,9 +405,9 @@ class SkillExecutor:
                             summary = tr["data"].get("summary") or tr["data"].get("suggestion") or ""
                             response_text += f"- {tr.get('tool_id', '')}: {summary}\n"
 
+                # 评价仅内部记录，不拼接到用户可见回复中
+                # LLM 已在 response_text 中自然融入了简短评价和下一个问题
                 response = response_text
-                if evaluation and evaluation.comment:
-                    response = f"{evaluation.comment}\n\n{response_text}"
 
                 cid = session.id[:8]
                 _debug(f"[DEBUG][{cid}] chat_with_tools 最终: "
