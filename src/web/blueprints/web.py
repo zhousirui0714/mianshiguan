@@ -85,6 +85,9 @@ def interview_setup_page(scenario_id):
     scenario = deps.scenario_manager.get_scenario(scenario_id)
     if not scenario:
         return redirect(url_for('web.index'))
+    # 雅思口语不需要填写岗位/公司等求职信息，直接进入聊天
+    if scenario_id == 'ielts_speaking':
+        return redirect(url_for('web.ielts_chat_page'))
     return render_template('interview_setup.html',
                            scenario_id=scenario_id,
                            scenario_name=scenario.get('name', '面试'))
