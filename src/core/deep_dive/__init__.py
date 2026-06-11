@@ -11,10 +11,13 @@ DeepDiveManager — 项目深挖管理器
 
 import json
 import os
+import sqlite3
 from typing import List, Optional, Dict, Any
 
 _CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                             "deep_dive_topics.json")
+_DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        "../../../data/interview.db")
 _DEBUG_LOG = r"D:\zhousirui\新建文件夹 (2)\mianshiguan\debug_audit.log"
 def _debug(msg: str):
     with open(_DEBUG_LOG, "a", encoding="utf-8") as f:
@@ -90,13 +93,34 @@ class DeepDiveManager:
         retrieved = context.get("retrieved_questions", [])
         _debug(f"[DEBUG][{cid}] DeepDive.initialize: topic={topic_key} "
               f"related={related_topics} retrieved_count={len(retrieved)}")
+        # 打印前5道题排查问题
+        for i, q in enumerate(retrieved[:5]):
+            t = q.get("question_text", "")
+            tp = q.get("topics", "")
+            _debug(f"[DEBUG][{cid}] DeepDive.initialize: retrieved[{i}] text={t[:50]} topics={str(tp)[:60]}")
 
         candidates = DeepDiveManager._filter_candidates(
             retrieved,
             related_topics,
         )
 
-        _debug(f"[DEBUG][{cid}] DeepDive.initialize: 候选 {len(candidates)} 题")
+        # DB 兜底：retrieved_questions 中没有足够 topic 题时，直接从 DB 查询
+        if len(candidates) < max_depth:
+            db_candidates = DeepDiveManager._fetch_db_topic_questions(
+                topic_key, cid
+            )
+            _debug(f"[DEBUG][{cid}] DeepDive.initialize: DB兜底查询到 {len(db_candidates)} 题")
+            existing_ids = {c["id"] for c in candidates if c["id"]}
+            for q in db_candidates:
+                if q["id"] and q["id"] not in existing_ids:
+                    candidates.append(q)
+                    existing_ids.add(q["id"])
+
+            # 重新排序
+            level_order = {"S": 0, "A": 1, "B": 2, "C": 3}
+            candidates.sort(key=lambda x: level_order.get(x.get("level", "C"), 99))
+
+        _debug(f"[DEBUG][{cid}] DeepDive.initialize: 最终候选 {len(candidates)} 题")
 
         context["deep_dive"] = {
             "active": True,
@@ -144,8 +168,16 @@ class DeepDiveManager:
                 if match:
                     _debug(f"[FILTER] 话题匹配命中: text={text[:40]} topics={q_topics} related={related_topics}")
 
+            # 兜底：文本关键词匹配（topics 字段未命中但问题文本包含相关关键词）
             if not match:
-                continue
+                text_lower = text.lower()
+                for rt in related_topics:
+                    if rt.lower() in text_lower:
+                        match = True
+                        _debug(f"[FILTER] 文本兜底命中: text={text[:40]} keyword={rt}")
+                        break
+                if not match:
+                    continue
 
             seen_texts.add(text)
             lev = (q.get("question_level") or "C").strip().upper()
@@ -163,6 +195,49 @@ class DeepDiveManager:
         # 按 S/A/B/C 排序
         candidates.sort(key=lambda x: level_order.get(x.get("level", "C"), 99))
         return candidates[:15]
+
+    @staticmethod
+    def _fetch_db_topic_questions(topic_key: str,
+                                   cid: str = "????") -> List[Dict[str, Any]]:
+        """直接从 DB 查询指定 topic 的题目（兜底用）"""
+        topic_display = topic_key.capitalize()
+        db_path = os.path.abspath(_DB_PATH)
+        if not os.path.exists(db_path):
+            _debug(f"[DEBUG][{cid}] _fetch_db_topic_questions: DB不存在 {db_path}")
+            return []
+
+        try:
+            conn = sqlite3.connect(db_path)
+            conn.row_factory = sqlite3.Row
+            cur = conn.execute("""
+                SELECT id, question_text, question_level, interview_stage
+                FROM questions
+                WHERE topics LIKE ?
+                ORDER BY
+                    CASE question_level WHEN 'S' THEN 0 WHEN 'A' THEN 1 WHEN 'B' THEN 2 ELSE 3 END
+                LIMIT 15
+            """, (f'%{topic_display}%',))
+            rows = cur.fetchall()
+            conn.close()
+
+            result = []
+            for r in rows:
+                lev = (r["question_level"] or "C").strip().upper()
+                if lev not in ("S", "A", "B", "C"):
+                    lev = "C"
+                result.append({
+                    "id": r["id"],
+                    "question_text": r["question_text"],
+                    "question_level": lev,
+                    "interview_stage": r["interview_stage"] or "basic",
+                    "level": lev,
+                })
+            _debug(f"[DEBUG][{cid}] _fetch_db_topic_questions: "
+                  f"topic={topic_display} 查到{len(result)}题")
+            return result
+        except Exception as e:
+            _debug(f"[DEBUG][{cid}] _fetch_db_topic_questions 异常: {e}")
+            return []
 
     @staticmethod
     def select_question(context: dict) -> Optional[Dict[str, Any]]:

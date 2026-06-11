@@ -356,12 +356,11 @@ class SkillExecutor:
                 response_text = llm_result.get("response", "")
                 tool_calls = llm_result.get("tool_calls")
 
-                if not response_text:
-                    # LLM 完全失败：直接用题库问题兜底
-                    if bank_question:
-                        response_text = bank_question
-                    else:
-                        response_text = "请继续介绍你的相关经验和技能。"
+                # 强制使用题库选题：有 bank_question 时，LLM 只负责评价不负责选题
+                if bank_question:
+                    response_text = bank_question
+                elif not response_text:
+                    response_text = "请继续介绍你的相关经验和技能。"
 
                 # 记录已使用的题库题目
                 if bank_question:
