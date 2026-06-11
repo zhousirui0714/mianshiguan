@@ -10,9 +10,9 @@ from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_excep
 load_dotenv()
 
 # LLM API配置
-LLM_API_URL = os.getenv("DEEPSEEK_API_URL", "https://api.deepseek.com/v1/chat/completions")
-LLM_API_KEY = os.getenv("DEEPSEEK_API_KEY", "your-api-key")
-LLM_MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
+LLM_API_URL = os.getenv("LLM_API_URL", "https://maas-api.cn-huabei-1.xf-yun.com/v2/chat/completions")
+LLM_API_KEY = os.getenv("LLM_API_KEY", "6ad85b0f2b80ff7716b726b03010b5f5:NmViMmJmOWU1MTM5OTJlNmMyNDc5ZGQ2")
+LLM_MODEL = os.getenv("LLM_MODEL", "Qwen3.6-35B-A3B")
 
 # Timeout配置 - 选择依据：
 # 1. 大模型生成3条追问通常需要5-15秒
