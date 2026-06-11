@@ -537,6 +537,7 @@
                     if (!searchVal && params[f.id]) searchVal = params[f.id];
                 });
                 if (searchVal) qp.set('position', searchVal);
+                qp.set('scenario_id', SCENARIO_ID);
                 qp.set('limit', '6');
 
                 const resp = await fetch('/api/interview/search?' + qp.toString());
@@ -563,10 +564,10 @@
                         }
                         preview.innerHTML = html;
                     } else {
-                        preview.innerHTML = '<div class="spider-empty">\uD83D\uDCA0 找到 ' + result.data.length + ' 篇面经，但未能提取到具体问题</div>';
+                        preview.innerHTML = '<div class="spider-empty">💠 找到面经记录，但未能提取到具体问题</div>';
                     }
                 } else {
-                    preview.innerHTML = '<div class="spider-empty">\uD83D\uDD0D 未找到相关面经数据，AI 将根据你的信息生成问题</div>';
+                    preview.innerHTML = '<div class="spider-empty">🔍 暂未找到相关数据，AI 将基于真题库生成问题</div>';
                 }
             } catch (e) {
                 preview.innerHTML = '<div class="spider-empty">\uD83D\uDD0D 面经搜索暂不可用，AI 将直接为你出题</div>';

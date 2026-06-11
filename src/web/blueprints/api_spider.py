@@ -39,9 +39,11 @@ def search_interview_experiences():
         limit = request.args.get('limit', 10, type=int)
         limit = min(max(limit, 1), 50)  # 限制 1-50 条
 
+        # 场景ID（可选过滤）
+        scenario_id = request.args.get('scenario_id', '').strip()
+
         rows = deps.db.search_interview_experiences(company, position, limit)
 
-        # 格式化为前端友好结构
         results = []
         for r in rows:
             results.append({
@@ -52,7 +54,31 @@ def search_interview_experiences():
                 "questions": r.get("questions", []),
                 "source_url": r.get("source_url", ""),
                 "created_at": r.get("created_at", ""),
+                "source_label": "真实面经",
             })
+
+        # 面经不足时，从真题库兜底匹配
+        if len(results) < limit:
+            q_rows = deps.db.get_questions(
+                scenario_id=scenario_id if scenario_id else None,
+                keyword=position or company or None,
+            )
+            q_rows = q_rows[:limit - len(results)]
+            if q_rows:
+                bank_questions = [
+                    q.get("question_text", "")
+                    for q in q_rows if q.get("question_text")
+                ]
+                results.append({
+                    "id": "bank_fallback",
+                    "company_name": company or "通用",
+                    "position": position or "通用",
+                    "round": "真题库",
+                    "questions": bank_questions,
+                    "source_url": "",
+                    "created_at": "",
+                    "source_label": "真题库匹配",
+                })
 
         return jsonify({
             'success': True,
