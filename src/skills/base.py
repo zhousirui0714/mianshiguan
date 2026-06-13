@@ -255,6 +255,7 @@ class LLMBasedSkill(BaseSkill):
                 user_background=session.context.get("user_background", ""),
                 next_question=bank_question,
                 current_stage=current_stage,
+                interview_style=session.context.get("interview_style", ""),
             )
             return response if response else bank_question
         except Exception as e:
@@ -295,6 +296,7 @@ class LLMBasedSkill(BaseSkill):
                 conversation_history=history,
                 user_background=session.context.get("user_background", ""),
                 current_stage=current_stage,
+                interview_style=session.context.get("interview_style", ""),
             )
             return response if response else "请继续介绍你的相关经验。"
         except Exception as e:

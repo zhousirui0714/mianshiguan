@@ -255,6 +255,7 @@ def examiner_chat():
         user_id = data.get('user_id', 'anonymous')
         user_background = data.get('user_background', '')
         conversation_id = data.get('conversation_id')
+        interview_style = data.get('interview_style', '')
 
         if not scenario_id or not user_message:
             return jsonify({'success': False, 'error': '缺少必要参数'}), 400
@@ -263,6 +264,8 @@ def examiner_chat():
         if skill and conversation_id and conversation_id in deps.SKILL_SESSIONS:
             skill_session = deps.SKILL_SESSIONS[conversation_id]
             skill_session.context["user_background"] = user_background
+            if interview_style:
+                skill_session.context["interview_style"] = interview_style
 
             conversation = deps.db.get_conversation(conversation_id)
             history = []
@@ -366,6 +369,7 @@ def examiner_chat():
                 scenario_id=scenario_id, user_message=user_message,
                 conversation_history=conversation_history, user_background=user_background,
                 next_question=next_question,
+                interview_style=interview_style,
             )
         except Exception as e:
             print(f"[examiner_chat] legacy LLM 调用失败: {e}")
@@ -433,6 +437,7 @@ def examiner_start():
         scenario_id = data.get('scenario_id')
         user_id = data.get('user_id', 'anonymous')
         user_background = data.get('user_background', '')
+        interview_style = data.get('interview_style', '')
         if not scenario_id:
             return jsonify({'success': False, 'error': '缺少场景ID'}), 400
 
@@ -495,6 +500,7 @@ def examiner_start():
                 "stage_rounds": {},
                 "project_keywords_detected": [],
                 "deep_dive": {"active": False},
+                "interview_style": interview_style,
             })
             welcome_message = skill.get_welcome_message(session_data)
 
@@ -514,6 +520,7 @@ def examiner_start():
                 'examiner_name': skill.config.persona.name,
                 'examiner_title': skill.config.persona.title,
                 'max_rounds': skill.config.max_rounds,
+                'interview_style': interview_style,
             })
 
         scenario = deps.scenario_manager.get_scenario(scenario_id)
@@ -561,6 +568,7 @@ def examiner_start():
             'welcome_message': welcome_message,
             'examiner_name': examiner['name'], 'examiner_title': examiner['title'],
             'max_rounds': deps.MAX_ROUNDS,
+            'interview_style': interview_style,
         })
 
     except Exception as e:

@@ -115,6 +115,60 @@
             margin-top: 8px;
         }
 
+        /* 面试风格选择器 */
+        .style-selector {
+            margin-top: 8px;
+        }
+        .style-selector-label {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .style-grid {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .style-card {
+            flex: 1;
+            min-width: 100px;
+            padding: 14px 12px;
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fff;
+        }
+        .style-card:hover {
+            border-color: var(--blue-300);
+            background: var(--blue-50);
+        }
+        .style-card.selected {
+            border-color: var(--blue-500);
+            background: var(--blue-50);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+        .style-card-icon {
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+        .style-card-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 4px;
+        }
+        .style-card-desc {
+            font-size: 11px;
+            color: var(--gray-400);
+            line-height: 1.3;
+        }
+
         .example-badge {
             display: inline-block;
             font-size: 11px;
@@ -223,6 +277,11 @@
                     <form id="setupForm" onsubmit="handleSubmit(event)">
                         <div id="formFields">
                             <!-- rendered by JS -->
+                        </div>
+                        <!-- 面试官风格选择 -->
+                        <div class="style-selector" id="styleSelector" style="display:none;">
+                            <div class="style-selector-label">🎯 选择面试官风格</div>
+                            <div class="style-grid" id="styleGrid"></div>
                         </div>
                     </form>
                 </div>
@@ -597,6 +656,42 @@
             }
         }
 
+        // ================================================================
+        // Style selector
+        // ================================================================
+        var selectedStyle = '';
+        var STYLES = [
+            { id: 'standard', name: '标准型', icon: '⚖️', desc: '专业平衡，客观评价' },
+            { id: 'strict', name: '严格型', icon: '🔍', desc: '高标准，深度追问' },
+            { id: 'guiding', name: '引导型', icon: '💡', desc: '卡顿时给予提示' },
+            { id: 'pressure', name: '压力型', icon: '⏱️', desc: '快节奏，制造压力' },
+            { id: 'gentle', name: '温和型', icon: '🌱', desc: '鼓励为主，适合初学' },
+        ];
+
+        function renderStyleCards() {
+            var grid = document.getElementById('styleGrid');
+            STYLES.forEach(function (s) {
+                var card = document.createElement('div');
+                card.className = 'style-card';
+                if (s.id === 'standard') card.classList.add('selected');
+                card.innerHTML = '<div class=\"style-card-icon\">' + s.icon + '</div>' +
+                    '<div class=\"style-card-name\">' + s.name + '</div>' +
+                    '<div class=\"style-card-desc\">' + s.desc + '</div>';
+                card.onclick = function () {
+                    document.querySelectorAll('.style-card').forEach(function (c) { c.classList.remove('selected'); });
+                    card.classList.add('selected');
+                    selectedStyle = s.id;
+                };
+                grid.appendChild(card);
+            });
+            selectedStyle = 'standard';
+            // Only show for job_interview scene
+            if (SCENARIO_ID === 'job_interview') {
+                document.getElementById('styleSelector').style.display = 'block';
+            }
+        }
+        renderStyleCards();
+
         function handleSubmit(event) {
             event.preventDefault();
 
@@ -615,6 +710,7 @@
                 return;
             }
 
+            if (selectedStyle) params.set('style', selectedStyle);
             window.location.href = '/chat/' + SCENARIO_ID + '?' + params.toString();
         }
 

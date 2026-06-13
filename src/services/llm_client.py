@@ -251,6 +251,35 @@ class LLMClient:
         else:
             return "default"
     
+    # 面试官风格定义
+    INTERVIEW_STYLES = {
+        "standard": {
+            "name": "标准型",
+            "icon": "⚖️",
+            "prompt": "你采用专业、平衡的面试风格：客观评价每个回答，追问有深度但不刻意刁难，给候选人公平展示的机会。",
+        },
+        "strict": {
+            "name": "严格型",
+            "icon": "🔍",
+            "prompt": "你采用严格、高标准的面试风格：对每个回答进行深度追问，要求具体数据和技术细节；不主动给提示，让候选人展示真实水平；对模糊回答直接指出并要求澄清；语气专业但不过于严厉。",
+        },
+        "guiding": {
+            "name": "引导型",
+            "icon": "💡",
+            "prompt": "你采用引导式的面试风格：当候选人卡顿或回答不完整时，给予恰当的提示和引导方向，帮助TA展现真实水平；追问时先肯定正确的部分，再指出需要补充的地方；语气友好、有耐心。",
+        },
+        "pressure": {
+            "name": "压力型",
+            "icon": "⏱️",
+            "prompt": "你采用压力面试风格：快速追问，对回答中的漏洞立即挑战；可以适时打断冗长的回答；制造时间压力感（但不要人身攻击）；让每个问题都紧跟上一问，不给候选人太多思考缓冲时间。",
+        },
+        "gentle": {
+            "name": "温和型",
+            "icon": "🌱",
+            "prompt": "你采用温和鼓励的面试风格：以鼓励为主，先肯定再提问；营造轻松友好的氛围；问题由浅入深，给候选人足够的信心；特别适合初学者或面试紧张的候选人练习。语气温暖、包容。",
+        },
+    }
+
     @retry(
         stop=stop_after_attempt(2),
         wait=wait_exponential(multiplier=1, min=1, max=3),
@@ -262,7 +291,8 @@ class LLMClient:
                      retrieved_questions: list = None,
                      used_questions: list = None,
                      next_question: str = "",
-                     current_stage: str = "") -> str:
+                     current_stage: str = "",
+                     interview_style: str = "") -> str:
         """
         AI考官聊天接口
 
@@ -317,11 +347,20 @@ class LLMClient:
 你可以用自己的话重新组织问题，但核心考察点不要偏离。
 """
 
+        # 面试风格提示
+        style_hint = ""
+        if interview_style and interview_style in self.INTERVIEW_STYLES:
+            style_cfg = self.INTERVIEW_STYLES[interview_style]
+            style_hint = f"""
+【面试风格：{style_cfg['name']}】
+{style_cfg['prompt']}
+"""
+
         # 构建系统提示词
         system_prompt = f"""你是一位{scenario_name}，名叫{examiner_name}。
 背景：{background}
 语气要求：{tone}
-
+{style_hint}
 【你的角色】
 你正在进行一场真实的一对一面试。你的核心任务是：
 1. 先具体评价用户刚才的回答（1-2句话，明确指出具体亮点或不足，不要泛泛说"回答得很好"）
@@ -728,7 +767,8 @@ class LLMClient:
                         retrieved_questions: list = None,
                         used_questions: list = None,
                         next_question: str = "",
-                        current_stage: str = "") -> Dict[str, Any]:
+                        current_stage: str = "",
+                        interview_style: str = "") -> Dict[str, Any]:
         """
         AI考官聊天（支持工具调用）
 
@@ -805,22 +845,34 @@ class LLMClient:
 你可以用自己的话重新组织问题，但核心考察点不要偏离。
 """
 
+        # 面试风格提示
+        style_hint2 = ""
+        if interview_style and interview_style in self.INTERVIEW_STYLES:
+            style_cfg = self.INTERVIEW_STYLES[interview_style]
+            style_hint2 = f"""
+【面试风格：{style_cfg['name']}】
+{style_cfg['prompt']}
+"""
+
         system_prompt = f"""你是一位{scenario_name}，名叫{examiner_name}。
 背景：{background}
 语气要求：{tone}
-
+{style_hint2}
 【你的角色】
 你正在进行一场真实的一对一面试。你的核心任务是：
-1. 先简要评价用户刚才的回答（1-2句话，具体指出亮点或不足）
+1. 先具体评价用户刚才的回答（1-2句话，明确指出具体亮点或不足）
 2. 然后提出下一个面试问题（每次只问一个问题）
 
+【追问原则】
+- 必须根据用户刚才回答的具体内容来追问深挖
+- 如果用户回答了技术细节、项目经验、具体数据，请追问那个点
+- 不要机械跳到下一个话题，顺着对话自然深入
+
 【面试规则】
-- 每次回复只包含：简短评价 + 一个面试问题
-- 问题要有深度，能考察真实能力，不要问泛泛而谈的问题
-- 根据用户的实际回答进行追问深挖，而不是机械地走流程
+- 每次回复只包含：具体评价 + 一个面试问题
+- 问题要有深度，能考察真实能力
 - 不要一次问多个问题
-- 不要说"如果你准备好了我们就开始"之类的废话
-- 不要自我评价或解释你在做什么
+- 不要说废话
 
 {stage_hint}
 

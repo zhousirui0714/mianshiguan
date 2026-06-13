@@ -103,6 +103,10 @@
                 <span class="label">考官</span>
                 <span class="value" id="examinerSideName">考官</span>
             </div>
+            <div class="iv-info-row" id="styleRow" style="display:none;">
+                <span class="label">风格</span>
+                <span class="value" id="styleLabel"></span>
+            </div>
         </div>
 
         <!-- Tips -->
@@ -265,6 +269,15 @@
     let scenarioId = '{{ scenario_id }}';
     let currentRound = 1;
     let maxRounds = 5;
+    let interviewStyle = '';
+
+    const STYLE_MAP = {
+        standard: { name: '标准型', icon: '⚖️' },
+        strict: { name: '严格型', icon: '🔍' },
+        guiding: { name: '引导型', icon: '💡' },
+        pressure: { name: '压力型', icon: '⏱️' },
+        gentle: { name: '温和型', icon: '🌱' },
+    };
     let isTyping = false;
 
     // ================================================================
@@ -342,6 +355,9 @@
     document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('scenarioBadge').textContent =
             scenarioLabels[scenarioId] || scenarioId;
+
+        // Parse style from URL
+        interviewStyle = (new URLSearchParams(window.location.search)).get('style') || '';
 
         // Populate scenario info
         const info = scenarioInfo[scenarioId];
@@ -463,7 +479,8 @@
                 body: JSON.stringify({
                     scenario_id: scenarioId,
                     user_id: 'anonymous',
-                    user_background: userBg
+                    user_background: userBg,
+                    interview_style: interviewStyle
                 })
             });
 
@@ -473,6 +490,14 @@
                 conversationId = result.conversation_id;
                 examinerSideName.textContent = result.examiner_name;
                 maxRounds = result.max_rounds;
+
+                // 显示面试风格
+                var style = result.interview_style || interviewStyle;
+                if (style && STYLE_MAP[style]) {
+                    var si = STYLE_MAP[style];
+                    document.getElementById('styleLabel').textContent = si.icon + ' ' + si.name;
+                    document.getElementById('styleRow').style.display = '';
+                }
 
                 Examiner.init({
                     scenario: scenarioId,
@@ -522,7 +547,8 @@
                     conversation_id: conversationId,
                     scenario_id: scenarioId,
                     user_message: content,
-                    user_id: 'anonymous'
+                    user_id: 'anonymous',
+                    interview_style: interviewStyle
                 })
             });
 
