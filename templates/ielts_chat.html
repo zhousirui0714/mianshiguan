@@ -947,7 +947,7 @@
         }
         if (report.overall_comment) {
             html += '<div class="iv-report-section"><div class="section-title">Overall Comment</div>';
-            html += '<div class="iv-report-comment">' + report.overall_comment + '</div></div>';
+            html += '<div class="iv-report-comment" style="white-space:pre-line;line-height:1.9;">' + report.overall_comment + '</div></div>';
         }
         document.getElementById('reportBody').innerHTML = html;
         document.getElementById('reportOverlay').style.display = 'flex';

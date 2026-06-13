@@ -238,7 +238,8 @@
   border-radius: 12px;
   font-size: 14px;
   color: var(--gray-600);
-  line-height: 1.7;
+  line-height: 1.9;
+  white-space: pre-line;
 }
 
 /* ========== 徽章 ========== */
@@ -749,7 +750,8 @@
 
     if (data.overall_comment) {
       var oc = $('overallComment');
-      oc.textContent = data.overall_comment;
+      // 保留换行：\n → <br>，配合 CSS white-space: pre-line
+      oc.innerHTML = data.overall_comment.replace(/\n/g, '<br>');
       oc.style.display = 'block';
     }
   }
