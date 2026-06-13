@@ -606,7 +606,7 @@
     </div>
     
     <script>
-        const USER_ID = 'anonymous';
+        const USER_ID = '{{ g.current_user.id if g.current_user else "anonymous" }}';
         const categories = {
             'newbie': { name: '新手入门', icon: '🌟' },
             'persistence': { name: '坚持打卡', icon: '🔥' },

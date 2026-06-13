@@ -236,7 +236,7 @@
 
     <script>
         const SCENARIO_ID = '{{ scenario_id }}';
-        const USER_ID = 'test_user_llm';
+        const USER_ID = '{{ g.current_user.id if g.current_user else "anonymous" }}';
         const primaryColor = '{{ scenario.primary_color }}';
         const dimensions = {{ report.dimensions|tojson|safe }};
 

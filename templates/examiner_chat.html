@@ -270,6 +270,7 @@
     let currentRound = 1;
     let maxRounds = 5;
     let interviewStyle = '';
+    let currentUserId = '{{ g.current_user.id if g.current_user else "" }}';
 
     const STYLE_MAP = {
         standard: { name: '标准型', icon: '⚖️' },
@@ -478,7 +479,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     scenario_id: scenarioId,
-                    user_id: 'anonymous',
+                    user_id: currentUserId || 'anonymous',
                     user_background: userBg,
                     interview_style: interviewStyle
                 })
@@ -547,7 +548,7 @@
                     conversation_id: conversationId,
                     scenario_id: scenarioId,
                     user_message: content,
-                    user_id: 'anonymous',
+                    user_id: currentUserId || 'anonymous',
                     interview_style: interviewStyle
                 })
             });

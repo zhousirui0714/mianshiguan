@@ -175,7 +175,7 @@
     </footer>
 
     <script>
-    const USER_ID = 'viz_user';
+    const USER_ID = '{{ g.current_user.id if g.current_user else "anonymous" }}';
 
     const SCENARIO_NAMES = {
         'job_interview': '求职面试', 'teacher-cert': '教资面试',
