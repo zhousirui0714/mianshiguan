@@ -685,10 +685,7 @@
                 grid.appendChild(card);
             });
             selectedStyle = 'standard';
-            // Only show for job_interview scene
-            if (SCENARIO_ID === 'job_interview') {
-                document.getElementById('styleSelector').style.display = 'block';
-            }
+            document.getElementById('styleSelector').style.display = 'block';
         }
         renderStyleCards();
 
