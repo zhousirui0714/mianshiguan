@@ -358,18 +358,21 @@ def examiner_chat():
                 _bank_text = text
                 break
 
-        if _bank_text:
-            # 后端选题，直接使用
-            ai_response = _bank_text
-        else:
-            # 题库用完，LLM 自由生成
-            try:
-                ai_response = deps.llm_client.examiner_chat(
-                    scenario_id=scenario_id, user_message=user_message,
-                    conversation_history=conversation_history, user_background=user_background,
-                )
-            except Exception as e:
-                print(f"[examiner_chat] legacy LLM 调用失败: {e}")
+        # 始终通过 LLM 生成回复（即使有预设题目）
+        # LLM 负责：评价用户回答 + 自然引入下一个问题
+        next_question = _bank_text  # None 表示 LLM 自由选题
+        try:
+            ai_response = deps.llm_client.examiner_chat(
+                scenario_id=scenario_id, user_message=user_message,
+                conversation_history=conversation_history, user_background=user_background,
+                next_question=next_question,
+            )
+        except Exception as e:
+            print(f"[examiner_chat] legacy LLM 调用失败: {e}")
+            # 降级：题库问题直接返回 + 道歉
+            if _bank_text:
+                ai_response = f"抱歉，当前AI服务暂时不可用。让我们继续下一个问题：{_bank_text}"
+            else:
                 ai_response = (
                     f"抱歉，当前AI服务暂时不可用。"
                     f"{deps.EXAMINERS.get(scenario_id, deps.EXAMINERS['job_interview'])['name']}问你："

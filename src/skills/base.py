@@ -87,32 +87,42 @@ class LLMBasedSkill(BaseSkill):
 
     def generate_question(self, session: SkillSession,
                           history: List[Dict[str, str]]) -> str:
-        """生成下一轮问题：优先深挖 → 程序化选题 → LLM 自由生成"""
+        """生成下一轮问题：优先深挖 → 程序化选题 → LLM 自由生成
+
+        所有路径最终都通过 LLM，确保：
+        - 评价用户回答 + 根据上下文自然引入问题
+        - 不会机械地套模板
+        """
+        next_question = None
+
         # 1. 检查是否在深挖模式中
         deep_dive = session.context.get("deep_dive", {})
         if deep_dive.get("active") and not deep_dive.get("exited"):
             if DeepDiveManager.should_continue(session.context):
                 question = DeepDiveManager.select_question(session.context)
                 if question:
-                    return question["question_text"]
-            # 深挖结束（题目用完或达上限）
-            session.context["deep_dive"]["active"] = False
+                    next_question = question["question_text"]
+            if not next_question:
+                # 深挖结束（题目用完或达上限）
+                session.context["deep_dive"]["active"] = False
 
         # 2. 确定当前面试阶段
-        next_stage = self._determine_next_stage(session)
-        session.context["current_stage"] = next_stage
+        if next_question is None:
+            next_stage = self._determine_next_stage(session)
+            session.context["current_stage"] = next_stage
 
-        # 3. 追踪每阶段轮次
-        stage_rounds = session.context.setdefault("stage_rounds", {})
-        stage_rounds[next_stage] = stage_rounds.get(next_stage, 0) + 1
+            # 3. 追踪每阶段轮次
+            stage_rounds = session.context.setdefault("stage_rounds", {})
+            stage_rounds[next_stage] = stage_rounds.get(next_stage, 0) + 1
 
-        # 4. 程序化选题：从题库中选一个未使用的题目（按阶段过滤）
-        bank_text = self._select_next_bank_question(session)
-        if bank_text:
-            return bank_text
+            # 4. 程序化选题：从题库中选一个未使用的题目（按阶段过滤）
+            next_question = self._select_next_bank_question(session)
 
-        # 5. 题库已用完 → LLM 自由生成
-        return self._llm_generate_free(session, history)
+        # 5. 通过 LLM 生成回复（即使有预设题目，也让 LLM 负责上下文衔接）
+        if next_question:
+            return self._llm_wrap_bank_question(session, history, next_question)
+        else:
+            return self._llm_generate_free(session, history)
 
     def _determine_next_stage(self, session: SkillSession) -> str:
         """
@@ -225,6 +235,31 @@ class LLMBasedSkill(BaseSkill):
 
         _debug(f"[DEBUG][{cid}] _select_next_bank_question -> 全部已用，返回 None")
         return None
+
+    def _llm_wrap_bank_question(self, session: SkillSession,
+                                history: List[Dict[str, str]],
+                                bank_question: str) -> str:
+        """将题库问题交给 LLM 进行上下文包装
+
+        LLM 负责：评价用户回答 + 根据对话上下文自然引入下一个问题。
+        不会机械套模板，而是根据用户实际回答调整追问方向和措辞。
+        """
+        cid = session.id[:8]
+        current_stage = session.context.get("current_stage", "")
+
+        try:
+            response = self.llm.examiner_chat(
+                scenario_id=self.config.id,
+                user_message=session.answers[-1].answer if session.answers else "",
+                conversation_history=history,
+                user_background=session.context.get("user_background", ""),
+                next_question=bank_question,
+                current_stage=current_stage,
+            )
+            return response if response else bank_question
+        except Exception as e:
+            _debug(f"[{cid}] LLM 包装题库问题失败，回退到原始题面: {e}")
+            return bank_question
 
     def _llm_generate_free(self, session: SkillSession,
                            history: List[Dict[str, str]]) -> str:
