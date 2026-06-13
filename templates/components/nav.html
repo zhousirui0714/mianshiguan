@@ -7,7 +7,19 @@
             <li><a href="/scenarios" class="{% if active_nav == 'scenarios' %}active{% endif %}">场景中心</a></li>
             <li><a href="/question-bank" class="{% if active_nav == 'questions' %}active{% endif %}">真题题库</a></li>
             <li><a href="/growth" class="{% if active_nav == 'growth' %}active{% endif %}">成长中心</a></li>
+            {% if g.current_user %}
+            <li><a href="/profile" class="nav-user">{{ g.current_user.username }}</a></li>
+            <li><a href="#" onclick="logout(event)" class="nav-cta" style="background:#EF4444;">退出</a></li>
+            {% else %}
             <li><a href="/auth/login" class="nav-cta">登录</a></li>
+            {% endif %}
         </ul>
     </div>
 </nav>
+<script>
+function logout(e) {
+    e.preventDefault();
+    fetch('/api/auth/logout', { method: 'POST' })
+        .then(function() { window.location.href = '/'; });
+}
+</script>

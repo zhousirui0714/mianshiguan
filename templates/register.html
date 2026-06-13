@@ -122,23 +122,24 @@
         </div>
         <div class="auth-card">
             <form onsubmit="handleRegister(event)">
+                <div id="regError" style="display:none;background:#FEF2F2;color:#DC2626;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:13px;"></div>
                 <div class="form-group">
                     <label class="form-label">姓名</label>
-                    <input type="text" class="form-input" placeholder="请输入姓名" required>
+                    <input type="text" id="regName" class="form-input" placeholder="请输入姓名" required>
                 </div>
                 <div class="form-group">
                     <label class="form-label">邮箱</label>
-                    <input type="email" class="form-input" placeholder="请输入邮箱" required>
+                    <input type="email" id="regEmail" class="form-input" placeholder="请输入邮箱" required>
                 </div>
                 <div class="form-group">
                     <label class="form-label">密码</label>
-                    <input type="password" class="form-input" placeholder="请设置密码（至少6位）" required minlength="6">
+                    <input type="password" id="regPassword" class="form-input" placeholder="请设置密码（至少6位）" required minlength="6">
                 </div>
                 <div class="form-group">
                     <label class="form-label">目标岗位</label>
-                    <input type="text" class="form-input" placeholder="例如：前端工程师">
+                    <input type="text" id="regPosition" class="form-input" placeholder="例如：前端工程师">
                 </div>
-                <button type="submit" class="btn-submit">立即注册</button>
+                <button type="submit" class="btn-submit" id="regBtn">立即注册</button>
             </form>
             <div class="auth-footer">
                 已有账号？<a href="/auth/login">立即登录</a>
@@ -148,8 +149,49 @@
     <script>
         function handleRegister(event) {
             event.preventDefault();
-            alert('注册功能开发中，请使用游客模式体验');
-            window.location.href = '/scenarios';
+            var name = document.getElementById('regName').value.trim();
+            var email = document.getElementById('regEmail').value.trim();
+            var password = document.getElementById('regPassword').value;
+            var err = document.getElementById('regError');
+            var btn = document.getElementById('regBtn');
+
+            err.style.display = 'none';
+            if (!name || !email || !password) {
+                err.textContent = '请填写所有必填项';
+                err.style.display = 'block';
+                return;
+            }
+            if (password.length < 6) {
+                err.textContent = '密码至少6位';
+                err.style.display = 'block';
+                return;
+            }
+
+            btn.textContent = '注册中...';
+            btn.disabled = true;
+
+            fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: name, email: email, password: password })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    window.location.href = '/';
+                } else {
+                    err.textContent = data.error || '注册失败';
+                    err.style.display = 'block';
+                    btn.textContent = '立即注册';
+                    btn.disabled = false;
+                }
+            })
+            .catch(function() {
+                err.textContent = '网络错误，请重试';
+                err.style.display = 'block';
+                btn.textContent = '立即注册';
+                btn.disabled = false;
+            });
         }
     </script>
 </body>

@@ -1,6 +1,6 @@
 """Flask 应用工厂"""
 import os
-from flask import Flask
+from flask import Flask, g, session
 from flask_socketio import SocketIO
 
 from src.scenarios.manager import ScenarioManager
@@ -19,6 +19,7 @@ from src.web.blueprints.api_badges import badges_bp
 from src.web.blueprints.api_progress import progress_bp
 from src.web.blueprints.api_skills import skills_bp
 from src.web.blueprints.api_spider import spider_bp
+from src.web.blueprints.api_auth import auth_bp
 from src.web.websocket_handler import register_handlers
 
 # 全局 SocketIO 实例
@@ -35,6 +36,15 @@ def create_app():
 
     _init_dependencies()
     _register_blueprints(app)
+
+    # 每个请求加载当前用户
+    @app.before_request
+    def load_current_user():
+        uid = session.get('user_id')
+        if uid:
+            g.current_user = deps.db.get_user(uid)
+        else:
+            g.current_user = None
 
     # 初始化 SocketIO
     socketio.init_app(app, cors_allowed_origins="*", max_http_buffer_size=50*1024*1024)
@@ -92,3 +102,4 @@ def _register_blueprints(app):
     app.register_blueprint(progress_bp, url_prefix='/api')
     app.register_blueprint(skills_bp, url_prefix='/api')
     app.register_blueprint(spider_bp, url_prefix='/api')
+    app.register_blueprint(auth_bp, url_prefix='/api')

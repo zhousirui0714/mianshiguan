@@ -112,6 +112,12 @@ img { max-width: 100%; }
     background: var(--blue-600);
     transform: translateY(-1px);
 }
+.nav-user {
+    font-weight: 600;
+    color: var(--gray-800);
+    padding: 8px 12px;
+    font-size: 14px;
+}
 
 /* ================================================================
    Buttons

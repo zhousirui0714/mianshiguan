@@ -131,15 +131,16 @@
         </div>
         <div class="auth-card">
             <form onsubmit="handleLogin(event)">
+                <div id="loginError" style="display:none;background:#FEF2F2;color:#DC2626;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:13px;"></div>
                 <div class="form-group">
                     <label class="form-label">邮箱</label>
-                    <input type="email" class="form-input" placeholder="请输入邮箱" required>
+                    <input type="email" id="loginEmail" class="form-input" placeholder="请输入邮箱" required>
                 </div>
                 <div class="form-group">
                     <label class="form-label">密码</label>
-                    <input type="password" class="form-input" placeholder="请输入密码" required>
+                    <input type="password" id="loginPassword" class="form-input" placeholder="请输入密码" required>
                 </div>
-                <button type="submit" class="btn-submit">登录</button>
+                <button type="submit" class="btn-submit" id="loginBtn">登录</button>
             </form>
             <div class="auth-footer">
                 还没有账号？<a href="/auth/register">立即注册</a>
@@ -150,8 +151,43 @@
     <script>
         function handleLogin(event) {
             event.preventDefault();
-            alert('登录功能开发中，请使用游客模式体验');
-            window.location.href = '/scenarios';
+            var email = document.getElementById('loginEmail').value.trim();
+            var password = document.getElementById('loginPassword').value;
+            var err = document.getElementById('loginError');
+            var btn = document.getElementById('loginBtn');
+
+            err.style.display = 'none';
+            if (!email || !password) {
+                err.textContent = '请填写邮箱和密码';
+                err.style.display = 'block';
+                return;
+            }
+
+            btn.textContent = '登录中...';
+            btn.disabled = true;
+
+            fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, password: password })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    window.location.href = '/';
+                } else {
+                    err.textContent = data.error || '登录失败';
+                    err.style.display = 'block';
+                    btn.textContent = '登录';
+                    btn.disabled = false;
+                }
+            })
+            .catch(function() {
+                err.textContent = '网络错误，请重试';
+                err.style.display = 'block';
+                btn.textContent = '登录';
+                btn.disabled = false;
+            });
         }
     </script>
 </body>
