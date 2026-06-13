@@ -61,7 +61,16 @@ def _init_dependencies():
 
     deps.db = DatabaseManager()
     deps.db.seed_default_data()
-    print(f"[app] SQLite 数据库就绪: {deps.db.db_path}")
+
+    # 日志适配后端
+    if deps.db.use_pg:
+        print(f"[app] Supabase PostgreSQL 数据库就绪")
+    else:
+        print(f"[app] SQLite 数据库就绪: {deps.db.db_path}")
+
+    # 注入数据库查询函数给 DeepDiveManager（避免直接 sqlite3 绕过）
+    from src.core.deep_dive import DeepDiveManager
+    DeepDiveManager.db_query_func = deps.db.get_questions
 
     init_skills()
     print(f"[app] Skill 系统就绪，已注册 {len(skill_registry.get_all())} 个 Skill")

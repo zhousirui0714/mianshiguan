@@ -199,8 +199,48 @@ class DeepDiveManager:
     @staticmethod
     def _fetch_db_topic_questions(topic_key: str,
                                    cid: str = "????") -> List[Dict[str, Any]]:
-        """直接从 DB 查询指定 topic 的题目（兜底用）"""
+        """从 DB 查询指定 topic 的题目（兜底用）
+
+        优先使用注入的 db_query_func（支持 PostgreSQL），
+        回退到直接 sqlite3 读取（兼容旧版）。
+        """
         topic_display = topic_key.capitalize()
+
+        # 优先使用注入的查询函数（支持 PG）
+        db_func = getattr(DeepDiveManager, 'db_query_func', None)
+        if db_func is not None:
+            try:
+                # 使用 LIKE 宽泛搜索 topics 字段
+                all_qs = db_func()
+                keyword = topic_display.lower()
+                result = []
+                for q in all_qs:
+                    topics = q.get('topics', '')
+                    if isinstance(topics, str):
+                        topics = json.loads(topics) if topics else []
+                    if not isinstance(topics, list):
+                        topics = []
+                    # 匹配 topic 名称
+                    if keyword in json.dumps(topics).lower() or keyword in (q.get('category', '') or '').lower():
+                        lev = (q.get("question_level") or "C").strip().upper()
+                        if lev not in ("S", "A", "B", "C"):
+                            lev = "C"
+                        result.append({
+                            "id": q["id"],
+                            "question_text": q["question_text"],
+                            "question_level": lev,
+                            "interview_stage": q.get("interview_stage") or "basic",
+                            "level": lev,
+                        })
+                    if len(result) >= 15:
+                        break
+                _debug(f"[DEBUG][{cid}] _fetch_db_topic_questions (注入): "
+                      f"topic={topic_display} 查到{len(result)}题")
+                return result
+            except Exception as e:
+                _debug(f"[DEBUG][{cid}] _fetch_db_topic_questions 注入查询异常: {e}")
+
+        # 回退：直接 sqlite3 读取
         db_path = os.path.abspath(_DB_PATH)
         if not os.path.exists(db_path):
             _debug(f"[DEBUG][{cid}] _fetch_db_topic_questions: DB不存在 {db_path}")

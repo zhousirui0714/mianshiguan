@@ -256,30 +256,23 @@ def collector_status():
 def collector_stats():
     """获取题库统计信息"""
     try:
-        import sqlite3
-        db_path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-            "data", "interview.db"
-        )
-        conn = sqlite3.connect(db_path)
-        cur = conn.cursor()
+        from src.web import dependencies as deps
 
-        cur.execute("SELECT COUNT(*) FROM questions")
-        total = cur.fetchone()[0]
+        # 统计所有题目（使用 DatabaseManager 而非直接 sqlite3）
+        all_qs = deps.db.get_questions()
+        total = len(all_qs)
 
-        cur.execute("SELECT source_type, COUNT(*) FROM questions GROUP BY source_type")
-        sources = {r[0]: r[1] for r in cur.fetchall()}
+        # source_type 分布
+        sources = {}
+        for q in all_qs:
+            st = q.get('source_type', 'unknown') or 'unknown'
+            sources[st] = sources.get(st, 0) + 1
 
-        cur.execute("""
-            SELECT s.name, COUNT(q.id)
-            FROM scenarios s
-            LEFT JOIN questions q ON s.id = q.scenario_id
-            GROUP BY s.id
-            ORDER BY COUNT(q.id) DESC
-        """)
-        scenarios = {r[0]: r[1] for r in cur.fetchall()}
-
-        conn.close()
+        # 场景分布
+        scenarios = {}
+        for s in deps.db.get_all_scenarios():
+            s_qs = deps.db.get_questions(scenario_id=s['id'])
+            scenarios[s['name']] = len(s_qs)
 
         return jsonify({
             'success': True,

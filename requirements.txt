@@ -29,6 +29,9 @@ beautifulsoup4>=4.12.0
 # --- YAML 配置 ---
 pyyaml>=6.0
 
+# --- PostgreSQL / Supabase ---
+psycopg2-binary>=2.9.0
+
 # --- 工具库 ---
 python-dotenv>=1.0.0
 tenacity>=8.0.0
