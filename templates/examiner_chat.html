@@ -686,7 +686,14 @@
     // ================================================================
     // Finish / Report
     // ================================================================
+    let isFinishing = false;
+
     async function finishInterview() {
+        if (isFinishing) return;  // 防重复提交
+        isFinishing = true;
+        finishBtn.disabled = true;
+        finishBtn.textContent = '正在生成报告...';
+
         if (VideoRecorder.getState() === 'recording') {
             try {
                 await VideoRecorder.stop();
@@ -707,10 +714,15 @@
             }
         } catch (error) {
             console.error('生成报告失败:', error);
+            // 失败时恢复按钮
+            isFinishing = false;
+            finishBtn.disabled = false;
+            finishBtn.textContent = '结束面试';
         }
     }
 
     finishBtn.addEventListener('click', () => {
+        if (isFinishing) return;
         if (confirm('确定要结束本次面试吗？')) {
             finishInterview();
         }

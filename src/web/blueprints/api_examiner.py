@@ -604,6 +604,24 @@ def examiner_finish():
         if not conversation_id:
             return jsonify({'success': False, 'error': '缺少对话ID'}), 400
 
+        # 幂等性保护：如果对话已经结束，直接返回已有结果
+        existing_conv = deps.db.get_conversation(conversation_id)
+        if existing_conv and existing_conv.get('status') == 'finished':
+            existing_result = deps.db.get_conversation_result(conversation_id)
+            if existing_result:
+                return jsonify({
+                    'success': True,
+                    'report': {
+                        'overall_score': existing_result.get('overall_score', 0),
+                        'strengths': existing_result.get('strengths', []),
+                        'improvements': existing_result.get('improvements', []),
+                        'dimensions': existing_result.get('dimensions', []),
+                        'overall_comment': existing_result.get('overall_comment', '面试已完成'),
+                        'passed': existing_result.get('overall_score', 0) >= 60,
+                        'new_badges': existing_result.get('new_badges', []),
+                    }
+                })
+
         skill_session = deps.SKILL_SESSIONS.get(conversation_id)
         if skill_session:
             skill_id = skill_session.skill_id

@@ -660,6 +660,14 @@ class DatabaseManager:
                    feedback: str = "", duration: int = 0) -> dict:
         conn = self._get_conn()
         try:
+            # 防重复：检查是否已存在相同 conversation + round 的答案
+            existing = self._execute(conn,
+                "SELECT id FROM answers WHERE conversation_id = %s AND round = %s",
+                (conversation_id, round_num)
+            ).fetchone()
+            if existing:
+                return {"success": True, "answer_id": existing["id"], "skipped": True}
+
             aid = str(uuid.uuid4())
             now = datetime.now().isoformat()
             self._execute(conn,
