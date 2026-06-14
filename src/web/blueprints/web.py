@@ -179,6 +179,7 @@ def login():
     db_info = {
         'use_pg': deps.db.use_pg,
         'db_type': 'PostgreSQL (Supabase)' if deps.db.use_pg else 'SQLite（本地临时存储）',
+        'pg_error': getattr(deps.db, 'pg_error', None),
     }
     return render_template('login.html', db_info=db_info)
 

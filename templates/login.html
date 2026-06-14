@@ -150,7 +150,10 @@
             <div style="margin-top:16px;padding:10px 12px;background:{{ '#F0FDF4' if db_info.use_pg else '#FFFBEB' }};border-radius:8px;font-size:12px;color:{{ '#166534' if db_info.use_pg else '#92400E' }};text-align:center;">
                 {{ '🟢' if db_info.use_pg else '🟡' }} 数据库：{{ db_info.db_type }}
                 {% if not db_info.use_pg %}
-                <br><span style="font-size:11px;">⚠️ 数据在服务器重启后会丢失，建议配置 Supabase</span>
+                <br><span style="font-size:11px;">⚠️ 数据在服务器重启后会丢失</span>
+                {% if db_info.pg_error %}
+                <br><span style="font-size:11px;color:#DC2626;">连接失败原因：{{ db_info.pg_error }}</span>
+                {% endif %}
                 {% endif %}
             </div>
             {% endif %}

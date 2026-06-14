@@ -51,6 +51,7 @@ class DatabaseManager:
         self.db_path = db_path
         self.use_pg = False
         self.pg_pool = None
+        self.pg_error = None  # 记录 PG 连接失败原因
 
         # 检测 PostgreSQL 环境
         pg_url = os.environ.get("SUPABASE_DB_URL", "")
@@ -62,6 +63,7 @@ class DatabaseManager:
                 self._init_pg_db()
             except Exception as e:
                 import sys, traceback
+                self.pg_error = str(e)[:200]  # 截断避免太长
                 print(f"[DB] PostgreSQL 连接失败，回退到 SQLite: {e}", file=sys.stderr, flush=True)
                 traceback.print_exc(file=sys.stderr)
                 self.use_pg = False
