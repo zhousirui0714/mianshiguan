@@ -176,7 +176,11 @@ def report(scenario_id):
 
 @web_bp.route('/auth/login')
 def login():
-    return render_template('login.html')
+    db_info = {
+        'use_pg': deps.db.use_pg,
+        'db_type': 'PostgreSQL (Supabase)' if deps.db.use_pg else 'SQLite（本地临时存储）',
+    }
+    return render_template('login.html', db_info=db_info)
 
 
 @web_bp.route('/auth/register')

@@ -146,6 +146,14 @@
                 还没有账号？<a href="/auth/register">立即注册</a>
             </div>
             <a href="/scenarios" class="guest-link">游客模式体验 →</a>
+            {% if db_info %}
+            <div style="margin-top:16px;padding:10px 12px;background:{{ '#F0FDF4' if db_info.use_pg else '#FFFBEB' }};border-radius:8px;font-size:12px;color:{{ '#166534' if db_info.use_pg else '#92400E' }};text-align:center;">
+                {{ '🟢' if db_info.use_pg else '🟡' }} 数据库：{{ db_info.db_type }}
+                {% if not db_info.use_pg %}
+                <br><span style="font-size:11px;">⚠️ 数据在服务器重启后会丢失，建议配置 Supabase</span>
+                {% endif %}
+            </div>
+            {% endif %}
         </div>
     </div>
     <script>
