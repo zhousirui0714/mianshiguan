@@ -48,10 +48,10 @@ def login():
 
     user = deps.db.get_user_by_email(email)
     if not user:
-        return jsonify({'success': False, 'error': '邮箱或密码错误'}), 401
+        return jsonify({'success': False, 'error': '该邮箱尚未注册，请先注册账号'}), 401
 
     if not check_password_hash(user['password_hash'], password):
-        return jsonify({'success': False, 'error': '邮箱或密码错误'}), 401
+        return jsonify({'success': False, 'error': '密码错误，请重新输入'}), 401
 
     session['user_id'] = user['id']
     return jsonify({
