@@ -95,3 +95,26 @@ def get_user_dashboard(user_id):
         return jsonify({'success': True, 'data': data})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@progress_bp.route('/db-status')
+def get_db_status():
+    """数据库连接状态诊断"""
+    try:
+        db = deps.db
+        info = {
+            'use_pg': db.use_pg,
+            'db_type': 'PostgreSQL (Supabase)' if db.use_pg else 'SQLite',
+            'db_path': db.db_path if not db.use_pg else None,
+        }
+        try:
+            conn = db._get_conn()
+            cur = conn.cursor()
+            cur.execute('SELECT COUNT(*) as cnt FROM users')
+            info['user_count'] = cur.fetchone()['cnt']
+            db._release_conn(conn)
+        except Exception as e:
+            info['connection_error'] = str(e)
+        return jsonify({'success': True, 'data': info})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500

@@ -61,7 +61,9 @@ class DatabaseManager:
                 self.use_pg = True
                 self._init_pg_db()
             except Exception as e:
-                print(f"[DB] PostgreSQL 连接失败，回退到 SQLite: {e}")
+                import sys, traceback
+                print(f"[DB] PostgreSQL 连接失败，回退到 SQLite: {e}", file=sys.stderr, flush=True)
+                traceback.print_exc(file=sys.stderr)
                 self.use_pg = False
                 self.pg_pool = None
 
