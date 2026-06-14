@@ -302,7 +302,7 @@
                         <div class="setup-card-title">&#128270; 相关真实面试题</div>
                         <div class="setup-card-desc" id="spiderDesc">填写信息后，系统将自动搜索真实面经中的高频问题</div>
                         <div class="spider-preview" id="spiderPreview">
-                            <div class="spider-empty">&#128069; 填写相关信息后自动匹配真实面经问题</div>
+                            <div class="spider-empty">💡 填写目标岗位后自动匹配相关面经（如无匹配则 AI 直接提问）</div>
                         </div>
                     </div>
                 </div>
@@ -649,7 +649,7 @@
                         preview.innerHTML = '<div class="spider-empty">💠 找到面经记录，但未能提取到具体问题</div>';
                     }
                 } else {
-                    preview.innerHTML = '<div class="spider-empty">🔍 暂未找到相关数据，AI 将基于真题库生成问题</div>';
+                    preview.innerHTML = '<div class="spider-empty">💡 该岗位暂未收录面经数据，AI 面试官将根据你的背景和简历直接提问</div>';
                 }
             } catch (e) {
                 preview.innerHTML = '<div class="spider-empty">\uD83D\uDD0D 面经搜索暂不可用，AI 将直接为你出题</div>';

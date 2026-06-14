@@ -90,12 +90,9 @@ def search_interview_experiences():
                     limit=limit - len(results),
                 )
 
-            # 第三层：场景高分题目兜底
-            if not q_rows and scenario_id:
-                q_rows = deps.db.get_top_questions(
-                    scenario_id=scenario_id,
-                    limit=limit - len(results),
-                )
+            # 注意：不再使用 get_top_questions 兜底
+            # 通用高分题目与用户岗位完全无关（如高中英语老师看到 LeetCode 题），
+            # 反而造成困惑。无结果时让 AI 自由出题即可。
 
             if q_rows:
                 bank_questions = [
