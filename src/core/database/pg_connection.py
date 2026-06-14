@@ -34,6 +34,11 @@ class PgConnectionPool:
             parsed = urlparse(db_url)
             db_url = urlunparse(parsed._replace(query=""))
 
+        # 添加连接超时参数，防止部署时无限挂起
+        if "connect_timeout" not in db_url:
+            separator = "&" if "?" in db_url else "?"
+            db_url = f"{db_url}{separator}connect_timeout=10"
+
         self.pool = ThreadedConnectionPool(
             minconn=minconn,
             maxconn=maxconn,
