@@ -342,7 +342,26 @@
     function renderActivityList(answers) {
         var container = document.getElementById('activityContainer');
         if (!answers || answers.length === 0) return;
-        var recent = answers.slice(0, 15);
+
+        // 按 conversation_id 去重：一次面试只显示一条记录
+        var seen = {};
+        var unique = [];
+        answers.forEach(function(a) {
+            var cid = a.conversation_id;
+            if (!seen[cid]) {
+                seen[cid] = true;
+                // 取该 conversation 中最高分
+                var best = a;
+                answers.forEach(function(b) {
+                    if (b.conversation_id === cid && (b.score || 0) > (best.score || 0)) {
+                        best = b;
+                    }
+                });
+                unique.push(best);
+            }
+        });
+
+        var recent = unique.slice(0, 15);
         var html = '<ul class="activity-list">';
         recent.forEach(function(a) {
             var score = a.score || 0;
