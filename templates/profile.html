@@ -223,10 +223,12 @@
                             <span class="label">目标岗位</span>
                             <span class="value">{{ user.current_position if user.current_position else '未设置' }}</span>
                         </li>
+                        {% if user.experience_years %}
                         <li class="info-item">
                             <span class="label">工作年限</span>
-                            <span class="value">{{ user.experience_years if user.experience_years else 0 }} 年</span>
+                            <span class="value">{{ user.experience_years }} 年</span>
                         </li>
+                        {% endif %}
                         <li class="info-item">
                             <span class="label">注册时间</span>
                             <span class="value">{{ user.created_at[:10] if user.created_at else '今天' }}</span>
@@ -236,34 +238,24 @@
 
                 <div class="section-card">
                     <div class="card-title">能力评估</div>
-                    <div class="skill-item">
-                        <div class="skill-header">
-                            <span class="name">技术能力</span>
-                            <span class="score">{{ user.skills.technical if user.skills and user.skills.technical else 0 }}%</span>
+                    {% set scores = user.skill_scores or {} %}
+                    {% if scores %}
+                        {% for name, score in scores.items() %}
+                        <div class="skill-item">
+                            <div class="skill-header">
+                                <span class="name">{{ name }}</span>
+                                <span class="score">{{ score }}%</span>
+                            </div>
+                            <div class="skill-bar"><div class="skill-fill" style="width:{{ score }}%"></div></div>
                         </div>
-                        <div class="skill-bar"><div class="skill-fill" style="width:{{ user.skills.technical if user.skills and user.skills.technical else 0 }}%"></div></div>
-                    </div>
-                    <div class="skill-item">
-                        <div class="skill-header">
-                            <span class="name">沟通表达</span>
-                            <span class="score">{{ user.skills.communication if user.skills and user.skills.communication else 0 }}%</span>
+                        {% endfor %}
+                    {% else %}
+                        <div class="badge-display">
+                            <div class="big-icon">📊</div>
+                            <p>完成一次模拟面试后，你的能力评估数据将在这里展示。</p>
+                            <a href="/scenarios" class="btn-logout" style="display:inline-block;padding:10px 24px;width:auto;text-decoration:none;">开始练习</a>
                         </div>
-                        <div class="skill-bar"><div class="skill-fill" style="width:{{ user.skills.communication if user.skills and user.skills.communication else 0 }}%"></div></div>
-                    </div>
-                    <div class="skill-item">
-                        <div class="skill-header">
-                            <span class="name">项目经验</span>
-                            <span class="score">{{ user.skills.projects if user.skills and user.skills.projects else 0 }}%</span>
-                        </div>
-                        <div class="skill-bar"><div class="skill-fill" style="width:{{ user.skills.projects if user.skills and user.skills.projects else 0 }}%"></div></div>
-                    </div>
-                    <div class="skill-item">
-                        <div class="skill-header">
-                            <span class="name">应变能力</span>
-                            <span class="score">{{ user.skills.adaptation if user.skills and user.skills.adaptation else 0 }}%</span>
-                        </div>
-                        <div class="skill-bar"><div class="skill-fill" style="width:{{ user.skills.adaptation if user.skills and user.skills.adaptation else 0 }}%"></div></div>
-                    </div>
+                    {% endif %}
                 </div>
 
                 <div class="section-card">

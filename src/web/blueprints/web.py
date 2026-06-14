@@ -211,12 +211,69 @@ def questions():
 
 @web_bp.route('/profile')
 def profile():
-    user = {
-        'name': '面试达人', 'email': 'user@example.com',
-        'current_position': '产品经理', 'experience_years': 3,
-        'created_at': '2026-01-15', 'interview_count': 8,
-        'practice_count': 15, 'streak_days': 7, 'badge_count': 5,
-        'skills': {'technical': 85, 'communication': 78,
-                   'projects': 82, 'adaptation': 75}
-    }
+    from flask import g
+    user = None
+
+    if g.get('current_user'):
+        uid = g.current_user['id']
+        # 获取用户基础信息
+        user = deps.db.get_user(uid)
+        if user:
+            user['name'] = user.get('username', '')
+            # 获取统计数据
+            try:
+                summary = deps.db.get_user_summary(uid)
+                user['interview_count'] = deps.db.get_user_conversations(uid)
+                user['interview_count'] = len(user['interview_count']) if isinstance(user['interview_count'], list) else 0
+                user['practice_count'] = summary.get('total_practices', 0)
+                user['streak_days'] = deps.db.get_user_streak(uid)
+                user['badge_count'] = summary.get('total_badges', 0)
+            except Exception:
+                user['practice_count'] = 0
+                user['streak_days'] = 0
+                user['badge_count'] = 0
+                user['interview_count'] = 0
+
+            # 获取最近一次面试的背景信息
+            try:
+                convs = deps.db.get_user_conversations(uid)
+                if convs:
+                    latest = convs[0]
+                    bg = latest.get('user_background', '')
+                    for line in bg.split('\n'):
+                        line = line.strip()
+                        if line.startswith('目标岗位：'):
+                            user['current_position'] = line.replace('目标岗位：', '')
+                if 'current_position' not in user:
+                    user['current_position'] = '未设置'
+            except Exception:
+                user['current_position'] = '未设置'
+
+            if 'experience_years' not in user:
+                user['experience_years'] = 0
+
+            # 获取真实维度评分（从最近面试报告）
+            try:
+                dims = deps.db.get_dimension_trend(uid)
+                skill_scores = {}
+                if dims:
+                    # 取每个维度的最新分数
+                    for d in dims:
+                        name = d.get('dimension_name', '')
+                        score = d.get('score', 0)
+                        if name and score:
+                            skill_scores[name] = round(score, 1)
+                user['skill_scores'] = skill_scores
+            except Exception:
+                user['skill_scores'] = {}
+
+    if not user:
+        # 未登录时使用游客数据
+        user = {
+            'name': '游客', 'email': '',
+            'current_position': '未设置', 'experience_years': 0,
+            'created_at': '', 'interview_count': 0,
+            'practice_count': 0, 'streak_days': 0, 'badge_count': 0,
+        }
+
     return render_template('profile.html', user=user)
