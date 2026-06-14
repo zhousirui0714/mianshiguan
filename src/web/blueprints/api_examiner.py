@@ -302,7 +302,6 @@ def examiner_chat():
 
             ai_response = result["response"]
             round_count = result["round"]
-            is_finished = result["is_finished"]
 
             deps.db.add_message(conversation_id, 'user', user_message)
             deps.db.add_message(conversation_id, 'assistant', ai_response)
@@ -313,7 +312,7 @@ def examiner_chat():
                 'examiner_name': skill.config.persona.name,
                 'examiner_title': skill.config.persona.title,
                 'round_count': round_count, 'max_rounds': skill.config.max_rounds,
-                'is_finished': is_finished
+                'is_finished': False  # 不再自动结束，由用户手动点击按钮结束
             })
 
         scenario = deps.scenario_manager.get_scenario(scenario_id)
@@ -388,7 +387,6 @@ def examiner_chat():
 
         conversation = deps.db.get_conversation(conversation_id)
         round_count = conversation.get('round_count', 0)
-        is_finished = round_count >= deps.MAX_ROUNDS
 
         examiner = deps.EXAMINERS.get(scenario_id, deps.EXAMINERS['job_interview'])
 
@@ -397,7 +395,7 @@ def examiner_chat():
             'response': ai_response,
             'examiner_name': examiner['name'], 'examiner_title': examiner['title'],
             'round_count': round_count, 'max_rounds': deps.MAX_ROUNDS,
-            'is_finished': is_finished
+            'is_finished': False  # 不再自动结束，由用户手动点击按钮结束
         })
 
     except Exception as e:
@@ -548,7 +546,7 @@ def examiner_start():
         if search_position:
             welcome_parts.append(f"我看到你正在准备{search_position}岗位{'（' + search_company + '）' if search_company else ''}的面试。我已经根据你的背景和真实面经数据，准备好了针对性的面试题。")
         welcome_parts.append(f"")
-        welcome_parts.append(f"欢迎参加{scenario_name}模拟面试，我们将进行约{deps.MAX_ROUNDS}轮的问答。")
+        welcome_parts.append(f"欢迎参加{scenario_name}模拟面试，你可以随时点击「结束面试」按钮停止。")
         if retrieved_questions:
             welcome_parts.append(f"我已从题库中精选了{len(retrieved_questions)}道相关真题，将在面试中依次呈现。")
         if spider_questions:

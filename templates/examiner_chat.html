@@ -581,16 +581,9 @@
                     Examiner.setExpression('neutral');
                 }
 
-                if (result.is_finished) {
-                    setTimeout(function () {
-                        Examiner.setExpression('ending');
-                        finishInterview();
-                    }, 1500);
-                } else {
-                    setTimeout(function () {
-                        Examiner.setExpression('neutral');
-                    }, 3000);
-                }
+                setTimeout(function () {
+                    Examiner.setExpression('neutral');
+                }, 3000);
             } else {
                 addMessage('assistant', '抱歉，AI 服务暂时繁忙，请稍后点击发送按钮重试。');
                 Examiner.setExpression('neutral');

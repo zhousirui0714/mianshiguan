@@ -80,7 +80,7 @@ class LLMBasedSkill(BaseSkill):
                 elif line.startswith("目标公司："):
                     greeting += f"目标公司是{line.replace('目标公司：', '')}，我会针对性地提问。\n"
 
-        greeting += f"\n本次面试共有约{max_rounds}轮，准备好了吗？\n\n首先，请做一个简短的自我介绍，包括你的专业背景和求职方向。"
+        greeting += f"\n准备好了吗？你可以随时点击「结束面试」按钮停止。\n\n首先，请做一个简短的自我介绍，包括你的专业背景和求职方向。"
         return greeting
 
     # ==================== 问题生成 ====================
