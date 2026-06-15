@@ -562,12 +562,14 @@ def examiner_start():
                     company=search_company,
                 )
                 session_data.context["panel_members"] = panel_info.get("panel_members", [])
-                # 在 deps 中暂存 panel 编排器，chat 阶段使用
-                deps.PANEL_SESSIONS = getattr(deps, 'PANEL_SESSIONS', {})
-                deps.PANEL_SESSIONS[conversation_id] = panel
 
             conversation_id = session_data.id
             deps.SKILL_SESSIONS[conversation_id] = session_data
+
+            # 面板模式：暂存 panel 编排器供 chat 阶段使用
+            if interview_mode == 'panel' and panel_info:
+                deps.PANEL_SESSIONS = getattr(deps, 'PANEL_SESSIONS', {})
+                deps.PANEL_SESSIONS[conversation_id] = panel
 
             deps.db.create_conversation(
                 user_id=user_id, scenario_id=scenario_id,
