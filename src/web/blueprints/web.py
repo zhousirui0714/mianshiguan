@@ -196,7 +196,73 @@ def dashboard():
 
 @web_bp.route('/interviews')
 def interviews():
-    return render_template('interviews.html', interviews=[])
+    """面试记录列表 — 展示用户所有历史面试会话"""
+    from flask import session
+    import json as _json
+
+    uid = session.get('user_id')
+    interviews = []
+
+    if uid:
+        try:
+            convs = deps.db.get_user_conversations(uid)
+            for c in (convs or []):
+                # 提取岗位和公司信息
+                bg = c.get('user_background', '') or ''
+                position = ''
+                company = ''
+                for line in bg.split('\n'):
+                    line = line.strip()
+                    if line.startswith('目标岗位：'):
+                        position = line.replace('目标岗位：', '').strip()
+                    elif line.startswith('目标公司：'):
+                        company = line.replace('目标公司：', '').strip()
+
+                # 解析报告数据
+                report = {}
+                raw = c.get('report_data', '{}')
+                if isinstance(raw, str) and raw.strip():
+                    try:
+                        report = _json.loads(raw)
+                    except _json.JSONDecodeError:
+                        pass
+                elif isinstance(raw, dict):
+                    report = raw
+
+                # 统计消息轮数
+                msgs = c.get('messages', []) or []
+                user_msgs = [m for m in msgs if m.get('role') == 'user']
+                round_count = len(user_msgs)
+
+                # 场景名称映射
+                scenario_map = {
+                    'job_interview': '💼 求职面试',
+                    'teacher_cert': '📚 教资面试',
+                    'ielts_speaking': '🗣️ 雅思口语',
+                    'civil_service': '🏛️ 公务员面试',
+                    'graduate_school': '🎓 考研复试',
+                    'mba_interview': '💎 MBA面试',
+                }
+                scenario_display = scenario_map.get(
+                    c.get('scenario_id', ''), c.get('scenario_name', '模拟面试')
+                )
+
+                interviews.append({
+                    'id': c.get('id', ''),
+                    'scenario': scenario_display,
+                    'position': position or '未指定岗位',
+                    'company': company or '',
+                    'status': c.get('status', 'active'),
+                    'round_count': round_count,
+                    'created_at': (c.get('created_at') or '')[:10] if c.get('created_at') else '',
+                    'overall_score': report.get('overall_score'),
+                    'passed': report.get('passed', False),
+                    'new_badges': len(report.get('new_badges', [])) if isinstance(report.get('new_badges'), list) else 0,
+                })
+        except Exception as e:
+            print(f"[interviews] 加载面试记录失败: {e}")
+
+    return render_template('interviews.html', interviews=interviews)
 
 
 @web_bp.route('/interviews/new')
