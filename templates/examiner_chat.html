@@ -46,6 +46,70 @@
             --examiner-width: 100%;
         }
 
+        /* ===== 面板考官群像 ===== */
+        .iv-panel-section {
+            padding: 16px 12px !important;
+            text-align: center;
+        }
+        .panel-avatars-row {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+        }
+        .panel-member-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            transition: all 0.35s;
+            width: 100%;
+            cursor: default;
+        }
+        .panel-member-card.speaking {
+            border-color: #7C3AED;
+            background: rgba(124, 58, 237, 0.06);
+            box-shadow: 0 0 16px rgba(124, 58, 237, 0.12);
+        }
+        .panel-member-card .pm-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            background: #E2E8F0;
+        }
+        .panel-member-card .pm-info {
+            flex: 1;
+            text-align: left;
+            min-width: 0;
+        }
+        .panel-member-card .pm-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1E293B;
+            margin-bottom: 2px;
+        }
+        .panel-member-card .pm-role {
+            font-size: 11px;
+            color: #64748B;
+            line-height: 1.3;
+        }
+        .panel-member-card .pm-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #CBD5E1;
+            flex-shrink: 0;
+            transition: all 0.3s;
+        }
+        .panel-member-card.speaking .pm-indicator {
+            background: #7C3AED;
+            box-shadow: 0 0 8px rgba(124, 58, 237, 0.5);
+        }
+
         /* Right panel scroll */
         .interview-right {
             scrollbar-width: thin;
@@ -85,9 +149,16 @@
 <div class="interview-layout">
     <!-- ===== Left Panel — Examiner Info ===== -->
     <div class="interview-left">
-        <!-- Examiner card -->
-        <div class="iv-card iv-examiner-section">
+        <!-- 单人考官形象 -->
+        <div class="iv-card iv-examiner-section" id="singleExaminerCard">
             <div id="examiner-container"></div>
+        </div>
+
+        <!-- 面板考官群像（委员会面试模式） -->
+        <div class="iv-card iv-panel-section" id="panelExaminersCard" style="display:none;">
+            <div class="panel-avatars-row" id="panelAvatarsRow">
+                <!-- JS 动态填充 -->
+            </div>
         </div>
 
         <!-- Interview info -->
@@ -507,17 +578,18 @@
                 examinerSideName.textContent = result.examiner_name;
                 maxRounds = result.max_rounds;
 
-                // 面板模式：显示考官列表
+                // 面板模式：显示考官群像
                 if (result.mode === 'panel' && result.panel_members && result.panel_members.length > 0) {
                     panelMembers = result.panel_members;
-                    var panelHtml = '';
-                    panelMembers.forEach(function(m) {
-                        panelHtml += '<div style="font-size:12px;color:#64748B;padding:2px 0;">' +
-                            (m.role === 'lead' ? '🎤 ' : '💬 ') + m.name + ' — ' + m.focus + '</div>';
-                    });
-                    document.getElementById('panelMembersList').innerHTML = panelHtml;
+                    // 切换显示：隐藏单人考官，显示面板群像
+                    document.getElementById('singleExaminerCard').style.display = 'none';
+                    document.getElementById('panelExaminersCard').style.display = '';
+                    renderPanelAvatars(panelMembers);
+                    highlightPanelSpeaker(result.examiner_name);
                     document.getElementById('panelMembersCard').style.display = '';
                 } else {
+                    document.getElementById('singleExaminerCard').style.display = '';
+                    document.getElementById('panelExaminersCard').style.display = 'none';
                     document.getElementById('panelMembersCard').style.display = 'none';
                 }
 
@@ -594,26 +666,30 @@
                 currentRound = result.round_count;
                 updateRoundInfo(currentRound, maxRounds);
 
-                // 面板模式：如果有插话，也更新考官信息
+                // 面板模式：高亮主考官
                 if (result.mode === 'panel' && result.panel_members) {
                     panelMembers = result.panel_members;
+                    highlightPanelSpeaker(result.examiner_name);
                 }
 
                 await new Promise(r => setTimeout(r, 600));
-                Examiner.startSpeaking();
+                if (result.mode !== 'panel') {
+                    Examiner.startSpeaking();
+                }
                 await typewriterMessage('assistant', result.response);
-                Examiner.stopSpeaking();
+                if (result.mode !== 'panel') {
+                    Examiner.stopSpeaking();
+                }
 
-                // 面板插话：逐条显示
+                // 面板插话：逐条显示 + 高亮对应考官
                 if (result.interjections && result.interjections.length > 0) {
                     for (var ij of result.interjections) {
                         await new Promise(r => setTimeout(r, 800));
-                        Examiner.setExpression('thinking');
+                        highlightPanelSpeaker(ij.name);  // 高亮插话考官
                         await typewriterMessage('assistant-interjection',
-                            '<span style="color:#7C3AED;font-weight:600;">' + ij.name + '：</span>' + ij.content);
-                        Examiner.stopSpeaking();
-                        await new Promise(r => setTimeout(r, 400));
-                        Examiner.setExpression('neutral');
+                            '<span style=\"color:#7C3AED;font-weight:600;\">' + ij.name + '：</span>' + ij.content);
+                        await new Promise(r => setTimeout(r, 1800));
+                        highlightPanelSpeaker(result.examiner_name);  // 恢复主考官高亮
                     }
                 }
 
@@ -646,6 +722,37 @@
     // ================================================================
     // UI helpers
     // ================================================================
+    // ===== 面板考官群像 =====
+    function renderPanelAvatars(members) {
+        var row = document.getElementById('panelAvatarsRow');
+        row.innerHTML = '';
+        members.forEach(function(m) {
+            var card = document.createElement('div');
+            card.className = 'panel-member-card';
+            card.id = 'pm-' + m.id;
+            card.innerHTML =
+                '<img class="pm-avatar" src="' + (m.avatar || '') + '" alt="' + m.name + '" onerror="this.style.display=\\'none\\'">' +
+                '<div class="pm-info">' +
+                    '<div class="pm-name">' + m.name + '</div>' +
+                    '<div class="pm-role">' + m.focus + '</div>' +
+                '</div>' +
+                '<div class="pm-indicator"></div>';
+            row.appendChild(card);
+        });
+    }
+
+    function highlightPanelSpeaker(name) {
+        // 高亮当前发言的考官
+        document.querySelectorAll('.panel-member-card').forEach(function(card) {
+            var nameEl = card.querySelector('.pm-name');
+            if (nameEl && nameEl.textContent === name) {
+                card.classList.add('speaking');
+            } else {
+                card.classList.remove('speaking');
+            }
+        });
+    }
+
     function updateRoundInfo(round, total) {
         roundInfo.textContent = '已进行 ' + round + ' 轮';
     }

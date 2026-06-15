@@ -32,20 +32,23 @@ PANEL_EXAMINERS = [
         "name": "主考官",
         "role": "lead",
         "focus": "主导面试流程，全面评估候选人",
-        "interjection_frequency": 0,  # 必定发言，无需插话
+        "avatar": "/static/images/examiners/panel/lead_male.png",
+        "interjection_frequency": 0,
     },
     {
         "id": "panel_strict",
         "name": "严苛考官",
         "role": "strict",
-        "focus": "挑剔技术细节，追问模糊回答，不给面子",
-        "interjection_frequency": 0.4,  # 40% 概率想插话
+        "focus": "挑剔技术细节，追问模糊回答",
+        "avatar": "/static/images/examiners/panel/strict_female.png",
+        "interjection_frequency": 0.4,
     },
     {
         "id": "panel_encouraging",
         "name": "成长型考官",
         "role": "encouraging",
-        "focus": "关注潜力和学习能力，挖掘候选人亮点",
+        "focus": "关注潜力和学习能力，挖掘亮点",
+        "avatar": "/static/images/examiners/panel/encourage_teacher.png",
         "interjection_frequency": 0.3,
     },
 ]
@@ -79,6 +82,7 @@ class PanelOrchestrator:
                     "name": e["name"],
                     "role": e["role"],
                     "focus": e["focus"],
+                    "avatar": e.get("avatar", ""),
                 }
                 for e in self.examiners
             ],
