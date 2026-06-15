@@ -152,6 +152,78 @@ def demo_handoff():
     print(f"[Bus] {bus.summary()}")
 
 
+def demo_task_decompose():
+    """演示4：任务分解 — Orchestrator 分解 → 3个Worker执行 → 汇总"""
+    print("\n" + "=" * 60)
+    print("  演示 4：Orchestrator 任务分解 → Worker 执行 → 汇总")
+    print("=" * 60)
+
+    from src.agents.multi_agent.workers import WorkerAgent, OrchestratorAgent
+
+    bus = MessageBus(verbose=True)
+
+    # 定义 3 个 Worker，每个有明确的输入/输出 schema
+    worker1 = WorkerAgent(
+        agent_id="w1",
+        name="文本分析器",
+        capability="提取关键信息和主题",
+        input_schema={"content": "str", "index": "int"},
+        output_schema={"topics": "list", "sentiment": "str", "key_phrases": "list"},
+        handler=lambda data, task: {
+            "topics": ["用户认证", "安全性", "会话管理"],
+            "sentiment": "正面",
+            "key_phrases": [data.get("content", "")[:30]],
+        },
+    )
+
+    worker2 = WorkerAgent(
+        agent_id="w2",
+        name="代码审查员",
+        capability="分析技术和实现细节",
+        input_schema={"content": "str", "index": "int"},
+        output_schema={"tech_stack": "list", "risks": "list", "score": "int"},
+        handler=lambda data, task: {
+            "tech_stack": ["Python", "JWT", "Redis"],
+            "risks": ["token过期未处理", "密码未加盐"],
+            "score": 75,
+        },
+    )
+
+    worker3 = WorkerAgent(
+        agent_id="w3",
+        name="合规检查员",
+        capability="检查是否符合规范标准",
+        input_schema={"content": "str", "index": "int"},
+        output_schema={"compliant": "str", "issues": "list", "recommendations": "list"},
+        handler=lambda data, task: {
+            "compliant": "部分合规",
+            "issues": ["缺少二次验证", "密码策略过弱"],
+            "recommendations": ["建议启用MFA", "密码最小长度12位"],
+        },
+    )
+
+    # 创建 Orchestrator
+    orchestrator = OrchestratorAgent(
+        agent_id="orch",
+        name="Orchestrator",
+    )
+
+    # 执行：用户输入 → 分解 → 分发 → 汇总
+    result = orchestrator.execute(
+        user_input="审查用户登录系统的安全性，检查认证流程、密码策略、会话管理",
+        workers=[worker1, worker2, worker3],
+        bus=bus,
+    )
+
+    print(f"[结果] 任务分解完成！")
+    print(f"  子任务数: {len(result.subtasks)}")
+    print(f"  成功: {result.success_count}, 失败: {result.error_count}")
+    print(f"  总耗时: {result.total_duration:.3f}s")
+    print(f"  汇总结果:")
+    for worker_id, output in result.aggregated.get("details", {}).items():
+        print(f"    [{worker_id}]: {list(output.keys()) if isinstance(output, dict) else output}")
+
+
 def demo_full():
     """完整演示"""
     print("\n" + "=" * 60)
@@ -161,6 +233,7 @@ def demo_full():
     demo_round_table()
     demo_debate()
     demo_handoff()
+    demo_task_decompose()
 
     print("\n" + "=" * 60)
     print("  全部演示完成！")
@@ -170,6 +243,8 @@ def demo_full():
     print("  [OK] 支持点对点消息、广播消息")
     print("  [OK] 支持 ASK / REPLY / SPEAK / HANDOFF 消息类型")
     print("  [OK] 开箱即用的协作模式：圆桌讨论、辩论、任务交接")
+    print("  [OK] Orchestrator 任务分解 + Worker 执行 + 结果汇总")
+    print("  [OK] 每个 Worker 有明确的 input_schema / output_schema")
     print("  [OK] 只需实现 BaseAgent.process() 即可创建新 Agent")
     print("=" * 60)
 

@@ -67,9 +67,11 @@ class BaseAgent(ABC):
         """向某个 Agent 提问"""
         return self.send(to_agent=to_agent, content=question, msg_type=MessageType.ASK)
 
-    def reply(self, to_agent: str, answer: str) -> Message:
+    def reply(self, to_agent: str, answer: str,
+              metadata: Dict[str, Any] = None) -> Message:
         """回复某个 Agent"""
-        return self.send(to_agent=to_agent, content=answer, msg_type=MessageType.REPLY)
+        return self.send(to_agent=to_agent, content=answer,
+                        msg_type=MessageType.REPLY, metadata=metadata)
 
     # ---- 接收消息 ----
 

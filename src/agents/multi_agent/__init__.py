@@ -23,9 +23,13 @@ from src.agents.multi_agent.message import Message, MessageType, AgentState
 from src.agents.multi_agent.agent import BaseAgent
 from src.agents.multi_agent.bus import MessageBus
 from src.agents.multi_agent.patterns import round_table, debate, handoff
+from src.agents.multi_agent.task import SubTask, TaskResult, TaskStatus, DecomposeResult
+from src.agents.multi_agent.workers import WorkerAgent, OrchestratorAgent
 
 __all__ = [
     "Message", "MessageType", "AgentState",
     "BaseAgent", "MessageBus",
     "round_table", "debate", "handoff",
+    "SubTask", "TaskResult", "TaskStatus", "DecomposeResult",
+    "WorkerAgent", "OrchestratorAgent",
 ]
