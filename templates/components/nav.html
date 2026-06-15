@@ -6,6 +6,7 @@
             <li><a href="/" class="{% if active_nav == 'home' %}active{% endif %}">首页</a></li>
             <li><a href="/scenarios" class="{% if active_nav == 'scenarios' %}active{% endif %}">场景中心</a></li>
             <li><a href="/question-bank" class="{% if active_nav == 'questions' %}active{% endif %}">真题题库</a></li>
+            <li><a href="/interviews" class="{% if active_nav == 'interviews' %}active{% endif %}">面试记录</a></li>
             <li><a href="/growth" class="{% if active_nav == 'growth' %}active{% endif %}">成长中心</a></li>
             {% if g.current_user %}
             <li><a href="/profile" class="nav-user">{{ g.current_user.username }}</a></li>

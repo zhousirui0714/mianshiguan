@@ -262,7 +262,7 @@ def interviews():
         except Exception as e:
             print(f"[interviews] 加载面试记录失败: {e}")
 
-    return render_template('interviews.html', interviews=interviews)
+    return render_template('interviews.html', interviews=interviews, active_nav='interviews')
 
 
 @web_bp.route('/interviews/new')
