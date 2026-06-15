@@ -283,6 +283,26 @@
                             <div class="style-selector-label">🎯 选择面试官风格</div>
                             <div class="style-grid" id="styleGrid"></div>
                         </div>
+
+                        <!-- 面试模式选择 -->
+                        <div class="style-selector" style="margin-top:20px;">
+                            <div class="style-selector-label">👥 面试模式</div>
+                            <div class="style-grid">
+                                <div class="style-card selected" id="modeSingle" onclick="selectMode('single')">
+                                    <div class="style-card-icon">👤</div>
+                                    <div class="style-card-name">单人考官</div>
+                                    <div class="style-card-desc">一位考官独立面试</div>
+                                </div>
+                                <div class="style-card" id="modePanel" onclick="selectMode('panel')">
+                                    <div class="style-card-icon">👥</div>
+                                    <div class="style-card-name">委员会面试</div>
+                                    <div class="style-card-desc">3位考官轮流提问</div>
+                                </div>
+                            </div>
+                            <div id="panelPreview" style="display:none; margin-top:12px; padding:12px 14px; background:var(--blue-50); border-radius:10px; font-size:13px; color:var(--gray-600); line-height:1.6;">
+                                委员会成员：<strong>主考官</strong>（主导流程）、<strong>严苛考官</strong>（追问细节）、<strong>成长型考官</strong>（挖掘潜力）
+                            </div>
+                        </div>
                     </form>
                 </div>
 
@@ -660,6 +680,15 @@
         // Style selector
         // ================================================================
         var selectedStyle = '';
+        var selectedMode = 'single';
+
+        function selectMode(mode) {
+            selectedMode = mode;
+            document.getElementById('modeSingle').classList.toggle('selected', mode === 'single');
+            document.getElementById('modePanel').classList.toggle('selected', mode === 'panel');
+            document.getElementById('panelPreview').style.display = mode === 'panel' ? 'block' : 'none';
+        }
+
         var STYLES = [
             { id: 'standard', name: '标准型', icon: '⚖️', desc: '专业平衡，客观评价' },
             { id: 'strict', name: '严格型', icon: '🔍', desc: '高标准，深度追问' },
@@ -708,6 +737,7 @@
             }
 
             if (selectedStyle) params.set('style', selectedStyle);
+            if (selectedMode) params.set('mode', selectedMode);
             window.location.href = '/chat/' + SCENARIO_ID + '?' + params.toString();
         }
 

@@ -288,6 +288,51 @@ def examiner_chat():
             )
             skill_session.answers.append(answer_record)
 
+            # 检查是否为面板模式
+            interview_mode = skill_session.context.get('interview_mode', 'single')
+            if interview_mode == 'panel':
+                from src.agents.panel import PanelOrchestrator
+
+                panel = deps.PANEL_SESSIONS.get(conversation_id) if hasattr(deps, 'PANEL_SESSIONS') else None
+                if not panel:
+                    panel = PanelOrchestrator(deps.llm_adapter, scenario_id)
+                    if not hasattr(deps, 'PANEL_SESSIONS'):
+                        deps.PANEL_SESSIONS = {}
+                    deps.PANEL_SESSIONS[conversation_id] = panel
+
+                panel_result = panel.decide_speakers(
+                    user_message=user_message,
+                    conversation_history=history,
+                    user_background=user_background,
+                    interview_style=interview_style,
+                )
+
+                ai_response = panel_result["response"]
+                interjections = panel_result.get("interjections", [])
+
+                # 将插话内容追加到 ai_response
+                for ij in interjections:
+                    ai_response += f"\n\n💬 {ij['name']}：{ij['content']}"
+
+                round_count = skill_session.round + 1
+
+                deps.db.add_message(conversation_id, 'user', user_message)
+                deps.db.add_message(conversation_id, 'assistant', ai_response)
+
+                return jsonify({
+                    'success': True, 'conversation_id': conversation_id,
+                    'response': ai_response,
+                    'examiner_name': panel_result['examiner_name'],
+                    'examiner_title': skill.config.persona.title,
+                    'round_count': round_count,
+                    'max_rounds': skill.config.max_rounds,
+                    'is_finished': False,
+                    'mode': 'panel',
+                    'panel_members': panel_result.get('panel_members', []),
+                    'interjections': interjections,
+                    'has_interjections': len(interjections) > 0,
+                })
+
             skill_tools = deps.tool_registry.get_by_skill(scenario_id)
             if skill_tools:
                 result = deps.skill_executor.chat_with_tools(
@@ -436,6 +481,7 @@ def examiner_start():
         user_id = data.get('user_id', 'anonymous')
         user_background = data.get('user_background', '')
         interview_style = data.get('interview_style', '')
+        interview_mode = data.get('mode', 'single')  # 'single' | 'panel'
         if not scenario_id:
             return jsonify({'success': False, 'error': '缺少场景ID'}), 400
 
@@ -499,8 +545,26 @@ def examiner_start():
                 "project_keywords_detected": [],
                 "deep_dive": {"active": False},
                 "interview_style": interview_style,
+                "interview_mode": interview_mode,  # 'single' | 'panel'
+                "panel_members": [],  # 面板考官列表（panel 模式时填充）
             })
             welcome_message = skill.get_welcome_message(session_data)
+
+            # 面板模式：生成委员会欢迎语
+            panel_info = None
+            if interview_mode == 'panel':
+                from src.agents.panel import PanelOrchestrator
+                panel = PanelOrchestrator(deps.llm_adapter, scenario_id)
+                panel_info = panel.start_panel()
+                welcome_message = panel.build_welcome_message(
+                    user_background=user_background,
+                    position=search_position,
+                    company=search_company,
+                )
+                session_data.context["panel_members"] = panel_info.get("panel_members", [])
+                # 在 deps 中暂存 panel 编排器，chat 阶段使用
+                deps.PANEL_SESSIONS = getattr(deps, 'PANEL_SESSIONS', {})
+                deps.PANEL_SESSIONS[conversation_id] = panel
 
             conversation_id = session_data.id
             deps.SKILL_SESSIONS[conversation_id] = session_data
@@ -519,6 +583,8 @@ def examiner_start():
                 'examiner_title': skill.config.persona.title,
                 'max_rounds': skill.config.max_rounds,
                 'interview_style': interview_style,
+                'mode': interview_mode,
+                'panel_members': session_data.context.get('panel_members', []),
             })
 
         scenario = deps.scenario_manager.get_scenario(scenario_id)
@@ -625,6 +691,111 @@ def examiner_finish():
             skill_id = skill_session.skill_id
             skill = deps.skill_registry.get(skill_id)
             if skill:
+                # === 面板面试协商评分 ===
+                interview_mode = skill_session.context.get('interview_mode', 'single')
+
+                if interview_mode == 'panel':
+                    try:
+                        from src.agents.panel import PanelOrchestrator
+
+                        panel = deps.PANEL_SESSIONS.get(conversation_id) if hasattr(deps, 'PANEL_SESSIONS') else None
+                        if not panel:
+                            panel = PanelOrchestrator(deps.llm_adapter, skill_id)
+
+                        # 构建对话历史
+                        conversation = deps.db.get_conversation(conversation_id)
+                        history = []
+                        if conversation:
+                            history = [
+                                {'role': m['role'], 'content': m['content']}
+                                for m in conversation.get('messages', [])
+                            ]
+
+                        # 协商评分
+                        dimensions = [
+                            {"id": d.id, "name": d.name, "max_score": d.max_score, "weight": d.weight, "description": d.description}
+                            for d in skill.config.scoring.dimensions
+                        ]
+                        panel_score = panel.negotiate_score(
+                            conversation_history=history,
+                            user_background=skill_session.context.get("user_background", ""),
+                            dimensions=dimensions,
+                        )
+
+                        # 构建报告
+                        overall_score = panel_score.get("overall_score", 75)
+                        from src.core.skill.types import FeedbackReport
+                        report = FeedbackReport(
+                            overall_score=overall_score,
+                            strengths=panel_score.get("strengths", []),
+                            improvements=panel_score.get("improvements", []),
+                            dimension_scores=[],
+                            overall_comment=panel_score.get("negotiation_summary", "委员会协商完成"),
+                            passed=overall_score >= 60,
+                        )
+
+                        # 徽章/进度/通知
+                        from src.core.workflow.types import WorkflowContext, StageConfig
+                        from src.core.workflow.stages import (
+                            BadgeStage, ProgressStage, NotificationStage,
+                        )
+                        ctx = WorkflowContext(
+                            user_id=skill_session.user_id,
+                            scenario_id=skill_id,
+                            conversation_id=conversation_id,
+                            skill_id=skill_id,
+                            session=skill_session,
+                            report=report,
+                        )
+                        badge_result = BadgeStage(StageConfig(name="badge", retry_count=3)).execute(ctx)
+                        ctx.new_badges = (
+                            badge_result.data.get("new_badges", [])
+                            if badge_result.success else []
+                        )
+                        ProgressStage(StageConfig(name="progress", retry_count=3)).execute(ctx)
+                        NotificationStage(StageConfig(name="notification", retry_count=1)).execute(ctx)
+                        new_badges = ctx.new_badges
+
+                        deps.db.update_conversation_status(conversation_id, 'finished')
+                        deps.db.update_conversation_report(conversation_id, {
+                            'overall_score': report.overall_score,
+                            'strengths': report.strengths or [],
+                            'improvements': report.improvements or [],
+                            'dimensions': [],
+                            'overall_comment': report.overall_comment,
+                            'passed': report.passed,
+                            'new_badges': new_badges,
+                            'review_mode': 'panel_negotiation',
+                            'panel_scores': panel_score.get('individual_scores', []),
+                            'negotiation_raw': panel_score.get('raw_negotiation', ''),
+                            'agreement_level': panel_score.get('agreement_level', ''),
+                        })
+
+                        deps.SKILL_SESSIONS.pop(conversation_id, None)
+                        deps.PANEL_SESSIONS.pop(conversation_id, None)
+
+                        return jsonify({
+                            'success': True,
+                            'report': {
+                                'overall_score': report.overall_score,
+                                'strengths': report.strengths or [],
+                                'improvements': report.improvements or [],
+                                'dimensions': [],
+                                'overall_comment': report.overall_comment,
+                                'passed': report.passed,
+                                'new_badges': new_badges,
+                                'review_mode': 'panel_negotiation',
+                                'panel_scores': panel_score.get('individual_scores', []),
+                                'agreement_level': panel_score.get('agreement_level', ''),
+                                'negotiation_raw': panel_score.get('raw_negotiation', ''),
+                            }
+                        })
+
+                    except Exception as e:
+                        print(f"[examiner_finish] 面板协商失败，降级到普通评分: {e}")
+                        traceback.print_exc()
+                        # 继续执行下面的普通评分
+
                 # === 多 Agent 委员会评审模式 ===
                 review_mode = data.get('review_mode', 'single')
 

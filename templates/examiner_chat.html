@@ -109,6 +109,15 @@
             </div>
         </div>
 
+        <!-- Panel Members (panel mode only) -->
+        <div class="iv-card" id="panelMembersCard" style="display:none;">
+            <div class="iv-card-header">
+                <div class="iv-card-title">👥 面试委员</div>
+            </div>
+            <div id="panelMembersList" style="padding:8px 0;">
+            </div>
+        </div>
+
         <!-- Tips -->
         <div class="iv-card">
             <div class="iv-card-header">
@@ -471,6 +480,11 @@
     // ================================================================
     // Interview flow
     // ================================================================
+    // 读取 URL 中的面试模式
+    const urlParams = new URLSearchParams(window.location.search);
+    const interviewMode = urlParams.get('mode') || 'single';
+    let panelMembers = [];
+
     async function startInterview() {
         try {
             const userBg = buildUserBackground();
@@ -481,7 +495,8 @@
                     scenario_id: scenarioId,
                     user_id: currentUserId || 'anonymous',
                     user_background: userBg,
-                    interview_style: interviewStyle
+                    interview_style: interviewStyle,
+                    mode: interviewMode
                 })
             });
 
@@ -491,6 +506,20 @@
                 conversationId = result.conversation_id;
                 examinerSideName.textContent = result.examiner_name;
                 maxRounds = result.max_rounds;
+
+                // 面板模式：显示考官列表
+                if (result.mode === 'panel' && result.panel_members && result.panel_members.length > 0) {
+                    panelMembers = result.panel_members;
+                    var panelHtml = '';
+                    panelMembers.forEach(function(m) {
+                        panelHtml += '<div style="font-size:12px;color:#64748B;padding:2px 0;">' +
+                            (m.role === 'lead' ? '🎤 ' : '💬 ') + m.name + ' — ' + m.focus + '</div>';
+                    });
+                    document.getElementById('panelMembersList').innerHTML = panelHtml;
+                    document.getElementById('panelMembersCard').style.display = '';
+                } else {
+                    document.getElementById('panelMembersCard').style.display = 'none';
+                }
 
                 // 显示面试风格
                 var style = result.interview_style || interviewStyle;
@@ -565,10 +594,28 @@
                 currentRound = result.round_count;
                 updateRoundInfo(currentRound, maxRounds);
 
+                // 面板模式：如果有插话，也更新考官信息
+                if (result.mode === 'panel' && result.panel_members) {
+                    panelMembers = result.panel_members;
+                }
+
                 await new Promise(r => setTimeout(r, 600));
                 Examiner.startSpeaking();
                 await typewriterMessage('assistant', result.response);
                 Examiner.stopSpeaking();
+
+                // 面板插话：逐条显示
+                if (result.interjections && result.interjections.length > 0) {
+                    for (var ij of result.interjections) {
+                        await new Promise(r => setTimeout(r, 800));
+                        Examiner.setExpression('thinking');
+                        await typewriterMessage('assistant-interjection',
+                            '<span style="color:#7C3AED;font-weight:600;">' + ij.name + '：</span>' + ij.content);
+                        Examiner.stopSpeaking();
+                        await new Promise(r => setTimeout(r, 400));
+                        Examiner.setExpression('neutral');
+                    }
+                }
 
                 const responseText = result.response || '';
                 const approvingWords = ['不错', '很好', '优秀', '正确', 'excellent', 'great', 'good', 'impressive'];
@@ -699,7 +746,7 @@
             const response = await fetch('/api/examiner/finish', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ conversation_id: conversationId })
+                body: JSON.stringify({ conversation_id: conversationId, mode: interviewMode })
             });
             const result = await response.json();
             if (result.success) {
