@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Git
+.git/
+.gitignore
+
+# 数据（通过 volume 挂载）
+data/*.db
+data/*.db-journal
+data/*.db-wal
+
+# 日志
+*.log
+debug_audit.log
+
+# IDE
+.vscode/
+.idea/
+
+# 文档
+docs/*.zip
+
+# 脚本输出
+scripts/*.json
+scripts/*.txt
+scripts/*.log
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Windows
+start.bat
+*.lnk
