@@ -1,0 +1,52 @@
+# ================================================================
+# 委员会评审配置 — 多 Agent 协作评审
+# ================================================================
+
+committee:
+  # 是否启用委员会评审（false 时所有 review_mode=committee 请求降级为 single）
+  enabled: true
+
+  # 默认评审员数量
+  default_reviewer_count: 3
+
+  # 合成模式：
+  #   "llm"           — LLM 元评估合成（质量高，需额外 1 次 API 调用）
+  #   "simple_average" — 简单平均 + 去重（零额外 API 调用，纯数学计算）
+  synthesis_mode: "llm"
+
+  # API 限流时降级为单评审员模式
+  single_reviewer_fallback: true
+
+  # === 评审员定义 ===
+  # 每个评审员有独立的 review_focus，通过不同的 system prompt 实现差异化
+  # review_focus 可选值：balanced / strict / communication / technical / encouraging
+  reviewers:
+    - id: "reviewer_balanced"
+      name: "综合评审员"
+      title: "资深面试评审专家"
+      review_focus: "balanced"
+      enabled: true
+
+    - id: "reviewer_strict"
+      name: "严苛评审员"
+      title: "高级技术评审专家"
+      review_focus: "strict"
+      enabled: true
+
+    - id: "reviewer_encouraging"
+      name: "成长型评审员"
+      title: "人才发展评审专家"
+      review_focus: "encouraging"
+      enabled: true
+
+  # === 各场景可选的评审员覆盖 ===
+  # 如果某场景需要不同的评审员组合，在这里配置
+  scenario_overrides:
+    # 示例：教资面试场景使用不同的评审员
+    # teacher_cert:
+    #   reviewers:
+    #     - id: "reviewer_teaching_expert"
+    #       name: "教学评审员"
+    #       title: "教学法专家"
+    #       review_focus: "technical"
+    #       enabled: true

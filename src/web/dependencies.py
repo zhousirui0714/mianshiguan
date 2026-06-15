@@ -27,3 +27,6 @@ EXAMINERS = {
 }
 
 MAX_ROUNDS = 5
+
+# 多 Agent 协作
+llm_adapter = None

@@ -93,6 +93,11 @@ def _init_dependencies():
     deps.tool_registry = tool_registry
     deps.tool_executor = tool_executor
 
+    # 多 Agent 协作适配器
+    from src.agents.llm_adapter import LLMAdapter
+    deps.llm_adapter = LLMAdapter(deps.llm_client)
+    print(f"[app] 多 Agent 适配器就绪")
+
 
 def _register_blueprints(app):
     app.register_blueprint(web_bp)

@@ -625,6 +625,110 @@ def examiner_finish():
             skill_id = skill_session.skill_id
             skill = deps.skill_registry.get(skill_id)
             if skill:
+                # === 多 Agent 委员会评审模式 ===
+                review_mode = data.get('review_mode', 'single')
+
+                if review_mode == 'committee':
+                    try:
+                        from src.agents.committee import CommitteeReviewManager
+
+                        manager = CommitteeReviewManager(deps.llm_adapter)
+
+                        # 1. 构建委员会输入
+                        committee_input = manager.build_committee_input(
+                            skill_session, skill.config
+                        )
+
+                        # 2. 并行委员会评审（替代单个 skill.generate_feedback()）
+                        synthesis = manager.run_committee(committee_input)
+
+                        # 3. 转为向后兼容的 FeedbackReport
+                        report = manager.to_feedback_report(synthesis)
+
+                        # 4. 手动运行后续流水线阶段（评分 + 反馈已由委员会完成）
+                        from src.core.workflow.types import WorkflowContext, StageConfig
+                        from src.core.workflow.stages import (
+                            BadgeStage, ProgressStage, NotificationStage,
+                        )
+
+                        ctx = WorkflowContext(
+                            user_id=skill_session.user_id,
+                            scenario_id=skill_id,
+                            conversation_id=conversation_id,
+                            skill_id=skill_id,
+                            session=skill_session,
+                            report=report,
+                        )
+
+                        # 徽章检测
+                        badge_result = BadgeStage(StageConfig(name="badge", retry_count=3)).execute(ctx)
+                        ctx.new_badges = (
+                            badge_result.data.get("new_badges", [])
+                            if badge_result.success else []
+                        )
+
+                        # 进度更新
+                        ProgressStage(StageConfig(name="progress", retry_count=3)).execute(ctx)
+
+                        # 通知准备
+                        NotificationStage(StageConfig(name="notification", retry_count=1)).execute(ctx)
+
+                        new_badges = ctx.new_badges
+
+                        deps.db.update_conversation_status(conversation_id, 'finished')
+
+                        # 持久化报告数据（含多 Agent 特有字段）
+                        deps.db.update_conversation_report(conversation_id, {
+                            'overall_score': report.overall_score,
+                            'strengths': report.strengths or [],
+                            'improvements': report.improvements or [],
+                            'dimensions': report.dimension_scores,
+                            'overall_comment': report.overall_comment or "面试完成",
+                            'passed': report.passed,
+                            'new_badges': new_badges,
+                            'review_mode': 'committee',
+                            'agreement_score': synthesis.agreement_score,
+                            'individual_reports': [
+                                {
+                                    'agent_id': o.agent_id,
+                                    'score': o.data.get('overall_score', 0),
+                                    'success': o.success,
+                                }
+                                for o in synthesis.individual_reports
+                            ],
+                        })
+
+                        deps.SKILL_SESSIONS.pop(conversation_id, None)
+
+                        return jsonify({
+                            'success': True,
+                            'report': {
+                                'overall_score': report.overall_score,
+                                'strengths': report.strengths or [],
+                                'improvements': report.improvements or [],
+                                'dimensions': report.dimension_scores,
+                                'overall_comment': report.overall_comment or "面试完成",
+                                'passed': report.passed,
+                                'new_badges': new_badges,
+                                'review_mode': 'committee',
+                                'agreement_score': synthesis.agreement_score,
+                                'individual_reports': [
+                                    {
+                                        'agent_id': o.agent_id,
+                                        'score': o.data.get('overall_score', 0),
+                                        'confidence': o.data.get('confidence', 0),
+                                    }
+                                    for o in synthesis.individual_reports if o.success
+                                ],
+                            }
+                        })
+
+                    except Exception as e:
+                        print(f"[examiner_finish] 委员会评审失败，降级到单 Agent 模式: {e}")
+                        traceback.print_exc()
+                        # 降级：继续使用原流水线
+
+                # === 单 Agent 模式（原有逻辑）===
                 try:
                     from src.core.workflow import create_interview_pipeline
 
@@ -653,6 +757,7 @@ def examiner_finish():
                         'overall_comment': report.overall_comment or "面试完成",
                         'passed': report.passed if hasattr(report, 'passed') else False,
                         'new_badges': new_badges,
+                        'review_mode': 'single',
                     })
 
                     # 清理 Skill 会话
@@ -668,6 +773,7 @@ def examiner_finish():
                             'overall_comment': report.overall_comment or "面试完成",
                             'passed': report.passed if hasattr(report, 'passed') else False,
                             'new_badges': new_badges,
+                            'review_mode': 'single',
                         }
                     })
                 except Exception as e:
